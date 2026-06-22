@@ -27,14 +27,16 @@ if [ ! -d "$TEMPLATES_DIR" ]; then
   exit 1
 fi
 
-# Find next task ID
+# Find next task ID (max existing ID + 1)
 NEXT_ID=1
 for dir in "$TASKS_DIR"/T-[0-9]*; do
   if [ -d "$dir" ]; then
     DIR_NAME=$(basename "$dir")
     ID=${DIR_NAME#T-}
     ID=${ID%%-*}
-    if [ "$ID" -gt "$NEXT_ID" ]; then
+    # Remove leading zeros for arithmetic
+    ID=$((10#$ID))
+    if [ "$ID" -ge "$NEXT_ID" ]; then
       NEXT_ID=$((ID + 1))
     fi
   fi
@@ -43,10 +45,7 @@ done
 # Pad ID to 4 digits
 TASK_ID=$(printf "T-%04d" $NEXT_ID)
 
-# Convert title to slug
-SLUG=$(echo "$TASK_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-+/-/g' | sed 's/^-//;s/-$//')
-
-TASK_FOLDER="$TASKS_DIR/$TASK_ID-$SLUG"
+TASK_FOLDER="$TASKS_DIR/$TASK_ID"
 
 # Create task folder
 mkdir -p "$TASK_FOLDER"
