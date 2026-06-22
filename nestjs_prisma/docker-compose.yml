@@ -1,0 +1,30 @@
+services:
+  api:
+    build: .
+    container_name: nest_auth_api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nest_auth?schema=public
+      JWT_SECRET: change-me-in-production
+      JWT_EXPIRES_IN: 1d
+      PORT: 3000
+    ports:
+      - "3000:3000"
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: nest_auth_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nest_auth
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,0 +1,19 @@
+{
+  "extends": "expo/tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "./",
+    "paths": {
+      "/*": ["app/*"],
+      "components/*": ["src/components/*"],
+      "assets/*": ["src/assets/*"],
+      "constants/*": ["src/constants/*"],
+      "utils/*": ["src/utils/*"],
+      "theme/*": ["src/theme/*"],
+      "zustand/*": ["src/zustand/*"],
+      "localization/*": ["src/localization/*"],
+      "api/*": ["src/api/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

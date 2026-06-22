@@ -1,0 +1,73 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "env": {
+    "HARNESS_ROOT": "/Users/chubo/Work/DatXe",
+    "HARNESS_DOCS": "/Users/chubo/Work/DatXe/docs/harness"
+  },
+  "permissions": {
+    "allowlist": [
+      {
+        "tool": "Bash",
+        "pattern": "^(npm|pnpm|yarn) (run |)(lint|test|build|typecheck).*",
+        "description": "Run code quality scripts"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^(npm|pnpm|yarn) (run |)prisma:(generate|validate|migrate).*",
+        "description": "Run Prisma scripts"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^./scripts/harness/(create-task|run-checks|validate-contract|update-task-index|summarize-project-state)\\.sh",
+        "description": "Run harness automation scripts"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^(ls|find|cat|head|tail|grep|pwd|cd) ",
+        "description": "File reading and navigation"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^git (status|log|diff|branch|show)",
+        "description": "Safe git read-only commands"
+      }
+    ],
+    "denylist": [
+      {
+        "tool": "Bash",
+        "pattern": "^git push",
+        "description": "Prevent git push (user controls deployment)"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^git reset",
+        "description": "Prevent destructive git reset"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^git clean",
+        "description": "Prevent git clean"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^(rm -rf|rm -f /) |^rm .*\\*.*\\*",
+        "description": "Prevent recursive/bulk file deletion"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^mv.*src/.*src/",
+        "description": "Prevent moving source code"
+      },
+      {
+        "tool": "Bash",
+        "pattern": "^git.*--force|^git.*-f ",
+        "description": "Prevent force git operations"
+      }
+    ]
+  },
+  "hooks": {
+    "on_start": "echo '🔧 DatXe Multi-Project Harness initialized. Use /harness <task> to start.'",
+    "before_bash": null,
+    "after_bash": null
+  }
+}
