@@ -2,14 +2,14 @@
 
 **Task ID**: T-0003  
 **Phase**: Generating  
-**Created**: 2026-06-22  
-**Completed**: 2026-06-22  
+**Created**: 2026-06-23  
+**Completed**: 2026-06-23  
 
 ---
 
 ## Summary
 
-[Brief summary of what was implemented]
+Setup Redis connection trong NestJS backend với ioredis. Tạo RedisModule global, CacheService abstraction (get/set/delete/clear/increment với TTL). Graceful degradation khi Redis không available.
 
 ---
 
@@ -17,75 +17,33 @@
 
 ### Backend (nestjs_prisma)
 
-- Modified files:
-  - `src/modules/[module]/[feature].service.ts`
-  - `src/types/[feature].types.ts`
 - Added files:
-  - `src/controllers/[feature].controller.ts`
-
-Implementation details:
-- [What was done]
-- [Key decisions made during implementation]
-
-### Frontend - Driver App (app_taixe)
-
+  - `api/common/redis/redis.module.ts` — Global module
+  - `api/common/redis/redis.service.ts` — ioredis wrapper
+  - `api/common/redis/cache.service.ts` — CacheService abstraction
 - Modified files:
-  - `src/screens/[Screen].tsx`
-  - `src/services/[service].ts`
+  - `api/app.module.ts` — Import RedisModule
+  - `package.json` — Added ioredis + @types/ioredis (bun)
 
 Implementation details:
-- [What was done]
-- [Key decisions made during implementation]
-
-### Frontend - Customer App (app_user)
-
-- Modified files:
-  - [List files]
-
-Implementation details:
-- [What was done]
-
-### Database (Prisma)
-
-- Schema changes: [Any schema changes]
-- Migrations: [Any migrations needed]
+- **RedisService**: Implements OnModuleInit/OnModuleDestroy. Auto-connects on init, graceful shutdown on destroy. Retry strategy: max 3 attempts với exponential backoff (500ms → 2000ms). Logs connection status + errors. `isAvailable()` method cho phép check trước khi dùng.
+- **CacheService**: Key prefixing (`cache:`). JSON serialization cho complex values. TTL in seconds (Redis native). Methods: `get<T>()`, `set()`, `delete()`, `has()`, `clear()`, `increment()`. Graceful degradation — returns null/false khi Redis down.
+- **RedisModule**: `@Global()` decorator nên không cần import ở các modules khác. Export cả RedisService và CacheService.
 
 ---
 
 ## Code Quality Checks
 
-- [ ] ESLint: PASS
-- [ ] TypeScript: PASS
-- [ ] Tests: PASS
-- [ ] Build: PASS
-- [ ] No console.log left
-- [ ] No TODO comments left
-- [ ] No hard-coded secrets
-
----
-
-## API Verification
-
-### Endpoints Created/Modified
-
-- `POST /api/[endpoint]` ✅
-  - Request validated: [Yes/No]
-  - Response validated: [Yes/No]
-  - Status codes correct: [Yes/No]
-
----
-
-## Database Verification
-
-### Schema Changes
-
-- [ ] Prisma schema updated
-- [ ] Migration created
-- [ ] Migration validated (dry-run)
+- [x] ESLint: PASS (bun run lint)
+- [x] TypeScript: PASS (bun run build)
+- [x] No console.log in production code
+- [x] No TODO comments left
+- [x] No hard-coded secrets (uses env vars)
 
 ---
 
 ## Notes
 
-[Any implementation notes, workarounds, or interesting decisions]
-
+- Issue: ioredis ban đầu bị cài nhầm vào parent directory qua npm thay vì bun
+- Fix: Cleanup + reinstall đúng chỗ bằng `bun add ioredis @types/ioredis`
+- RedisService.isAvailable() cho phép app chạy được khi Redis chưa ready — không crash

@@ -61,7 +61,18 @@
 | **Status** | Resolved |
 | **Resolved By** | T-0001 + T-0002 |
 | **Decision** | PostgreSQL with PostGIS + Prisma ORM |
-| **Details** | <ul><li>PostgreSQL 16 with PostGIS extension for geo queries</li><li>Prisma ORM for migrations, queries, and type safety</li><li>Database conventions documented in PROJECT_STATE.md</li><li>Redis for caching and realtime data (T-0003 pending)</li></ul> |
+| **Details** | <ul><li>PostgreSQL 16 with PostGIS extension for geo queries</li><li>Prisma ORM for migrations, queries, and type safety</li><li>Database conventions documented in PROJECT_STATE.md</li><li>Redis installed (T-0003) for caching, Geo, streams</li></ul> |
+
+### D-0004: Package Manager — bun
+
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | T-0003 (2026-06-23) |
+| **Context** | Project dùng bun (có bun.lock) nhưng lệnh install ban đầu chạy bằng npm, gây conflict |
+| **Decision** | Dùng bun cho tất cả operations (install, run build, run lint, etc.) |
+| **Impacted Projects** | nestjs_prisma |
+| **Consequences** | <ul><li>`bun add <package>` thay vì `npm install`</li><li>`bun run build` thay vì `npm run build`</li><li>`bun run lint` thay vì `npm run lint`</li><li>Không dùng npm trong project directory</li></ul> |
 
 ### P-D-0003: API Versioning
 

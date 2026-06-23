@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-06-23  
 **Total Tasks**: 31  
-**Completed**: 0  
+**Completed**: 2  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -14,9 +14,9 @@
 
 | ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
 |----|-------|--------|-------|----------|-----------|----------|--------|
-| T-0001 | Backend env config mở rộng | Planned | Created | P1 | - | nestjs_prisma | [T-0001](tasks/T-0001/) |
-| T-0002 | Prisma schema mở rộng cho booking flow | Done | Closing | P1 | T-0001 | nestjs_prisma | [T-0002](tasks/T-0002/) |
-| T-0003 | Redis connection và cache service | Planned | Created | P1 | T-0001 | nestjs_prisma | [T-0003](tasks/T-0003/) |
+| T-0001 | Backend env config mở rộng | Done | Done | P1 | - | nestjs_prisma | [T-0001](tasks/T-0001/) |
+| T-0002 | Prisma schema mở rộng cho booking flow | Done | Done | P1 | T-0001 | nestjs_prisma | [T-0002](tasks/T-0002/) |
+| T-0003 | Redis connection và cache service | Done | Done | P1 | T-0001 | nestjs_prisma | [T-0003](tasks/T-0003/) |
 | T-0004 | WebSocket gateway cơ bản | Planned | Created | P1 | T-0001, T-0003 | nestjs_prisma | [T-0004](tasks/T-0004/) |
 | T-0005 | API response format và error handling | Planned | Created | P1 | - | nestjs_prisma | [T-0005](tasks/T-0005/) |
 | T-0031 | Google Maps routing service backend | Planned | Created | P1 | T-0003 | nestjs_prisma | [T-0031](tasks/T-0031/) |

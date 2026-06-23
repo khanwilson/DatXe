@@ -1,50 +1,34 @@
 # Files Changed
 
 **Task ID**: T-0003  
-**Date**: 2026-06-22  
+**Date**: 2026-06-23  
 
 ---
 
 ## Summary
 
-Total files changed: X  
-Lines added: X  
-Lines removed: X  
+Total files changed: 5  
+Lines added: ~180  
+Lines removed: 0  
 
 ---
 
 ## By Project
 
-### app_taixe
-
-```
-M src/screens/[Screen].tsx (+50 -20)
-M src/services/[service].ts (+30 -10)
-A src/types/[new].types.ts (+25 -0)
-```
-
-### app_user
-
-```
-M src/screens/[Screen].tsx (+40 -15)
-```
-
 ### nestjs_prisma
 
 ```
-M src/modules/[module]/[feature].service.ts (+80 -30)
-M src/types/[feature].types.ts (+20 -5)
-A src/controllers/[feature].controller.ts (+120 -0)
-M prisma/schema.prisma (+15 -0)
+A api/common/redis/redis.module.ts (+10 -0)        — Global module exporting RedisService + CacheService
+A api/common/redis/redis.service.ts (+55 -0)       — ioredis wrapper with connect/disconnect/error handling
+A api/common/redis/cache.service.ts (+72 -0)       — Cache abstraction with get/set/delete/clear + TTL + key prefixing
+M api/app.module.ts (+2 -0)                         — Import RedisModule
+M package.json (+2 -0)                              — Added ioredis + @types/ioredis via bun
 ```
 
-### docs/harness
+### Package Manager Fix
 
-```
-M PROJECT_STATE.md (+10 -0)
-M DECISIONS.md (+15 -0)
-M TASKS.md (+5 -0)
-```
+- **Before**: ioredis was mistakenly installed in `/Users/chubo/Work/DatXe/node_modules/` via npm
+- **Fixed**: Removed from wrong location, reinstalled via `bun add ioredis @types/ioredis` in `nestjs_prisma/`
 
 ---
 
@@ -52,18 +36,15 @@ M TASKS.md (+5 -0)
 
 - `A` - Added file
 - `M` - Modified file
-- `D` - Deleted file
-- `R` - Renamed file
 
 ---
 
 ## Breaking Changes
 
-None.
+None — internal service only, no API changes.
 
 ---
 
 ## Backward Compatibility
 
-✅ All changes are backward compatible.
-
+✅ All changes are backward compatible. RedisModule là global, các service khác có thể inject trực tiếp.

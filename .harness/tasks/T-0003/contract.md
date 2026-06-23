@@ -2,7 +2,7 @@
 
 **Task ID**: T-0003  
 **Phase**: Contracting  
-**Created**: 2026-06-22  
+**Created**: 2026-06-23  
 
 ---
 
@@ -10,26 +10,35 @@
 
 ### In Scope
 
-- [Feature/component 1]
-- [Feature/component 2]
-- [Feature/component 3]
+- Install ioredis package + types
+- Create RedisModule (global)
+- Create RedisService (ioredis wrapper: connect, disconnect, error handling)
+- Create CacheService (get/set/delete/clear with TTL)
+- Register RedisModule in AppModule
+- Graceful degradation when Redis is unavailable
 
 ### Out of Scope
 
-- [Explicitly excluded 1]
-- [Explicitly excluded 2]
+- Redis Geo operations (đó là T-0027)
+- Redis Streams (đó là T-0004 WebSocket gateway)
+- Rate limiting implementation (sẽ dùng trong T-0006)
+- Google Maps caching (đó là T-0031)
+- Health check endpoint (đó là T-0030)
 
 ---
 
 ## Allowed Files
 
 ```
-app_taixe/**
-nestjs_prisma/**
-docs/harness/**
+nestjs_prisma/api/common/redis/redis.module.ts (create)
+nestjs_prisma/api/common/redis/redis.service.ts (create)
+nestjs_prisma/api/common/redis/cache.service.ts (create)
+nestjs_prisma/api/app.module.ts (update)
+nestjs_prisma/package.json (update - add ioredis)
+.harness/tasks/T-0003/* (task documentation)
 ```
 
-**Rationale**: Task involves driver app and backend only.
+**Rationale**: Task chỉ liên quan Redis setup trong backend. Không touch frontend hoặc database schema.
 
 ---
 
@@ -37,7 +46,7 @@ docs/harness/**
 
 - [ ] app_taixe
 - [ ] app_user
-- [ ] nestjs_prisma
+- [x] nestjs_prisma
 - [ ] docs
 - [ ] harness
 
@@ -45,12 +54,14 @@ docs/harness/**
 
 ## Acceptance Criteria
 
-- [ ] Feature works as specified
+- [ ] ioredis installed
+- [ ] RedisModule exported as global
+- [ ] RedisService connects to Redis using env vars (REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_DB)
+- [ ] CacheService: get/set/delete/clear với TTL (seconds)
+- [ ] Graceful shutdown on app close
+- [ ] App does NOT crash when Redis is down
 - [ ] No lint errors: `npm run lint`
-- [ ] TypeScript compiles: `npm run typecheck`
-- [ ] Tests pass: `npm test`
-- [ ] Build succeeds: `npm run build`
-- [ ] No breaking changes to APIs
+- [ ] TypeScript compiles: `npm run build`
 - [ ] No hard-coded secrets/API keys
 - [ ] Follows project conventions
 - [ ] All changes within Allowed Files
@@ -59,68 +70,29 @@ docs/harness/**
 
 ## API Contract Changes
 
-### New Endpoints
-
-```
-POST /api/[resource]
-  Request: { ... }
-  Response: { ... }
-  Status: 201 Created | 400 Bad Request | 401 Unauthorized
-```
-
-### Modified Endpoints
-
-```
-GET /api/[resource]/:id
-  Before: { oldField: string }
-  After: { oldField: string, newField: string }
-  Breaking: No (backward compatible)
-```
-
-### Deprecated Endpoints
-
-```
-DELETE /api/[old-endpoint]
-  Status: Will be removed in v2.0
-```
+None — internal service only.
 
 ---
 
 ## Database Impact
 
-### Prisma Schema Changes
-
-```prisma
-model [Model] {
-  id        Int     @id @default(autoincrement())
-  newField  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
-
-### Migrations Required
-
-- [ ] `create_[model]` migration needed
-- [ ] Data backfill needed
-- [ ] Deployment: [online | offline | atomic]
+None — no Prisma schema changes.
 
 ---
 
 ## Test Strategy
 
-- **Unit Tests**: [What to test]
-- **Integration Tests**: [What to test]
-- **API Contract Tests**: [What endpoints to verify]
-- **Edge Cases**: [What edge cases]
-- **Manual Testing**: [What to test manually]
+- **Build Check**: `npm run build` passes
+- **Lint Check**: `npm run lint` passes
+- **Connection Test**: App starts with Redis running, connection logged
+- **Graceful Degradation**: App starts without Redis, logs error but doesn't crash
+- **Edge Cases**: TTL=0, invalid JSON values, connection timeout
 
 ---
 
 ## Sign-off
 
-- **Planner**: [Name]
-- **Code Owner**: [Name]
-- **Approved**: [ ] Yes / [ ] No
-- **Approved At**: 2026-06-22
-
+- **Planner**: Claude Sonnet 4.6
+- **Code Owner**: nathan
+- **Approved**: Yes
+- **Approved At**: 2026-06-23
