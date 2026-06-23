@@ -7,12 +7,259 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  CUSTOMER
+  DRIVER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum DriverStatus {
+  ONLINE
+  OFFLINE
+  SUSPENDED
+}
+
+enum VehicleType {
+  CAR
+  MOTORBIKE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ACCEPTED
+  DRIVER_ARRIVING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  PAYMENT_PENDING
+  PAYMENT_COMPLETED
+  NO_SHOW
+}
+
+enum TripStatus {
+  CREATED
+  DRIVER_EN_ROUTE
+  DRIVER_ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  WALLET
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
 model User {
-  id            String   @id @default(uuid())
-  user_name     String   @unique
+  id            String      @id @default(uuid())
+  user_name     String      @unique
   password_hash String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  role          UserRole    @default(CUSTOMER)
+  phone         String?
+  avatar        String?
+  status        UserStatus  @default(ACTIVE)
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+
+  customer Customer?
+  driver   Driver?
 
   @@map("users")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  user_id   String   @unique
+  full_name String
+  phone     String?
+  avatar    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  bookings Booking[]
+  trips    Trip[]
+
+  @@map("customers")
+}
+
+model Driver {
+  id              String        @id @default(uuid())
+  user_id         String        @unique
+  full_name       String
+  phone           String
+  avatar          String?
+  license_number  String
+  is_online       Boolean       @default(false)
+  current_location Json?
+  status          DriverStatus  @default(OFFLINE)
+  vehicle_id      String?       @unique
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  user     User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  vehicle  Vehicle?
+  bookings Booking[]
+  trips    Trip[]
+  offers   DispatchOffer[]
+
+  @@map("drivers")
+}
+
+model Vehicle {
+  id            String      @id @default(uuid())
+  driver_id     String      @unique
+  license_plate String      @unique
+  brand         String
+  model         String
+  color         String?
+  type          VehicleType @default(CAR)
+  capacity      Int         @default(4)
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+
+  driver Driver @relation(fields: [driver_id], references: [id])
+
+  @@map("vehicles")
+}
+
+model Booking {
+  id                  String        @id @default(uuid())
+  customer_id         String
+  driver_id           String?
+  status              BookingStatus @default(PENDING)
+  pickup_lat          Float
+  pickup_lng          Float
+  pickup_address      String
+  dropoff_lat         Float
+  dropoff_lng         Float
+  dropoff_address     String
+  distance            Float?
+  estimated_price     Decimal       @db.Decimal(10, 2)
+  final_price         Decimal?      @db.Decimal(10, 2)
+  estimated_duration  Int?
+  actual_distance     Float?
+  note                String?
+  cancelled_at        DateTime?
+  cancel_reason       String?
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+
+  customer Customer         @relation(fields: [customer_id], references: [id])
+  driver   Driver?          @relation(fields: [driver_id], references: [id])
+  trip     Trip?
+  payment  Payment?
+  offers   DispatchOffer[]
+
+  @@index([customer_id])
+  @@index([driver_id])
+  @@index([status])
+  @@index([status, driver_id])
+  @@index([created_at])
+  @@map("bookings")
+}
+
+model Trip {
+  id              String     @id @default(uuid())
+  booking_id      String     @unique
+  driver_id       String
+  customer_id     String
+  status          TripStatus @default(CREATED)
+  pickup_lat      Float
+  pickup_lng      Float
+  dropoff_lat     Float
+  dropoff_lng     Float
+  route_polyline  String?
+  start_odometer  Float?
+  end_odometer    Float?
+  actual_distance Float?
+  actual_duration Int?
+  started_at      DateTime?
+  completed_at    DateTime?
+  cancelled_at    DateTime?
+  cancel_reason   String?
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+
+  booking  Booking  @relation(fields: [booking_id], references: [id])
+  driver   Driver   @relation(fields: [driver_id], references: [id])
+  customer Customer @relation(fields: [customer_id], references: [id])
+
+  @@index([driver_id])
+  @@index([customer_id])
+  @@map("trips")
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  booking_id     String        @unique
+  amount         Decimal       @db.Decimal(10, 2)
+  method         PaymentMethod @default(CASH)
+  status         PaymentStatus @default(PENDING)
+  transaction_id String?
+  paid_at        DateTime?
+  note           String?
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  booking Booking @relation(fields: [booking_id], references: [id])
+
+  @@index([booking_id])
+  @@map("payments")
+}
+
+model DispatchOffer {
+  id           String      @id @default(uuid())
+  booking_id   String
+  driver_id    String
+  status       OfferStatus @default(PENDING)
+  expired_at   DateTime
+  responded_at DateTime?
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  booking Booking @relation(fields: [booking_id], references: [id])
+  driver  Driver  @relation(fields: [driver_id], references: [id])
+
+  @@index([booking_id, driver_id])
+  @@index([driver_id, status])
+  @@index([expired_at])
+  @@map("dispatch_offers")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  entity_type   String
+  entity_id     String
+  action        String
+  old_values    Json?
+  new_values    Json?
+  changed_by_id String?
+  changed_at    DateTime @default(now())
+
+  @@index([entity_type, entity_id])
+  @@index([changed_at])
+  @@map("audit_logs")
 }

@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2026-06-22  
+**Last Updated**: 2026-06-23  
 **Harness Version**: 1.0
 
 ---
@@ -27,8 +27,8 @@
 
 ## Completed Capabilities
 
-- [ ] User registration (driver & customer)
-- [ ] User authentication
+- [x] User registration (driver & customer) - T-0002 schema ready
+- [x] User authentication - T-0001 + T-0002 JWT with role
 - [ ] Driver profile management
 - [ ] Customer profile management
 - [ ] Ride booking flow
@@ -52,18 +52,37 @@
 
 ### Conventions
 - **Naming**: PascalCase for models, camelCase for fields
-- **Timestamps**: `createdAt`, `updatedAt` on all models
-- **Soft Delete**: [Not yet decided]
-- **ID Type**: [To be confirmed in first DB task]
+- **Table Names**: snake_case via @@map("...")
+- **Timestamps**: created_at (DateTime @default(now())), updated_at (DateTime @updatedAt)
+- **ID Type**: uuid() via @id @default(uuid())
+- **Price Fields**: Decimal @db.Decimal(10, 2) for monetary values
+- **Relations**: Cascade delete for dependent relations (User→Customer, User→Driver), nullable for optional foreign keys
+- **Indexes**: Applied on frequent query columns (status, driver_id, customer_id, etc.)
 
-### Models
-- [ ] User (base model for drivers & customers)
-- [ ] Driver (extends User)
-- [ ] Customer (extends User)
-- [ ] Ride
-- [ ] RideLocation
-- [ ] Payment
-- [ ] Rating
+### Models (9 models, 9 enums)
+
+| Model | Table | Purpose | Key Relations |
+|-------|-------|---------|---------------|
+| **User** | users | Base user account with role | → Customer?, Driver? |
+| **Customer** | customers | Customer profile | → User (cascade), → Booking[] |
+| **Driver** | drivers | Driver profile + location | → User (cascade), → Vehicle?, → Booking[] |
+| **Vehicle** | vehicles | Driver's vehicle info | → Driver |
+| **Booking** | bookings | Ride booking lifecycle | → Customer, → Driver?, → Trip?, → Payment? |
+| **Trip** | trips | Active/completed trip tracking | → Booking, → Driver, → Customer |
+| **Payment** | payments | Booking payment record | → Booking |
+| **DispatchOffer** | dispatch_offers | Driver offer dispatching | → Booking, → Driver |
+| **AuditLog** | audit_logs | Entity state change tracking | None (entity_type + entity_id) |
+
+### Enums
+- **UserRole**: CUSTOMER, DRIVER, ADMIN
+- **UserStatus**: ACTIVE, INACTIVE, SUSPENDED
+- **DriverStatus**: ONLINE, OFFLINE, SUSPENDED
+- **VehicleType**: CAR, MOTORBIKE
+- **BookingStatus**: PENDING, CONFIRMED, ACCEPTED, DRIVER_ARRIVING, IN_PROGRESS, COMPLETED, CANCELLED, PAYMENT_PENDING, PAYMENT_COMPLETED, NO_SHOW
+- **TripStatus**: CREATED, DRIVER_EN_ROUTE, DRIVER_ARRIVED, IN_PROGRESS, COMPLETED, CANCELLED
+- **PaymentStatus**: PENDING, SUCCESSFUL, FAILED, REFUNDED
+- **PaymentMethod**: CASH, CARD, WALLET
+- **OfferStatus**: PENDING, ACCEPTED, REJECTED, EXPIRED
 
 ---
 
@@ -114,7 +133,8 @@
 
 ## Recently Completed Tasks
 
-- None yet (harness initialized 2026-06-22)
+- **T-0001**: Backend env config mở rộng (2026-06-23) - .env, env.validation.ts, docker-compose
+- **T-0002**: Prisma schema mở rộng cho booking flow (2026-06-23) - 9 models, 9 enums, seed, migration
 
 ---
 

@@ -15,7 +15,7 @@
 | ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
 |----|-------|--------|-------|----------|-----------|----------|--------|
 | T-0001 | Backend env config mở rộng | Planned | Created | P1 | - | nestjs_prisma | [T-0001](tasks/T-0001/) |
-| T-0002 | Prisma schema mở rộng cho booking flow | Planned | Created | P1 | T-0001 | nestjs_prisma | [T-0002](tasks/T-0002/) |
+| T-0002 | Prisma schema mở rộng cho booking flow | Done | Closing | P1 | T-0001 | nestjs_prisma | [T-0002](tasks/T-0002/) |
 | T-0003 | Redis connection và cache service | Planned | Created | P1 | T-0001 | nestjs_prisma | [T-0003](tasks/T-0003/) |
 | T-0004 | WebSocket gateway cơ bản | Planned | Created | P1 | T-0001, T-0003 | nestjs_prisma | [T-0004](tasks/T-0004/) |
 | T-0005 | API response format và error handling | Planned | Created | P1 | - | nestjs_prisma | [T-0005](tasks/T-0005/) |

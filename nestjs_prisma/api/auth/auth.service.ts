@@ -63,6 +63,10 @@ export class AuthService {
       select: {
         id: true,
         user_name: true,
+        role: true,
+        phone: true,
+        avatar: true,
+        status: true,
         created_at: true,
         updated_at: true,
       },
@@ -74,12 +78,14 @@ export class AuthService {
   private buildAuthResponse(user: {
     id: string;
     user_name: string;
+    role: string;
     created_at: Date;
     updated_at: Date;
   }) {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       user_name: user.user_name,
+      role: user.role,
     });
 
     return {
@@ -87,6 +93,7 @@ export class AuthService {
       user: {
         id: user.id,
         user_name: user.user_name,
+        role: user.role,
         created_at: user.created_at,
         updated_at: user.updated_at,
       },

@@ -1,6 +1,6 @@
 # Decisions Log
 
-**Last Updated**: 2026-06-22  
+**Last Updated**: 2026-06-23  
 **Format**: Per-decision tracking with status and impact
 
 ---
@@ -18,6 +18,28 @@
 | **Impacted Projects** | All (harness) |
 | **Consequences** | <ul><li>All tasks must follow structured workflow</li><li>No code before plan & contract</li><li>API contracts must be documented</li><li>Prisma schema changes must be tracked</li></ul> |
 
+### D-0002: Prisma Schema Conventions
+
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | T-0002 (2026-06-23) |
+| **Context** | Need consistent conventions for database schema design |
+| **Decision** | PascalCase models, camelCase fields, uuid() @id, snake_case tables via @@map, Decimal for prices, cascade delete for dependent relations |
+| **Impacted Projects** | nestjs_prisma |
+| **Consequences** | <ul><li>All future models follow these conventions</li><li>Price fields use Decimal @db.Decimal(10, 2)</li><li>Foreign keys use cascade delete for 1:1 dependent relations (User→Customer, User→Driver)</li><li>Optional relations use nullable foreign keys</li><li>Indexes on frequent query columns</li></ul> |
+
+### D-0003: User Model Design
+
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | T-0002 (2026-06-23) |
+| **Context** | Need to support different user types (customer, driver, admin) in single User model |
+| **Decision** | Single User model with role enum (CUSTOMER, DRIVER, ADMIN), separate Customer/Driver models linked 1:1 |
+| **Impacted Projects** | nestjs_prisma, app_taixe, app_user |
+| **Consequences** | <ul><li>User.role determines user type</li><li>Customer/Driver models extend User with type-specific fields</li><li>Auth JWT payload includes role for authorization guards</li><li>Register endpoint defaults role=CUSTOMER (backward compatible)</li></ul> |
+
 ---
 
 ## Pending Decisions
@@ -27,30 +49,28 @@
 | Field | Value |
 |-------|-------|
 | **Status** | Pending |
-| **Trigger** | First auth-related task |
+| **Trigger** | T-0006 (Auth API refresh token) |
 | **Options** | <ul><li>JWT with refresh tokens</li><li>Session-based with cookies</li><li>OAuth 2.0 integration</li><li>Firebase Auth</li></ul> |
 | **Impact Scope** | NestJS backend, both mobile apps, database schema |
-| **Notes** | Affects security, mobile offline support, multi-device login |
+| **Notes** | T-0001 set up JWT access/refresh tokens. T-0002 added role to JWT payload. T-0006 will implement full refresh token flow. |
 
 ### P-D-0002: Database Strategy
 
 | Field | Value |
 |-------|-------|
-| **Status** | Pending |
-| **Trigger** | First database-related task |
-| **Options** | <ul><li>PostgreSQL</li><li>MySQL</li><li>MongoDB</li><li>Cloud-hosted (Firebase, PlanetScale)</li></ul> |
-| **Impact Scope** | Prisma config, backend deployment, data migration approach |
-| **Notes** | Affects schema design, performance, backup strategy |
+| **Status** | Resolved |
+| **Resolved By** | T-0001 + T-0002 |
+| **Decision** | PostgreSQL with PostGIS + Prisma ORM |
+| **Details** | <ul><li>PostgreSQL 16 with PostGIS extension for geo queries</li><li>Prisma ORM for migrations, queries, and type safety</li><li>Database conventions documented in PROJECT_STATE.md</li><li>Redis for caching and realtime data (T-0003 pending)</li></ul> |
 
 ### P-D-0003: API Versioning
 
 | Field | Value |
 |-------|-------|
-| **Status** | Pending |
-| **Trigger** | When API becomes stable or needs breaking changes |
-| **Options** | <ul><li>URL versioning (`/api/v1/...`)</li><li>Header versioning</li><li>No versioning (internal API only)</li></ul> |
-| **Impact Scope** | Backend routing, frontend API clients |
-| **Notes** | Affects long-term API evolution and mobile app updates |
+| **Status** | Resolved |
+| **Resolved By** | T-0001 |
+| **Decision** | URL versioning with `/api/v1/` prefix |
+| **Details** | <ul><li>API_PREFIX = `/api/v1` configurable via env</li><li>All future endpoints use this prefix</li><li>Version bump when breaking changes needed</li></ul> |
 
 ### P-D-0004: State Management (Mobile Apps)
 

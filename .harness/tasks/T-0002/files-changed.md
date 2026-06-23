@@ -1,49 +1,33 @@
 # Files Changed
 
 **Task ID**: T-0002  
-**Date**: 2026-06-22  
+**Date**: 2026-06-23  
 
 ---
 
 ## Summary
 
-Total files changed: X  
-Lines added: X  
-Lines removed: X  
+Total files changed: 4  
+Lines added: ~450  
+Lines removed: ~20  
 
 ---
 
 ## By Project
 
-### app_taixe
-
-```
-M src/screens/[Screen].tsx (+50 -20)
-M src/services/[service].ts (+30 -10)
-A src/types/[new].types.ts (+25 -0)
-```
-
-### app_user
-
-```
-M src/screens/[Screen].tsx (+40 -15)
-```
-
 ### nestjs_prisma
 
 ```
-M src/modules/[module]/[feature].service.ts (+80 -30)
-M src/types/[feature].types.ts (+20 -5)
-A src/controllers/[feature].controller.ts (+120 -0)
-M prisma/schema.prisma (+15 -0)
+M prisma/schema.prisma (+210 -5)  — Expanded User, added 8 models + 9 enums
+A prisma/seed.ts (+315 -0)        — Seed data for all 9 models
+M package.json (+3 -0)            — Added prisma:seed script + prisma.seed config
+M api/auth/auth.service.ts (+5 -5) — Extended getProfile + buildAuthResponse with role
 ```
 
-### docs/harness
+### Prisma Migration (auto-generated)
 
 ```
-M PROJECT_STATE.md (+10 -0)
-M DECISIONS.md (+15 -0)
-M TASKS.md (+5 -0)
+A prisma/migrations/20260623081950_add_booking_flow_models/migration.sql
 ```
 
 ---
@@ -52,18 +36,18 @@ M TASKS.md (+5 -0)
 
 - `A` - Added file
 - `M` - Modified file
-- `D` - Deleted file
-- `R` - Renamed file
 
 ---
 
 ## Breaking Changes
 
-None.
+None. Auth service changes are backward compatible — only added new fields to responses.
 
 ---
 
 ## Backward Compatibility
 
 ✅ All changes are backward compatible.
-
+- Register endpoint unchanged (creates User with role=CUSTOMER default)
+- Login endpoint unchanged
+- getProfile extended (added fields, not removed)
