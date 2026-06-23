@@ -2,6 +2,11 @@
 
 Full task workflow from creation to completion.
 
+**Model Routing**:
+- Planning/Contracting/Generating/Evaluating phases → Sonnet 4.6
+- Documentation updates (status, handoff, files-changed) → Haiku 4.5
+- When in doubt during documentation → switch to Sonnet 4.6 if decisions needed
+
 ## Usage
 
 ```

@@ -2,6 +2,8 @@
 
 Create a new task and initialize all task documents.
 
+**Model**: Haiku 4.5 (documentation task — just creates folder structure and initializes templates)
+
 ## Usage
 
 ```

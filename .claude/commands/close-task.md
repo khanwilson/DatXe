@@ -2,6 +2,10 @@
 
 Close and complete a task.
 
+**Model**: Haiku 4.5 (documentation task — fills handoff template, updates status/index files)
+
+**Exception**: If handoff requires architectural decisions or API changes that affect future tasks → use Sonnet 4.6 to review.
+
 ## Usage
 
 ```

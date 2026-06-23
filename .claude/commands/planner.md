@@ -2,6 +2,8 @@
 
 Run planning phase for a task.
 
+**Model**: Sonnet 4.6 (thinking task — requires scope analysis, risk assessment, dependency mapping)
+
 ## Usage
 
 ```
