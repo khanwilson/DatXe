@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+.next
+.expo
+.git
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.zip
+*.lock
+.env
+coverage
