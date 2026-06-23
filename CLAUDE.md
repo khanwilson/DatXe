@@ -68,13 +68,18 @@ Nếu task liên quan database:
 - Có thay đổi relationship không?
 - Có thay đổi index không?
 
-### 6. Task Status Management
+### 6. Task Status Management — Inline Updates
 
-Mỗi task:
+Mỗi task **PHẢI** cập nhật documentation INLINE khi chuyển phase, không đợi đến cuối task:
 
-- **PHẢI** có file `status.md` ghi rõ phase hiện tại
-- **PHẢI** cập nhật `TASKS.md` index khi có thay đổi status
-- **PHẢI** cập nhật `CURRENT_TASK.md` khi task active
+- **Chuyển phase** → update `status.md` NGAY LẬP TỨC (tick phase cũ, mở phase mới)
+- **Tạo/sửa file code** → update `implementation.md` INLINE (thêm entry vào Changes Made)
+- **Tạo/sửa file bất kỳ** → update `files-changed.md` INLINE
+- **Phát hiện decision** → ghi vào `decisions.md` task-scoped ngay
+- **Hoàn tất evaluation** → update `evaluation.md` + `TASKS.md` index
+- **Task done** → update `handoff.md`, promote decisions, cập nhật `PROJECT_STATE.md`
+
+Không để documentation bị outdate so với trạng thái thực tế.
 
 ### 7. Handoff & Project State Update
 
