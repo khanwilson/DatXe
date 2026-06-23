@@ -1,15 +1,15 @@
-# Files Changed
+# Files Changed - T-0001
 
 **Task ID**: T-0001  
-**Date**: 2026-06-22  
+**Date**: 2026-06-23  
 
 ---
 
 ## Summary
 
-Total files changed: X  
-Lines added: X  
-Lines removed: X  
+Total files changed: 5  
+Lines added: ~180  
+Lines removed: ~15  
 
 ---
 
@@ -17,33 +17,34 @@ Lines removed: X
 
 ### app_taixe
 
-```
-M src/screens/[Screen].tsx (+50 -20)
-M src/services/[service].ts (+30 -10)
-A src/types/[new].types.ts (+25 -0)
-```
+Không thay đổi.
 
 ### app_user
 
-```
-M src/screens/[Screen].tsx (+40 -15)
-```
+Không thay đổi.
 
 ### nestjs_prisma
 
 ```
-M src/modules/[module]/[feature].service.ts (+80 -30)
-M src/types/[feature].types.ts (+20 -5)
-A src/controllers/[feature].controller.ts (+120 -0)
-M prisma/schema.prisma (+15 -0)
+M .env.example            (+39 -4)  - Mở rộng env vars
+M .env                    (+23 -4)  - Sync với .env.example
+M docker-compose.yml      (+22 -8)  - PostGIS + Redis + container names
+M api/main.ts             (+12 -3)  - Env validation + config usage
+A api/common/config/env.validation.ts (+83 -0) - Env validation class
 ```
 
-### docs/harness
+### .harness
 
 ```
-M PROJECT_STATE.md (+10 -0)
-M DECISIONS.md (+15 -0)
-M TASKS.md (+5 -0)
+M .harness/tasks/T-0001/task.md       (+0 -0)  - Không thay đổi
+M .harness/tasks/T-0001/plan.md       (+68 -35) - Plan detail
+M .harness/tasks/T-0001/contract.md   (+91 -61) - Contract detail
+M .harness/tasks/T-0001/status.md     (+10 -10) - Status update
+M .harness/tasks/T-0001/evaluation.md (+156 -61) - Evaluation report
+M .harness/tasks/T-0001/implementation.md (+68 -35) - Implementation detail
+M .harness/tasks/T-0001/files-changed.md (+57 -22) - This file
+M .harness/tasks/T-0001/handoff.md    (+68 -35) - Handoff detail
+M .harness/tasks/T-0001/decisions.md  (+15 -10) - Decision log
 ```
 
 ---
@@ -59,11 +60,13 @@ M TASKS.md (+5 -0)
 
 ## Breaking Changes
 
-None.
+**API Prefix**: Thay đổi từ `/api` → `/api/v1`. Có thể ảnh hưởng:
+- Mobile app API calls (sẽ fix trong T-0014/T-0015)
+- Swagger docs path (đã update trong main.ts)
 
 ---
 
 ## Backward Compatibility
 
-✅ All changes are backward compatible.
-
+✅ `JWT_SECRET` giữ lại để auth module cũ không break
+✅ Auth module có thể dùng JWT_SECRET hoặc JWT_ACCESS_TOKEN_SECRET

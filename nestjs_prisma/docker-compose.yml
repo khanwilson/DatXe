@@ -1,21 +1,28 @@
 services:
   api:
     build: .
-    container_name: nest_auth_api
+    container_name: datxe_api
     restart: unless-stopped
     depends_on:
       - postgres
+      - redis
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nest_auth?schema=public
       JWT_SECRET: change-me-in-production
-      JWT_EXPIRES_IN: 1d
-      PORT: 3000
+      JWT_ACCESS_TOKEN_SECRET: change-me-in-production-access
+      JWT_ACCESS_TOKEN_EXPIRATION: 7d
+      JWT_REFRESH_TOKEN_SECRET: change-me-in-production-refresh
+      JWT_REFRESH_TOKEN_EXPIRATION: 30d
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      API_PORT: 3000
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8081
     ports:
       - "3000:3000"
 
   postgres:
-    image: postgres:16-alpine
-    container_name: nest_auth_postgres
+    image: postgis/postgis:16-3.4
+    container_name: datxe_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -26,5 +33,16 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: datxe_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
+  redis_data:
