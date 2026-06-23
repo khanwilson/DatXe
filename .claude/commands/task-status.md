@@ -2,6 +2,8 @@
 
 View current status of a task.
 
+**Model**: Haiku 4.5 (documentation task — just reads and displays status)
+
 ## Usage
 
 ```

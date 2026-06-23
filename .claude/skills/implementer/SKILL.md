@@ -1,5 +1,7 @@
 # Implementer Skill
 
+**Model**: Sonnet 4.6 (code implementation, architecture decisions)
+
 **Purpose**: Code implementation per contract boundaries
 
 **Responsibilities**:

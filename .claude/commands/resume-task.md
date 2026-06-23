@@ -2,6 +2,10 @@
 
 Resume work on an existing task from its current phase.
 
+**Model**: Depends on phase:
+- Planning/Contracting/Generating/Evaluating/Fixing → Sonnet 4.6 (thinking)
+- Closing (just filling handoff/status docs) → Haiku 4.5 (documentation)
+
 ## Usage
 
 ```

@@ -2,6 +2,8 @@
 
 Implement task according to contract.
 
+**Model**: Sonnet 4.6 (thinking task — requires code implementation, logic, architecture decisions)
+
 ## Usage
 
 ```

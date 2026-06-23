@@ -1,5 +1,7 @@
 # Contractor Skill
 
+**Model**: Sonnet 4.6 (scope boundary analysis, contract definition)
+
 **Purpose**: Define explicit scope boundaries and acceptance criteria
 
 **Responsibilities**:

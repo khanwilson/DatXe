@@ -2,6 +2,8 @@
 
 Run checks and validation for task implementation.
 
+**Model**: Sonnet 4.6 (thinking task — requires QA analysis, contract compliance, test verification)
+
 ## Usage
 
 ```

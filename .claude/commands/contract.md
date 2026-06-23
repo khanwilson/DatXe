@@ -2,6 +2,8 @@
 
 Create or update contract for a task.
 
+**Model**: Sonnet 4.6 (thinking task — requires scope definition, allowed files analysis, acceptance criteria)
+
 ## Usage
 
 ```

@@ -129,5 +129,44 @@ Không có side-effect documentation ở nơi khác.
 
 ---
 
-**Last Updated**: 2026-06-22
-**Version**: 1.0
+## Model Routing cho Harness Tasks
+
+Phân loại công việc theo mức độ phức tạp để chọn model phù hợp:
+
+### Sonnet 4.6 — Công việc tư duy (thinking tasks)
+
+Dùng cho các phase đòi hỏi phân tích, ra quyết định, implement code:
+
+- **Planning**: Đọc task, phân tích scope, dependencies, risks → tạo `plan.md`
+- **Contracting**: Xác định scope, allowed files, acceptance criteria → tạo `contract.md`
+- **Generating**: Viết code, sửa logic, tạo files mới, refactor
+- **Evaluating**: QA review, kiểm tra acceptance criteria, phân tích test results, tìm bugs
+- **Fixing**: Debug, sửa lỗi, resolve conflicts
+
+### Haiku 4.5 — Công việc ghi chép (documentation tasks)
+
+Dùng cho các phase chỉ cập nhật documentation, không cần reasoning phức tạp:
+
+- **Status updates**: Cập nhật `status.md` (chuyển phase, tick checkboxes)
+- **Logging**: Cập nhật `files-changed.md`, `implementation.md` summary
+- **Handoff documentation**: Điền `handoff.md` từ thông tin đã có
+- **Task metadata**: Cập nhật `TASKS.md` index, `PROJECT_STATE.md` (khi không có architectural change)
+- **Decisions log**: Cập nhật `decisions.md` task-scoped
+- **Evaluation templates**: Điền evaluation checklist từ kết quả đã có
+
+### Rule áp dụng
+
+```
+Nếu task đang trong phase Planning/Contracting/Generating/Evaluating/Fixing
+→ Dùng Sonnet 4.6
+
+Nếu chỉ cập nhật .md files, log status, document decisions
+→ Dùng Haiku 4.5
+```
+
+Khi Haiku 4.5 phát hiện vấn đề cần ra quyết định (conflict, risk, architectural choice) → **dừng lại và chuyển sang Sonnet 4.6**. Không tự quyết định những việc ngoài scope documentation.
+
+---
+
+**Last Updated**: 2026-06-23
+**Version**: 1.1
