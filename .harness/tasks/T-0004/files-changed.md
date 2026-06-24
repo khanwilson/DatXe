@@ -1,49 +1,33 @@
 # Files Changed
 
 **Task ID**: T-0004  
-**Date**: 2026-06-22  
+**Date**: 2026-06-24  
 
 ---
 
 ## Summary
 
-Total files changed: X  
-Lines added: X  
-Lines removed: X  
+Total files changed: 6  
+Lines added: ~150  
+Lines removed: 0  
 
 ---
 
 ## By Project
 
-### app_taixe
-
-```
-M src/screens/[Screen].tsx (+50 -20)
-M src/services/[service].ts (+30 -10)
-A src/types/[new].types.ts (+25 -0)
-```
-
-### app_user
-
-```
-M src/screens/[Screen].tsx (+40 -15)
-```
-
 ### nestjs_prisma
 
 ```
-M src/modules/[module]/[feature].service.ts (+80 -30)
-M src/types/[feature].types.ts (+20 -5)
-A src/controllers/[feature].controller.ts (+120 -0)
-M prisma/schema.prisma (+15 -0)
+A api/common/websocket/websocket-auth.guard.ts (+40 -0)
+A api/common/websocket/websocket.gateway.ts (+130 -0)
+A api/common/websocket/websocket.module.ts (+25 -0)
+M api/app.module.ts (+2 -0)
 ```
 
 ### docs/harness
 
 ```
-M PROJECT_STATE.md (+10 -0)
-M DECISIONS.md (+15 -0)
-M TASKS.md (+5 -0)
+M .harness/tasks/T-0004/files-changed.md (+4 -0)
 ```
 
 ---
@@ -65,5 +49,4 @@ None.
 
 ## Backward Compatibility
 
-✅ All changes are backward compatible.
-
+✅ All changes are backward compatible. No existing APIs modified.

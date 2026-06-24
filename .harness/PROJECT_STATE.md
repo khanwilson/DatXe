@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2026-06-23  
+**Last Updated**: 2026-06-24  
 **Harness Version**: 1.0
 
 ---
@@ -29,6 +29,7 @@
 
 - [x] User registration (driver & customer) - T-0002 schema ready
 - [x] User authentication - T-0001 + T-0002 JWT with role
+- [x] WebSocket gateway (Socket.IO with JWT auth) - T-0004
 - [ ] Driver profile management
 - [ ] Customer profile management
 - [ ] Ride booking flow
@@ -135,6 +136,9 @@
 
 - **T-0001**: Backend env config mở rộng (2026-06-23) - .env, env.validation.ts, docker-compose
 - **T-0002**: Prisma schema mở rộng cho booking flow (2026-06-23) - 9 models, 9 enums, seed, migration
+- **T-0003**: Redis connection và cache service (2026-06-23) - RedisModule, CacheService, health check
+- **T-0004**: WebSocket gateway cơ bản (2026-06-24) - Socket.IO gateway with JWT auth, room helpers, 6 event emitters
+- **T-0005**: API response format và error handling (2026-06-24) - Response interceptor, exception filter, request ID middleware, structured logging
 
 ---
 

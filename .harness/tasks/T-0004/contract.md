@@ -2,7 +2,7 @@
 
 **Task ID**: T-0004  
 **Phase**: Contracting  
-**Created**: 2026-06-22  
+**Created**: 2026-06-24  
 
 ---
 
@@ -10,26 +10,47 @@
 
 ### In Scope
 
-- [Feature/component 1]
-- [Feature/component 2]
-- [Feature/component 3]
+- **Install packages**: @nestjs/platform-socket.io + socket.io (via `bun add`)
+- **WebSocket Module**: `WebSocketModule` with JwtModule import for auth
+- **WebSocketAuthGuard**: JWT validation from `handshake.auth.token` or `handshake.query.token`, attaches user to `socket.data.user`
+- **WebSocketGateway**: Socket.IO gateway với:
+  - CORS config từ env vars
+  - JWT auth guard on connection
+  - Room join/leave helpers: booking:{id}, driver:{id}, user:{id}
+  - Event emitter methods (skeleton) cho 5 event types:
+    - `booking.status_changed { bookingId, status }`
+    - `driver.location_updated { driverId, lat, lng }`
+    - `dispatch.offer { bookingId, pickup, price }`
+    - `dispatch.accepted { bookingId, driverId }`
+    - `trip.started` / `trip.completed`
+  - Heartbeat default (Socket.IO built-in ping/pong)
+  - Disconnect cleanup (rooms, socket data)
+- **AppModule update**: Import WebSocketModule
 
 ### Out of Scope
 
-- [Explicitly excluded 1]
-- [Explicitly excluded 2]
+- Redis adapter cho horizontal scaling (single instance is fine for Phase 1)
+- Business logic cho event types (only emitter methods — actual emit calls will be in T-0026, T-0027, etc.)
+- Client-side Socket.IO SDK (mobile apps handle in T-0020, T-0022, etc.)
+- Socket.IO middleware logic other than JWT auth guard
+- Driver online/offline logic (T-0022 covers that)
+- Error handling for event emit failures (events are fire-and-forget in Phase 1)
+- Rate limiting on WebSocket connections
 
 ---
 
 ## Allowed Files
 
 ```
-app_taixe/**
-nestjs_prisma/**
-docs/harness/**
+nestjs_prisma/api/common/websocket/websocket.gateway.ts
+nestjs_prisma/api/common/websocket/websocket-auth.guard.ts
+nestjs_prisma/api/common/websocket/websocket.module.ts
+nestjs_prisma/api/app.module.ts
+nestjs_prisma/package.json (auto-update by bun add)
+nestjs_prisma/bun.lock (auto-update by bun add)
 ```
 
-**Rationale**: Task involves driver app and backend only.
+**Rationale**: T-0004 chỉ ảnh hưởng single project nestjs_prisma. Only new files + app.module import + package install.
 
 ---
 
@@ -37,51 +58,49 @@ docs/harness/**
 
 - [ ] app_taixe
 - [ ] app_user
-- [ ] nestjs_prisma
+- [x] nestjs_prisma
 - [ ] docs
-- [ ] harness
+- [x] harness
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Feature works as specified
-- [ ] No lint errors: `npm run lint`
-- [ ] TypeScript compiles: `npm run typecheck`
-- [ ] Tests pass: `npm test`
-- [ ] Build succeeds: `npm run build`
-- [ ] No breaking changes to APIs
+- [ ] Socket.IO gateway hoạt động (có thể kết nối từ client)
+- [ ] JWT auth guard: invalid token bị reject, valid token được accept
+- [ ] Room join/leave/broadcast patterns implemented
+- [ ] Heartbeat/ping-pong default config
+- [ ] Disconnect cleanup (rooms cleanup)
+- [ ] Events skeleton có thể emit/broadcast (5 event types)
+- [ ] Build passes: `bun run build`
+- [ ] Lint passes: `bun run lint`
+- [ ] No breaking changes to existing HTTP APIs
 - [ ] No hard-coded secrets/API keys
-- [ ] Follows project conventions
 - [ ] All changes within Allowed Files
 
 ---
 
 ## API Contract Changes
 
-### New Endpoints
+This task adds a WebSocket gateway — no new HTTP endpoints. API changes:
+
+### New WebSocket Connection
 
 ```
-POST /api/[resource]
-  Request: { ... }
-  Response: { ... }
-  Status: 201 Created | 400 Bad Request | 401 Unauthorized
-```
-
-### Modified Endpoints
-
-```
-GET /api/[resource]/:id
-  Before: { oldField: string }
-  After: { oldField: string, newField: string }
-  Breaking: No (backward compatible)
-```
-
-### Deprecated Endpoints
-
-```
-DELETE /api/[old-endpoint]
-  Status: Will be removed in v2.0
+ws://host:port (Socket.IO — default namespace)
+  Handshake: { auth: { token: "Bearer <jwt>" } }
+  Auth: JWT validation (401 rejected if invalid)
+  Rooms:
+    - booking:{bookingId} — booking status updates
+    - driver:{driverId} — driver-scoped events
+    - user:{userId} — user-scoped events
+  Events (emitted from server):
+    - booking.status_changed { bookingId, status }
+    - driver.location_updated { driverId, lat, lng }
+    - dispatch.offer { bookingId, pickup, price }
+    - dispatch.accepted { bookingId, driverId }
+    - trip.started { bookingId }
+    - trip.completed { bookingId }
 ```
 
 ---
@@ -90,37 +109,27 @@ DELETE /api/[old-endpoint]
 
 ### Prisma Schema Changes
 
-```prisma
-model [Model] {
-  id        Int     @id @default(autoincrement())
-  newField  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
+None.
 
 ### Migrations Required
 
-- [ ] `create_[model]` migration needed
-- [ ] Data backfill needed
-- [ ] Deployment: [online | offline | atomic]
+- [ ] No migration needed
 
 ---
 
 ## Test Strategy
 
-- **Unit Tests**: [What to test]
-- **Integration Tests**: [What to test]
-- **API Contract Tests**: [What endpoints to verify]
-- **Edge Cases**: [What edge cases]
-- **Manual Testing**: [What to test manually]
+- **Manual Testing**: Connect with valid/invalid JWT via Socket.IO client
+- **Build Check**: `bun run build` succeeds
+- **Lint Check**: `bun run lint` succeeds
+- **Edge Cases**: invalid JWT, expired JWT, double disconnect, malformed token, missing token
+- **Unit Tests**: Not required for this task (no service logic — infrastructure)
 
 ---
 
 ## Sign-off
 
-- **Planner**: [Name]
-- **Code Owner**: [Name]
-- **Approved**: [ ] Yes / [ ] No
-- **Approved At**: 2026-06-22
-
+- **Planner**: FRIDAYAIX
+- **Code Owner**: nathan
+- **Approved**: [x] Yes / [ ] No
+- **Approved At**: 2026-06-24

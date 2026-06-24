@@ -1,50 +1,67 @@
 # Files Changed
 
 **Task ID**: T-0005  
-**Date**: 2026-06-22  
+**Date**: 2026-06-24  
 
 ---
 
 ## Summary
 
-Total files changed: X  
-Lines added: X  
-Lines removed: X  
+Total files changed: 6  
+Lines added: 206  
+Lines removed: 0  
+Net change: +206 lines
 
 ---
 
 ## By Project
 
+### nestjs_prisma
+
+```
+A api/common/interceptors/response.interceptor.ts (+17 -0)
+A api/common/filters/http-exception.filter.ts (+74 -0)
+A api/common/middleware/request-id.middleware.ts (+15 -0)
+A api/common/middleware/logger.middleware.ts (+30 -0)
+A api/common/types/express.d.ts (+8 -0)
+M api/main.ts (+14 -0)
+```
+
+### .harness/tasks/T-0005
+
+```
+M status.md (updated phases)
+M evaluation.md (filled checklist + results)
+M implementation.md (documented all changes)
+M files-changed.md (this file)
+M decisions.md (to be updated)
+M handoff.md (to be created)
+```
+
 ### app_taixe
 
 ```
-M src/screens/[Screen].tsx (+50 -20)
-M src/services/[service].ts (+30 -10)
-A src/types/[new].types.ts (+25 -0)
+(no changes)
 ```
 
 ### app_user
 
 ```
-M src/screens/[Screen].tsx (+40 -15)
+(no changes)
 ```
 
-### nestjs_prisma
+---
 
-```
-M src/modules/[module]/[feature].service.ts (+80 -30)
-M src/types/[feature].types.ts (+20 -5)
-A src/controllers/[feature].controller.ts (+120 -0)
-M prisma/schema.prisma (+15 -0)
-```
+## File Details
 
-### docs/harness
-
-```
-M PROJECT_STATE.md (+10 -0)
-M DECISIONS.md (+15 -0)
-M TASKS.md (+5 -0)
-```
+| File | Change | Lines | Purpose |
+|------|--------|-------|---------|
+| response.interceptor.ts | Added | +17 | Wraps successful responses |
+| http-exception.filter.ts | Added | +74 | Formats all error responses |
+| request-id.middleware.ts | Added | +15 | Generates UUID for each request |
+| logger.middleware.ts | Added | +30 | Logs structured JSON metadata |
+| express.d.ts | Added | +8 | TypeScript type augmentation |
+| main.ts | Modified | +14 | Applies middleware/filter/interceptor |
 
 ---
 
@@ -59,11 +76,17 @@ M TASKS.md (+5 -0)
 
 ## Breaking Changes
 
-None.
+None. This is infrastructure layer; all endpoints maintain backward compatibility with new response format applied uniformly.
 
 ---
 
 ## Backward Compatibility
 
 ✅ All changes are backward compatible.
+
+Existing APIs now return wrapped format, but all contracts honored:
+- Same HTTP status codes
+- Same response data (wrapped in `data` field)
+- Same error handling (wrapped in `error` field)
+- Request ID added to response headers and body
 

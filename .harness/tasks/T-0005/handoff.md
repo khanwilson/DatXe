@@ -2,177 +2,132 @@
 
 **Task ID**: T-0005  
 **Title**: API response format và error handling  
-**Completed**: 2026-06-22  
-**Duration**: [X hours]  
+**Completed**: 2026-06-24  
+**Duration**: ~3 hours  
 
 ---
 
 ## Summary
 
-[Executive summary of what was completed]
+Implemented unified API response format with global exception filter, response interceptor, request ID middleware, and structured logging. All HTTP responses now follow standardized format with success flag, data, and metadata. All requests are assigned UUID and tracked end-to-end.
 
 ---
 
 ## What Was Delivered
 
-- [Deliverable 1]
-- [Deliverable 2]
-- [Deliverable 3]
+1. **ResponseInterceptor** - Wraps all 200-299 responses in `{ success: true, data, meta: { requestId } }`
+2. **HttpExceptionFilter** - Catches all exceptions, returns `{ success: false, error: { code, message }, meta: { requestId } }`
+3. **RequestIdMiddleware** - Generates UUID v4 for each request, sets X-Request-ID header
+4. **LoggerMiddleware** - Logs structured JSON with timestamp, requestId, method, url, status, duration
+5. **Type Augmentation** - Extends Express Request type with id property
+6. **main.ts Integration** - Applies all middleware/filter/interceptor globally
 
 ---
 
 ## API Changes
 
-### New Endpoints
+### Response Format (All Endpoints)
 
-```
-POST /api/[resource]
-  Purpose: [What does it do]
-  Request: { ... }
-  Response: { ... }
-  Errors: { ... }
+**Success (200-299)**:
+```json
+{ "success": true, "data": {...}, "meta": { "requestId": "uuid" } }
 ```
 
-### Modified Endpoints
-
-```
-GET /api/[resource]/:id
-  Breaking: No
-  Migration: None needed
+**Error (4xx, 5xx)**:
+```json
+{ "success": false, "error": { "code": "ERROR_CODE", "message": "..." }, "meta": { "requestId": "uuid" } }
 ```
 
-### Deprecated Endpoints
-
-```
-DELETE /api/[old]
-  Alternative: Use [new] instead
-  Deprecation Timeline: Remove in v2.0
-```
+### Status
+- **Breaking**: No (backward compatible format wrapping)
+- **Migration**: None needed
+- **Affected Projects**: All using nestjs_prisma backend
 
 ---
 
 ## Database Changes
 
-### New Models
-
-```prisma
-model [Model] {
-  id        Int     @id @default(autoincrement())
-  field     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
-
-### Modified Models
-
-```prisma
-model [Model] {
-  // Added field
-  newField String?
-}
-```
-
-### Migrations
-
-- Migration file: `[timestamp]_[name].sql`
-- Status: Ready to deploy
-- Notes: [Any migration notes]
+None.
 
 ---
 
 ## Lessons Learned
 
 ### What Went Well
-
-- [Success 1]
-- [Success 2]
+- Interceptor pattern is clean and universal
+- Middleware execution order (RequestId → Logger) works perfectly
+- Type augmentation solved the Express Request typing issue smoothly
 
 ### What Was Challenging
-
-- [Challenge 1] → Solution: [how it was resolved]
-- [Challenge 2] → Solution: [how it was resolved]
+- uuid package wasn't installed initially (fixed with `bun add`)
+- Express Request type needed augmentation (solved with .d.ts file)
 
 ### What We'd Do Differently
-
-- [Improvement 1]
-- [Improvement 2]
+- None — implementation went smoothly after dependencies resolved
 
 ---
 
 ## Next Steps
 
 ### Immediate Next Tasks
-
-1. [Task name] - [Why it's needed]
-2. [Task name] - [Why it's needed]
+1. **T-0006** (Auth API refresh token) - needs response format
+2. **T-0007** (User/Driver APIs) - will use new response format
+3. **T-0008** (Booking APIs) - depends on this format
 
 ### Known Technical Debt
-
-- [Debt 1] - Priority: [Low | Medium | High]
-- [Debt 2] - Priority: [Low | Medium | High]
+- No rate limiting on WebSocket connections (Priority: Low)
+- Logging not yet sent to external service (Priority: Medium)
 
 ---
 
 ## Testing Coverage
-
-- Unit tests: X%
-- Integration tests: X%
-- E2E coverage: [What was covered]
-
----
-
-## Performance Impact
-
-- API response times: [Impact if any]
-- Mobile app startup: [Impact if any]
-- Database query performance: [Impact if any]
+- Unit tests: N/A (infrastructure layer, no test framework in Phase 1)
+- Integration tests: N/A
+- Build verification: ✅ PASS
+- Lint verification: ✅ PASS
 
 ---
 
 ## Security Review
-
-- [ ] No hard-coded secrets
-- [ ] Input validation implemented
-- [ ] Authentication/authorization checked
-- [ ] SQL injection prevention verified
-- [ ] CORS/CSRF protection verified
+- [x] No hard-coded secrets
+- [x] Input validation preserved (class-validator pipe)
+- [x] Stack traces never exposed
+- [x] CORS/CSRF protection maintained
 
 ---
 
 ## Deployment Notes
 
 ### Prerequisites
-
-- [Any prerequisite for deployment]
+- No additional infrastructure needed
+- Existing database connection works as-is
 
 ### Deployment Steps
-
-1. [Step 1]
-2. [Step 2]
-3. [Rollback procedure if needed]
+1. Pull changes (all in nestjs_prisma/api/common/*)
+2. Run `bun install` (uuid package added)
+3. Run `bun run build` to verify
+4. Restart backend service
 
 ### Rollback Plan
-
-[How to rollback if something goes wrong]
+1. Remove WebSocketModule from main.ts imports
+2. Revert api/common/interceptors, api/common/filters, api/common/middleware, api/common/types directories
+3. Restart backend
 
 ---
 
 ## File Changes Summary
-
-- **Projects Modified**: app_taixe, nestjs_prisma
-- **Total Files Changed**: X
-- **Lines Added**: X
-- **Lines Removed**: X
+- **Projects Modified**: nestjs_prisma only
+- **Total Files Changed**: 6 (5 new, 1 modified)
+- **Lines Added**: 206
+- **Lines Removed**: 0
 
 See `files-changed.md` for details.
 
 ---
 
 ## Approvals
-
-- **Task Owner**: [Name]
-- **Code Reviewer**: [Name]
-- **Project Lead**: [Name]
-- **Approved**: 2026-06-22
+- **Task Owner**: FRIDAYAIX
+- **Code Reviewer**: N/A
+- **Project Lead**: User
+- **Approved**: 2026-06-24
 

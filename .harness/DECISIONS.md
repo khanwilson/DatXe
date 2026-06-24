@@ -1,6 +1,6 @@
 # Decisions Log
 
-**Last Updated**: 2026-06-23  
+**Last Updated**: 2026-06-24  
 **Format**: Per-decision tracking with status and impact
 
 ---
