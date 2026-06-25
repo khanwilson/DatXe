@@ -138,6 +138,55 @@ Exported from `src/assets/index.ts`:
 - Use `AppText` instead of RN `Text`; use `AppTextInput` instead of RN `TextInput`.
 - `.github/prompts.md` is stale (mentions Three.js + yarn); ignore those parts. The absolute-imports and English-comments rules still apply.
 
+### TypeScript/TSX File Organization
+
+**File structure order (top to bottom):**
+
+```
+1. Imports (all import statements)
+2. Types & Interfaces (type definitions, interfaces)
+3. Component Function (React component definition)
+4. StyleSheet (createStyles or StyleSheet.create)
+5. Export (export default or named export)
+```
+
+**Example:**
+```tsx
+// 1. IMPORTS
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { useAppTheme } from 'theme/index';
+
+// 2. TYPES & INTERFACES
+interface Props {
+  title: string;
+  onPress: () => void;
+}
+
+// 3. COMPONENT FUNCTION
+const MyComponent: React.FC<Props> = ({ title, onPress }) => {
+  const theme = useAppTheme();
+  const styles = createStyles(theme);
+  
+  return (
+    <View style={styles.container}>
+      {/* component JSX */}
+    </View>
+  );
+};
+
+// 4. STYLESHEET
+const createStyles = (theme: ITheme) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.color.bg.white,
+  },
+});
+
+// 5. EXPORT
+export default MyComponent;
+```
+
 ## Notes on the repo state
 
 - No iOS/Android native folders are committed (`/ios`, `/android` are gitignored — managed Expo workflow).

@@ -1,7 +1,7 @@
 # Task Registry
 
-**Last Updated**: 2026-06-24  
-**Total Tasks**: 31  
+**Last Updated**: 2026-06-25  
+**Total Tasks**: 45  
 **Completed**: 6  
 **In Progress**: 0  
 **Blocked**: 0
@@ -20,6 +20,26 @@
 | T-0004 | WebSocket gateway cơ bản | Done | Done | P1 | T-0001, T-0003 | nestjs_prisma | [T-0004](tasks/T-0004/) |
 | T-0005 | API response format và error handling | Done | Done | P1 | - | nestjs_prisma | [T-0005](tasks/T-0005/) |
 | T-0031 | Google Maps routing service backend | Done | Done | P1 | T-0003 | nestjs_prisma | [T-0031](tasks/T-0031/) |
+
+### Wave UI: Mobile App Interfaces (Priority - Demo Ready)
+
+| ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
+|----|-------|--------|-------|----------|-----------|----------|--------|
+| T-0032 | Onboarding & Welcome screens app_user | Done | Closing | P0 | - | app_user | [T-0032](tasks/T-0032/) |
+| T-0032.1 | Button Layout & Animation Enhancement | Done | Closing | P1 | T-0032 | app_user | [T-0032.1](tasks/T-0032.1/) |
+| T-0033 | Login & Registration screens app_user | Planned | Created | P0 | - | app_user | [T-0033](tasks/T-0033/) |
+| T-0034 | Home & map taxi search app_user | Planned | Created | P0 | T-0031 | app_user | [T-0034](tasks/T-0034/) |
+| T-0035 | Booking confirmation & payment UI app_user | Planned | Created | P0 | T-0034 | app_user | [T-0035](tasks/T-0035/) |
+| T-0036 | Active trip tracking with routing app_user | Planned | Created | P0 | T-0035, T-0031 | app_user | [T-0036](tasks/T-0036/) |
+| T-0037 | Trip history & bookings list app_user | Planned | Created | P0 | T-0036 | app_user | [T-0037](tasks/T-0037/) |
+| T-0038 | Profile & settings screen app_user | Planned | Created | P0 | T-0033 | app_user | [T-0038](tasks/T-0038/) |
+| T-0039 | Onboarding & Welcome screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0039](tasks/T-0039/) |
+| T-0040 | Login & Registration screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0040](tasks/T-0040/) |
+| T-0041 | Driver status dashboard app_taixe | Planned | Created | P0 | T-0031 | app_taixe | [T-0041](tasks/T-0041/) |
+| T-0042 | Booking offers & acceptance UI app_taixe | Planned | Created | P0 | T-0041 | app_taixe | [T-0042](tasks/T-0042/) |
+| T-0043 | Navigation to pickup with routing app_taixe | Planned | Created | P0 | T-0042, T-0031 | app_taixe | [T-0043](tasks/T-0043/) |
+| T-0044 | Trip in progress & routing display app_taixe | Planned | Created | P0 | T-0043 | app_taixe | [T-0044](tasks/T-0044/) |
+| T-0045 | Ride history & driver profile app_taixe | Planned | Created | P0 | T-0044 | app_taixe | [T-0045](tasks/T-0045/) |
 
 ### Wave 2: Core Backend APIs
 
@@ -147,8 +167,8 @@ T-0006..T-0011 + T-0031 ─→ T-0029 (Swagger Docs)
 | Project | Tasks | Descriptions |
 |---------|-------|-------------|
 | **nestjs_prisma** | 14 | T-0001→T-0011 + T-0029 + T-0030 + T-0031 |
-| **app_user** | 8 | T-0012, T-0014, T-0016, T-0018→T-0021, T-0026, T-0028 |
-| **app_taixe** | 7 | T-0013, T-0015, T-0017, T-0022→T-0025, T-0027 |
+| **app_user** | 15 | T-0012, T-0014, T-0016, T-0018→T-0021, T-0026, T-0028 + UI: T-0032, T-0033, T-0034, T-0035, T-0036, T-0037, T-0038 |
+| **app_taixe** | 14 | T-0013, T-0015, T-0017, T-0022→T-0025, T-0027 + UI: T-0039, T-0040, T-0041, T-0042, T-0043, T-0044, T-0045 |
 | **Cross-project** | 2 | T-0026 (app_user+backend), T-0027 (app_taixe+backend) |
 
 ---

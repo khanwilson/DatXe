@@ -189,3 +189,52 @@ To be established after core features working:
 - Database query performance
 - Build times
 
+---
+
+## Animation Standards (Expo Apps)
+
+### Framework: react-native-reanimated
+**Status**: Mandatory for all animations across app_taixe and app_user
+
+**Why Reanimated?**
+- Native 60fps animations on RN thread (not JS thread)
+- Worklet support for complex gesture-driven animations
+- Better performance than React Native Animated API
+- Integrates seamlessly with Expo
+
+**Implementation Pattern**:
+```typescript
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
+
+// Shared values (not refs)
+const opacity = useSharedValue(1);
+
+// Update animations with withTiming
+opacity.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.ease) });
+
+// Create animated styles
+const animStyle = useAnimatedStyle(() => ({
+  opacity: opacity.value,
+}));
+
+// Apply to Animated components
+<Animated.View style={animStyle} />
+```
+
+**Key Differences from Animated API**:
+- ✅ Use `useSharedValue()` instead of `useRef(new Animated.Value())`
+- ✅ Use `useAnimatedStyle()` instead of manual transform/style interpolation
+- ✅ Use `withTiming()` instead of `Animated.timing()`
+- ✅ Assign directly: `value.value = withTiming(...)` instead of `.start()`
+- ❌ No `.interpolate()` - use worklets for complex calculations
+
+**Reference**: WelcomeCarouselScreen.tsx (T-0032 refactored to Reanimated)
+
+**All new animations MUST use react-native-reanimated** - no exceptions.
+
+---

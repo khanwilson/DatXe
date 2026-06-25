@@ -50,7 +50,6 @@ const createStyles = (theme: ITheme, disabled: boolean) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   textContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
