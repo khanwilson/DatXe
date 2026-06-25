@@ -138,19 +138,19 @@ Không có side-effect documentation ở nơi khác.
 
 Phân loại công việc theo mức độ phức tạp để chọn model phù hợp:
 
-### Sonnet 4.6 — Công việc tư duy (thinking tasks)
+### Opus 4.8 — Công việc tư duy (thinking tasks)
 
-Dùng cho các phase đòi hỏi phân tích, ra quyết định, implement code:
+Dùng cho các phase đòi hỏi phân tích sâu, ra quyết định phức tạp, implement code:
 
 - **Planning**: Đọc task, phân tích scope, dependencies, risks → tạo `plan.md`
 - **Contracting**: Xác định scope, allowed files, acceptance criteria → tạo `contract.md`
-- **Generating**: Viết code, sửa logic, tạo files mới, refactor
+- **Generating**: Viết code, sửa logic, tạo files mới, refactor, optimize
 - **Evaluating**: QA review, kiểm tra acceptance criteria, phân tích test results, tìm bugs
-- **Fixing**: Debug, sửa lỗi, resolve conflicts
+- **Fixing**: Debug phức tạp, sửa lỗi, resolve conflicts, refactor solutions
 
-### Haiku 4.5 — Công việc ghi chép (documentation tasks)
+### Sonnet 4.6 — Công việc ghi chép (documentation tasks)
 
-Dùng cho các phase chỉ cập nhật documentation, không cần reasoning phức tạp:
+Dùng cho các phase chỉ cập nhật documentation và status, không cần reasoning phức tạp:
 
 - **Status updates**: Cập nhật `status.md` (chuyển phase, tick checkboxes)
 - **Logging**: Cập nhật `files-changed.md`, `implementation.md` summary
@@ -163,13 +163,13 @@ Dùng cho các phase chỉ cập nhật documentation, không cần reasoning ph
 
 ```
 Nếu task đang trong phase Planning/Contracting/Generating/Evaluating/Fixing
-→ Dùng Sonnet 4.6
+→ Dùng Opus 4.8 (for deeper reasoning & complex implementation)
 
 Nếu chỉ cập nhật .md files, log status, document decisions
-→ Dùng Haiku 4.5
+→ Dùng Sonnet 4.6 (for structured documentation work)
 ```
 
-Khi Haiku 4.5 phát hiện vấn đề cần ra quyết định (conflict, risk, architectural choice) → **dừng lại và chuyển sang Sonnet 4.6**. Không tự quyết định những việc ngoài scope documentation.
+Khi Sonnet 4.6 (documentation task) phát hiện vấn đề cần ra quyết định sâu (conflict, risk, architectural choice) → **dừng lại và chuyển sang Opus 4.8**. Không tự quyết định những việc ngoài scope documentation.
 
 ---
 

@@ -1,6 +1,6 @@
 # Reviewer Skill
 
-**Model**: Sonnet 4.6 (code review, security analysis, performance review)
+**Model**: Opus 4.8 (code review, security analysis, performance review)
 
 **Purpose**: Review code for quality, correctness, and standards
 

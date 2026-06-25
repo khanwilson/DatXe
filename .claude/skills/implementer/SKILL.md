@@ -1,6 +1,6 @@
 # Implementer Skill
 
-**Model**: Sonnet 4.6 (code implementation, architecture decisions)
+**Model**: Opus 4.8 (code implementation, architecture decisions)
 
 **Purpose**: Code implementation per contract boundaries
 

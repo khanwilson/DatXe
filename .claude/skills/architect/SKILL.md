@@ -1,6 +1,6 @@
 # Architect Skill
 
-**Model**: Sonnet 4.6 (architectural reasoning)
+**Model**: Opus 4.8 (architectural reasoning)
 
 **Purpose**: Make and review long-term architectural decisions
 

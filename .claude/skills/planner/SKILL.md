@@ -1,6 +1,6 @@
 # Planner Skill
 
-**Model**: Sonnet 4.6 (scope analysis, risk assessment, dependency mapping)
+**Model**: Opus 4.8 (scope analysis, risk assessment, dependency mapping)
 
 **Purpose**: Analyze task requirements and create implementation plans
 

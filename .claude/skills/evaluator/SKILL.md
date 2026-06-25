@@ -1,6 +1,6 @@
 # Evaluator Skill
 
-**Model**: Sonnet 4.6 (QA analysis, contract compliance, security review)
+**Model**: Opus 4.8 (QA analysis, contract compliance, security review)
 
 **Purpose**: Validate implementation against contract & quality standards
 
