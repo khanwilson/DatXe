@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-06-24  
 **Total Tasks**: 31  
-**Completed**: 5  
+**Completed**: 6  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -19,7 +19,7 @@
 | T-0003 | Redis connection và cache service | Done | Done | P1 | T-0001 | nestjs_prisma | [T-0003](tasks/T-0003/) |
 | T-0004 | WebSocket gateway cơ bản | Done | Done | P1 | T-0001, T-0003 | nestjs_prisma | [T-0004](tasks/T-0004/) |
 | T-0005 | API response format và error handling | Done | Done | P1 | - | nestjs_prisma | [T-0005](tasks/T-0005/) |
-| T-0031 | Google Maps routing service backend | Planned | Created | P1 | T-0003 | nestjs_prisma | [T-0031](tasks/T-0031/) |
+| T-0031 | Google Maps routing service backend | Done | Done | P1 | T-0003 | nestjs_prisma | [T-0031](tasks/T-0031/) |
 
 ### Wave 2: Core Backend APIs
 

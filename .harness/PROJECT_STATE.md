@@ -139,6 +139,7 @@
 - **T-0003**: Redis connection và cache service (2026-06-23) - RedisModule, CacheService, health check
 - **T-0004**: WebSocket gateway cơ bản (2026-06-24) - Socket.IO gateway with JWT auth, room helpers, 6 event emitters
 - **T-0005**: API response format và error handling (2026-06-24) - Response interceptor, exception filter, request ID middleware, structured logging
+- **T-0031**: Google Maps routing service backend (2026-06-24) - 5 API endpoints, Google Maps integration, Redis caching, retry logic
 
 ---
 
