@@ -128,26 +128,26 @@ export default function DetailToDoScreen() {
 const createStyles = (theme: ITheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.color.neutral[900],
+    backgroundColor: theme.color.background.app,
   },
   header: {
     paddingTop: theme.dimensions.p50,
     paddingHorizontal: theme.dimensions.p20,
     paddingBottom: theme.dimensions.p20,
     borderBottomWidth: 1,
-    borderBottomColor: theme.color.neutral[700],
+    borderBottomColor: theme.color.border.light,
   },
   backButton: {
     marginBottom: theme.dimensions.p10,
   },
   backButtonText: {
-    color: theme.color.textColor.white,
+    color: theme.color.text.primary,
     fontSize: theme.fontSize.p16,
   },
   title: {
     fontSize: theme.fontSize.p24,
     fontWeight: 'bold',
-    color: theme.color.textColor.white,
+    color: theme.color.text.primary,
   },
   form: {
     padding: theme.dimensions.p20,
@@ -157,14 +157,14 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
     textAlignVertical: 'top',
   },
   addButton: {
-    backgroundColor: theme.color.white,
+    backgroundColor: theme.color.button.primaryBg,
     borderRadius: theme.dimensions.p12,
     paddingVertical: theme.dimensions.p14,
     alignItems: 'center',
     marginTop: theme.dimensions.p8,
   },
   addButtonText: {
-    color: theme.color.neutral[900],
+    color: theme.color.button.primaryText,
     fontSize: theme.fontSize.p16,
     fontWeight: 'bold',
   },
@@ -178,19 +178,19 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
     paddingVertical: theme.dimensions.p40,
   },
   emptyText: {
-    color: theme.color.textColor.white,
+    color: theme.color.text.primary,
     fontSize: theme.fontSize.p16,
     fontWeight: 'bold',
     marginBottom: theme.dimensions.p8,
   },
   emptySubText: {
-    color: theme.color.textColor.subText,
+    color: theme.color.text.secondary,
     fontSize: theme.fontSize.p14,
   },
   todoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.color.neutral[700],
+    backgroundColor: theme.color.background.surfaceAlt,
     borderRadius: theme.dimensions.p12,
     padding: theme.dimensions.p16,
     marginBottom: theme.dimensions.p12,
@@ -205,17 +205,17 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: theme.color.neutral[400],
+    borderColor: theme.color.border.default,
     marginRight: theme.dimensions.p12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxCompleted: {
-    backgroundColor: theme.color.white,
-    borderColor: theme.color.white,
+    backgroundColor: theme.color.primary.actionGreen,
+    borderColor: theme.color.primary.actionGreen,
   },
   checkmark: {
-    color: theme.color.neutral[900],
+    color: theme.color.text.inverse,
     fontSize: theme.fontSize.p14,
     fontWeight: 'bold',
   },
@@ -223,13 +223,13 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
     flex: 1,
   },
   todoTitle: {
-    color: theme.color.textColor.white,
+    color: theme.color.text.primary,
     fontSize: theme.fontSize.p16,
     fontWeight: '600',
     marginBottom: theme.dimensions.p4,
   },
   todoDescription: {
-    color: theme.color.textColor.subText,
+    color: theme.color.text.secondary,
     fontSize: theme.fontSize.p14,
   },
   completedText: {

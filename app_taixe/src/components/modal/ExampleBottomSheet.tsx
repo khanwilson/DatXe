@@ -18,11 +18,11 @@ export const ExampleBottomSheet = forwardRef<BottomSheetModal, IProps>((props: I
   >
     <BottomSheetScrollView contentContainerStyle={styles.container}>
       <View style={styles.contentContainer}>
-        <AppText style={[styles.title, { color: theme.color.textColor.white }]}>
+        <AppText style={[styles.title, { color: theme.color.text.inverse }]}>
           Bottom Sheet Title
         </AppText>
 
-        <AppText style={[styles.description, { color: theme.color.textColor.subText }]}>
+        <AppText style={[styles.description, { color: theme.color.text.secondary }]}>
           This is a reusable bottom sheet component integrated with your app theme.
           You can swipe down or tap the backdrop to close.
         </AppText>
@@ -32,10 +32,10 @@ export const ExampleBottomSheet = forwardRef<BottomSheetModal, IProps>((props: I
           {['Option 1', 'Option 2', 'Option 3', 'Option 4'].map((item, index) => (
             <Pressable
               key={index}
-              style={[styles.item, { backgroundColor: theme.color.neutral[800] }]}
+              style={[styles.item, { backgroundColor: theme.color.background.surfaceAlt }]}
               onPress={onClose}
             >
-              <AppText style={{ color: theme.color.textColor.white }}>
+              <AppText style={{ color: theme.color.text.inverse }}>
                 {item}
               </AppText>
             </Pressable>
@@ -44,10 +44,10 @@ export const ExampleBottomSheet = forwardRef<BottomSheetModal, IProps>((props: I
 
         {/* Close Button */}
         <Pressable
-          style={[styles.closeButton, { backgroundColor: theme.color.neutral[800] }]}
+          style={[styles.closeButton, { backgroundColor: theme.color.background.surfaceAlt }]}
           onPress={onClose}
         >
-          <AppText style={{ color: theme.color.textColor.white }}>
+          <AppText style={{ color: theme.color.text.inverse }}>
             Close
           </AppText>
         </Pressable>

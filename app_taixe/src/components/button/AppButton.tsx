@@ -37,7 +37,7 @@ export const AppButton = React.memo((props: IAppButton) => {
 
 const createStyles = (theme: ITheme, disabled: boolean) => StyleSheet.create({
   button: {
-    backgroundColor: disabled ? theme.color.neutral[300] : theme.color.primary[500],
+    backgroundColor: disabled ? theme.color.button.disabledBg : theme.color.button.primaryBg,
     borderRadius: theme.dimensions.p12,
     paddingVertical: theme.dimensions.p16,
     paddingHorizontal: theme.dimensions.p16,
@@ -50,14 +50,13 @@ const createStyles = (theme: ITheme, disabled: boolean) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   textContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: {
     fontSize: theme.fontSize.p16,
     fontWeight: '600',
-    color: disabled ? theme.color.neutral[500] : theme.color.white,
+    color: disabled ? theme.color.button.disabledText : theme.color.button.primaryText,
     textAlign: 'center',
   },
 });

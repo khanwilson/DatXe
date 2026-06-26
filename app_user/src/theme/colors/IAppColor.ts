@@ -1,71 +1,92 @@
 export interface IAppColor {
-  navigation: {
-    navigationBackgroundColor: string,
-    navigationTintColor: string,
-
-    tabbarBackgroundColor: string,
-    tabbarActiveColor: string,
-    tabbarInactiveColor: string,
-  },
-  white: string,
-  stroke: string,
-  textColor: {
-    primary: string,
-    subText: string,
-    white: string,
-  },
-  bg: {
-    shuttle: string,
-    white: string,
-  }
+  // Primary: semantic brand greens
   primary: {
-    0: string,
-    50: string,
-    100: string,
-    200: string,
-    300: string,
-    400: string,
-    500: string,
-    600: string,
-    700: string,
-    800: string,
-    900: string,
-  },
-  neutral: {
-    50: string,
-    100: string,
-    200: string,
-    300: string,
-    400: string,
-    500: string,
-    600: string,
-    700: string,
-    800: string,
-    900: string,
-  },
-  tertiary: {
-    0: string,
-    50: string,
-    100: string,
-    200: string,
-    300: string,
-    400: string,
-    500: string,
-    600: string,
-    700: string,
-    800: string,
-    900: string,
-  },
-  red: {
-    50: string,
-    100: string,
-    200: string,
-    300: string,
-    400: string,
-    500: string,
-    600: string,
-    700: string,
-    800: string,
-    900: string,
-  },
+    darkGreen: string;
+    actionGreen: string;
+    brandGreen: string;
+  };
+
+  // Background surfaces
+  background: {
+    app: string;
+    surface: string;
+    surfaceAlt: string;
+  };
+
+  // Text
+  text: {
+    primary: string;
+    secondary: string;
+    inverse: string;
+    disabled: string;
+  };
+
+  // Button
+  button: {
+    primaryBg: string;
+    primaryText: string;
+    disabledBg: string;
+    disabledText: string;
+  };
+
+  // Input
+  input: {
+    border: string;
+    borderFocus: string;
+    placeholder: string;
+    bg: string;
+  };
+
+  // Border & stroke
+  border: {
+    default: string;
+    light: string;
+    focus: string;
+  };
+
+  // State indicators
+  state: {
+    success: string;
+    warning: string;
+    error: string;
+    info: string;
+    disabledText: string;
+  };
+
+  // Navigation
+  navigation: {
+    headerBg: string;
+    headerText: string;
+    tabActiveBg: string;
+    tabActiveText: string;
+    tabInactiveText: string;
+    tabBg: string;
+    tabBorder: string;
+  };
+
+  // Cards
+  card: {
+    bg: string;
+    border: string;
+    shadow: string;
+  };
+
+  // Trip-specific (ride details, status badges)
+  trip: {
+    statusAccepted: string;
+    statusPending: string;
+    statusCancelled: string;
+    statusCompleted: string;
+  };
+
+  // Map & location
+  map: {
+    pinStart: string;
+    pinEnd: string;
+    route: string;
+  };
+
+  // Utility: for legacy compatibility (gradually remove)
+  white: string;
+  overlay: string;
 }

@@ -34,8 +34,8 @@ export const AppBottomSheet = forwardRef<BottomSheetModal, IProps>((props: IProp
     <BottomSheetModal
       ref={ref}
       enablePanDownToClose={enablePanDownToClose}
-      backgroundStyle={{ backgroundColor: theme.color.neutral[900] }}
-      handleIndicatorStyle={{ backgroundColor: theme.color.neutral[600] }}
+      backgroundStyle={{ backgroundColor: theme.color.card.bg }}
+      handleIndicatorStyle={{ backgroundColor: theme.color.border.light }}
       {...rest}
       snapPoints={snapPoints}
       backdropComponent={renderBackdrop}

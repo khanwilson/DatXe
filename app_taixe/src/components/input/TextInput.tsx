@@ -15,7 +15,7 @@ export const AppTextInput = React.memo((props: IAppTextInput) => {
       allowFontScaling={false}
       {...rest}
       style={[styles.defaultStyle, style]}
-      placeholderTextColor={placeholderTextColor || theme.color.neutral[400]}
+      placeholderTextColor={placeholderTextColor || theme.color.input.placeholder}
     />
   );
 });
@@ -23,13 +23,13 @@ export const AppTextInput = React.memo((props: IAppTextInput) => {
 const createStyles = (theme: ITheme) => StyleSheet.create({
   defaultStyle: {
     fontSize: theme.fontSize.p16,
-    color: theme.color.textColor.primary,
-    backgroundColor: theme.color.bg.white,
+    color: theme.color.text.primary,
+    backgroundColor: theme.color.background.surface,
     borderRadius: theme.dimensions.p12,
     paddingHorizontal: theme.dimensions.p16,
     paddingVertical: theme.dimensions.p12,
     borderWidth: 1,
-    borderColor: theme.color.neutral[600],
+    borderColor: theme.color.input.border,
   },
 });
 

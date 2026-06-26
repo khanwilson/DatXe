@@ -6,6 +6,7 @@ export const baseUrl = {
 export const ENDPOINTS = {
   // Auth
   AUTH: {
+    LOGIN: '/auth/login',
     REGISTER: '/auth/phone',
     REQUEST_OTP: '/auth/otp/request',
     VERIFY_OTP: '/auth/otp/verify',

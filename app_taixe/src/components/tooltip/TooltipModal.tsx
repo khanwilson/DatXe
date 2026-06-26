@@ -65,7 +65,7 @@ export const TooltipModal = React.memo((props: ITooltipModalProps) => {
         {/* ===== Tooltip overlay ===== */}
         <Modal visible={isOpen} transparent={true} animationType="fade" statusBarTranslucent={true}>
           <TouchableOpacity
-            style={{ flex: 1, backgroundColor: `${theme.color.bg}90` }} // backdrop color
+            style={{ flex: 1, backgroundColor: theme.color.overlay }} // backdrop color
             activeOpacity={1}
             onPress={() => {
               setIsOpen(false);

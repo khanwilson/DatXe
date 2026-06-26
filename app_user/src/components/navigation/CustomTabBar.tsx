@@ -30,7 +30,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
         styles.tabContent,
         isFocused && {
           borderBottomWidth: 2,
-          borderBottomColor: theme.color.primary[500],
+          borderBottomColor: theme.color.navigation.tabActiveText,
         },
       ]}
     >
@@ -39,7 +39,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
         style={[
           styles.tabLabel,
           {
-            color: isFocused ? theme.color.primary[500] : theme.color.neutral[400],
+            color: isFocused ? theme.color.navigation.tabActiveText : theme.color.navigation.tabInactiveText,
           },
         ]}
       >
@@ -53,8 +53,8 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
       style={[
         styles.container,
         {
-          backgroundColor: theme.color.bg.white,
-          borderTopColor: theme.color.stroke,
+          backgroundColor: theme.color.navigation.tabBg,
+          borderTopColor: theme.color.navigation.tabBorder,
           height: theme.dimensions.getHeightFooter,
           paddingBottom: insetsBottom,
         },
@@ -105,7 +105,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
 const createStyles = (theme: ITheme) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: theme.color.bg.white,
+    backgroundColor: theme.color.navigation.tabBg,
     alignItems: 'center',
   },
   tab: {

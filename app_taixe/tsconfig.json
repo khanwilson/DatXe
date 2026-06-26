@@ -12,7 +12,8 @@
       "theme/*": ["src/theme/*"],
       "zustand/*": ["src/zustand/*"],
       "localization/*": ["src/localization/*"],
-      "api/*": ["src/api/*"]
+      "api/*": ["src/api/*"],
+      "screens/*": ["src/screens/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]

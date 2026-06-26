@@ -13,10 +13,10 @@ const CustomHeaderComponent = ({ props }: { props: NativeStackHeaderProps | Bott
   const headerLeft = props?.options?.headerLeft;
   const headerRight = props?.options?.headerRight;
 
-  return <View style={[styles.container, { backgroundColor: theme.color.bg.white, height: theme.dimensions.getHeightHeader, paddingTop: initialWindowMetrics?.insets?.top || 0 }]}>
+  return <View style={[styles.container, { backgroundColor: theme.color.navigation.headerBg, height: theme.dimensions.getHeightHeader, paddingTop: initialWindowMetrics?.insets?.top || 0 }]}>
     {headerLeft ? headerLeft({ canGoBack: true }) : <BackButton />}
     <View style={styles.viewTitle}>
-      <AppText style={[styles.textTitle, { color: theme.color.primary[500] }]}>{nameScreen}</AppText>
+      <AppText style={[styles.textTitle, { color: theme.color.text.inverse }]}>{nameScreen}</AppText>
     </View>
     {headerRight ? headerRight({ canGoBack: true }) : <View style={{ width: headerLeft ? 0 : 24 }} />}
   </View>

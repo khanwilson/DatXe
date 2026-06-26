@@ -51,7 +51,7 @@ export const FPSCounter = React.memo((props: IProps) => {
 
 const createStyles = (theme: ITheme) => StyleSheet.create({
   fpsCounter: {
-    color: theme.color.textColor.white,
+    color: theme.color.text.inverse,
     position: 'absolute' as const,
     top: theme.dimensions.p20,
     right: theme.dimensions.p20,

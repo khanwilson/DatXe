@@ -157,7 +157,7 @@ export default function SignUpScreen() {
 const createStyles = (theme: ITheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.color.neutral[900],
+    backgroundColor: theme.color.background.app,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -172,12 +172,12 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
   title: {
     fontSize: theme.fontSize.p32,
     fontWeight: 'bold',
-    color: theme.color.textColor.white,
+    color: theme.color.text.primary,
     marginBottom: theme.dimensions.p8,
   },
   subtitle: {
     fontSize: theme.fontSize.p16,
-    color: theme.color.textColor.subText,
+    color: theme.color.text.secondary,
     textAlign: 'center',
   },
   form: {
@@ -189,16 +189,15 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
   label: {
     fontSize: theme.fontSize.p16,
     fontWeight: '600',
-    color: theme.color.textColor.white,
+    color: theme.color.text.primary,
     marginBottom: theme.dimensions.p8,
   },
   button: {
-    backgroundColor: theme.color.white,
     marginTop: theme.dimensions.p20,
     marginBottom: theme.dimensions.p30,
   },
   buttonText: {
-    color: theme.color.neutral[900],
+    color: theme.color.button.primaryText,
   },
   footer: {
     flexDirection: 'row',
@@ -206,11 +205,11 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
     alignItems: 'center',
   },
   footerText: {
-    color: theme.color.textColor.subText,
+    color: theme.color.text.secondary,
     fontSize: theme.fontSize.p16,
   },
   linkText: {
-    color: theme.color.textColor.white,
+    color: theme.color.primary.actionGreen,
     fontSize: theme.fontSize.p16,
     fontWeight: 'bold',
   },

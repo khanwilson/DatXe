@@ -11,4 +11,5 @@ export const ImageSource = {
   ReactLogo: require('./images/react-logo.png'),
   PartialReactLogo: require('./images/partial-react-logo.png'),
   img_fallback: require('./images/img_fallback.png'),
+  logo_mailinh: require('./images/logo_mailinh.png'),
 };
