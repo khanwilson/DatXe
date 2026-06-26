@@ -1,73 +1,98 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "model": "claude-haiku-4-5-20251001",
   "env": {
     "HARNESS_ROOT": "/Users/chubo/Work/DatXe",
     "HARNESS_DOCS": "/Users/chubo/Work/DatXe/docs/harness"
   },
   "permissions": {
-    "allowlist": [
-      {
-        "tool": "Bash",
-        "pattern": "^(npm|pnpm|yarn) (run |)(lint|test|build|typecheck).*",
-        "description": "Run code quality scripts"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^(npm|pnpm|yarn) (run |)prisma:(generate|validate|migrate).*",
-        "description": "Run Prisma scripts"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^./scripts/harness/(create-task|run-checks|validate-contract|update-task-index|summarize-project-state)\\.sh",
-        "description": "Run harness automation scripts"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^(ls|find|cat|head|tail|grep|pwd|cd) ",
-        "description": "File reading and navigation"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^git (status|log|diff|branch|show)",
-        "description": "Safe git read-only commands"
-      }
+    "allow": [
+      "Bash(npm run lint*)",
+      "Bash(npm run test*)",
+      "Bash(npm run build*)",
+      "Bash(npm run typecheck*)",
+
+      "Bash(pnpm run lint*)",
+      "Bash(pnpm run test*)",
+      "Bash(pnpm run build*)",
+      "Bash(pnpm run typecheck*)",
+
+      "Bash(yarn run lint*)",
+      "Bash(yarn run test*)",
+      "Bash(yarn run build*)",
+      "Bash(yarn run typecheck*)",
+
+      "Bash(npm lint*)",
+      "Bash(npm test*)",
+      "Bash(npm build*)",
+      "Bash(npm typecheck*)",
+
+      "Bash(pnpm lint*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm typecheck*)",
+
+      "Bash(yarn lint*)",
+      "Bash(yarn test*)",
+      "Bash(yarn build*)",
+      "Bash(yarn typecheck*)",
+
+      "Bash(npm run prisma:generate*)",
+      "Bash(npm run prisma:validate*)",
+      "Bash(npm run prisma:migrate*)",
+
+      "Bash(pnpm run prisma:generate*)",
+      "Bash(pnpm run prisma:validate*)",
+      "Bash(pnpm run prisma:migrate*)",
+
+      "Bash(yarn run prisma:generate*)",
+      "Bash(yarn run prisma:validate*)",
+      "Bash(yarn run prisma:migrate*)",
+
+      "Bash(./scripts/harness/create-task.sh*)",
+      "Bash(./scripts/harness/run-checks.sh*)",
+      "Bash(./scripts/harness/validate-contract.sh*)",
+      "Bash(./scripts/harness/update-task-index.sh*)",
+      "Bash(./scripts/harness/summarize-project-state.sh*)",
+
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(grep *)",
+      "Bash(pwd)",
+      "Bash(cd *)",
+
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git show*)"
     ],
-    "denylist": [
-      {
-        "tool": "Bash",
-        "pattern": "^git push",
-        "description": "Prevent git push (user controls deployment)"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^git reset",
-        "description": "Prevent destructive git reset"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^git clean",
-        "description": "Prevent git clean"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^(rm -rf|rm -f /) |^rm .*\\*.*\\*",
-        "description": "Prevent recursive/bulk file deletion"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^mv.*src/.*src/",
-        "description": "Prevent moving source code"
-      },
-      {
-        "tool": "Bash",
-        "pattern": "^git.*--force|^git.*-f ",
-        "description": "Prevent force git operations"
-      }
+    "deny": [
+      "Bash(git push*)",
+      "Bash(git reset*)",
+      "Bash(git clean*)",
+      "Bash(rm -rf*)",
+      "Bash(rm -f /*)",
+      "Bash(rm ***)",
+      "Bash(mv *src/*src/*)",
+      "Bash(git *--force*)",
+      "Bash(git * -f *)"
     ]
   },
   "hooks": {
-    "on_start": "echo '🔧 DatXe Multi-Project Harness initialized. Use /harness <task> to start.'",
-    "before_bash": null,
-    "after_bash": null
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '🔧 DatXe Multi-Project Harness initialized. Use /harness <task> to start.'"
+          }
+        ]
+      }
+    ]
   }
 }
