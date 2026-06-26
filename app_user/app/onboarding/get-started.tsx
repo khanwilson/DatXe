@@ -1,24 +1,19 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 import { useAppTheme } from 'theme/index';
-import { OnboardingStackParamList } from './OnboardingStack';
 import { AppText } from 'components/text/AppText';
 import { AppButton } from 'components/button/AppButton';
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'GetStarted'>;
-
-const GetStartedScreen: React.FC<Props> = ({ navigation }) => {
+const GetStartedScreen: React.FC = () => {
   const theme = useAppTheme();
+  const router = useRouter();
 
   const handleGetStarted = async () => {
     try {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'SigninStack' as never }],
-      });
+      router.replace('/(tabs)/HomeScreen');
     } catch (error) {
       console.warn('Error saving onboarding status:', error);
     }
@@ -43,7 +38,7 @@ const GetStartedScreen: React.FC<Props> = ({ navigation }) => {
       marginBottom: theme.dimensions.p40,
     },
     title: {
-      fontSize: theme.fontSize.p28,
+      fontSize: theme.fontSize.p24,
       fontWeight: '700',
       color: '#FFFFFF',
       textAlign: 'center',

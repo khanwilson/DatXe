@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useRouter } from 'expo-router';
 import { useAppTheme } from 'theme/index';
-import { OnboardingStackParamList } from './OnboardingStack';
 import { AppText } from 'components/text/AppText';
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'Splash'>;
-
-const SplashScreen: React.FC<Props> = ({ navigation }) => {
+const SplashScreen: React.FC = () => {
   const theme = useAppTheme();
+  const router = useRouter();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
 
@@ -29,11 +27,11 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
     ]).start();
 
     const timer = setTimeout(() => {
-      navigation.replace('WelcomeCarousel' as never);
+      router.replace('/onboarding/welcome');
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, [navigation, fadeAnim, scaleAnim]);
+  }, [router, fadeAnim, scaleAnim]);
 
   const styles = StyleSheet.create({
     container: {
@@ -61,7 +59,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
       color: '#E63946',
     },
     brandName: {
-      fontSize: theme.fontSize.p28,
+      fontSize: theme.fontSize.p24,
       fontWeight: '700',
       color: '#FFFFFF',
       letterSpacing: 1,

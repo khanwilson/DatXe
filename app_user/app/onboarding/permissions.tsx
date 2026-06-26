@@ -1,24 +1,22 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useRouter } from 'expo-router';
 import { useAppTheme } from 'theme/index';
-import { OnboardingStackParamList } from './OnboardingStack';
 import { AppText } from 'components/text/AppText';
 import { AppButton } from 'components/button/AppButton';
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'Permissions'>;
-
-const PermissionsScreen: React.FC<Props> = ({ navigation }) => {
+const PermissionsScreen: React.FC = () => {
   const theme = useAppTheme();
+  const router = useRouter();
 
   const handleRequestAllPermissions = () => {
     setTimeout(() => {
-      navigation.replace('GetStarted' as never);
+      router.push('/onboarding/get-started');
     }, 300);
   };
 
   const handleSkip = () => {
-    navigation.replace('GetStarted' as never);
+    router.push('/onboarding/get-started');
   };
 
   const styles = StyleSheet.create({
@@ -40,7 +38,7 @@ const PermissionsScreen: React.FC<Props> = ({ navigation }) => {
       marginBottom: theme.dimensions.p32,
     },
     title: {
-      fontSize: theme.fontSize.p28,
+      fontSize: theme.fontSize.p24,
       fontWeight: '700',
       color: '#1A1A1A',
       textAlign: 'center',

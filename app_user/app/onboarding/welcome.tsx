@@ -1,5 +1,5 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppText } from 'components/text/AppText';
+import { useRouter } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
@@ -15,9 +15,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ITheme, useAppTheme } from 'theme/index';
-import { OnboardingStackParamList } from './OnboardingStack';
-
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'WelcomeCarousel'>;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -60,11 +57,12 @@ const WELCOME_DATA: WelcomeSlide[] = [
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 const buttonSkipWidth = 80;
 
-const WelcomeCarouselScreen: React.FC<Props> = ({ navigation }) => {
+const WelcomeCarouselScreen: React.FC = () => {
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+  const router = useRouter();
 
   const skipButtonOpacity = useSharedValue(1);
   const skipButtonTranslateX = useSharedValue(0);
@@ -80,12 +78,12 @@ const WelcomeCarouselScreen: React.FC<Props> = ({ navigation }) => {
         animated: true,
       });
     } else {
-      navigation.replace('Permissions' as never);
+      router.push('/onboarding/permissions');
     }
   };
 
   const handleSkip = () => {
-    navigation.replace('Permissions' as never);
+    router.push('/onboarding/permissions');
   };
 
   const handleScroll = (event: any) => {
@@ -107,7 +105,7 @@ const WelcomeCarouselScreen: React.FC<Props> = ({ navigation }) => {
       nextButtonTranslateX.value = withTiming(0, { duration: 350 });
       nextButtonWidth.value = withTiming(buttonSkipWidth, { duration: 350 });
     }
-  }, [currentIndex, skipButtonOpacity, skipButtonTranslateX, nextButtonWidth, theme.dimensions]);
+  }, [currentIndex, skipButtonOpacity, skipButtonTranslateX, nextButtonTranslateX, nextButtonWidth, theme.dimensions]);
 
   const skipAnimStyle = useAnimatedStyle(() => ({
     opacity: skipButtonOpacity.value,
@@ -241,6 +239,7 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     width: 24,
   },
   skipButton: {
+    height: 48,
     width: buttonSkipWidth,
     borderRadius: 12,
     borderWidth: 1,
@@ -256,6 +255,7 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
   },
   nextButton: {
     backgroundColor: '#E63946',
+    height: 48,
     borderRadius: 12,
     paddingHorizontal: theme.dimensions.p20,
     justifyContent: 'center',

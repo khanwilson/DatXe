@@ -130,6 +130,23 @@ Exported from `src/assets/index.ts`:
 | `react-native-worklets` | 0.8.1 | Reanimated worklets runtime |
 | `i18next` + `react-i18next` | ^25 / ^16 | Localization |
 
+## File Organization
+
+**Screens & routing go in `app/`** (Expo Router file-based routing):
+- All screen components are routes in `app/`
+- Nested folders create route segments (e.g., `app/SigninStack/_layout.tsx`, `app/(tabs)/_layout.tsx`)
+- Each folder with screens must have a `_layout.tsx` to define the stack/tab structure
+- Never place screens in `src/screens/` — that's legacy. Use `app/` exclusively.
+
+**Code, components, state, utilities go in `src/`**:
+- `src/components/` — reusable UI components
+- `src/zustand/` — state management (persist.ts, session.ts)
+- `src/api/` — API client, services, hooks
+- `src/theme/` — theming system
+- `src/localization/` — i18n resources & helpers
+- `src/utils/` — utility functions & helpers
+- `src/assets/` — images, animations, SVG exports
+
 ## Conventions
 
 - **Absolute imports only.** Never use `../` or `../../` across modules. TS `paths` define: `components/*`, `assets/*`, `constants/*`, `utils/*`, `theme/*`, `zustand/*`, `localization/*`, `api/*`. Example: `import { useAppTheme } from 'theme/index'`.

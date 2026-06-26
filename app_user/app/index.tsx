@@ -21,13 +21,13 @@ export default function SplashScreen() {
             router.replace('/SigninStack/SigninScreen');
           } else {
             // User hasn't seen onboarding
-            router.replace('/OnBoardingScreen');
+            router.replace('/onboarding/splash');
           }
         }, 2000); // 2 seconds
       } catch (error) {
         console.error('Error checking onboarding status:', error);
         // Fallback: go to onboarding
-        router.replace('/OnBoardingScreen');
+        router.replace('/onboarding/splash');
       }
     };
 
