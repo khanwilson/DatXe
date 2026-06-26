@@ -1,8 +1,8 @@
 # Task Registry
 
-**Last Updated**: 2026-06-25  
-**Total Tasks**: 45  
-**Completed**: 6  
+**Last Updated**: 2026-06-26  
+**Total Tasks**: 46  
+**Completed**: 9  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -27,6 +27,7 @@
 |----|-------|--------|-------|----------|-----------|----------|--------|
 | T-0032 | Onboarding & Welcome screens app_user | Done | Closing | P0 | - | app_user | [T-0032](tasks/T-0032/) |
 | T-0032.1 | Button Layout & Animation Enhancement | Done | Closing | P1 | T-0032 | app_user | [T-0032.1](tasks/T-0032.1/) |
+| T-0032.2 | Permissions screen wire real OS permission requests | Done | Done | P1 | T-0032 | app_user | [T-0032.2](tasks/T-0032.2/) |
 | T-0033 | Login & Registration screens app_user | Planned | Created | P0 | - | app_user | [T-0033](tasks/T-0033/) |
 | T-0034 | Home & map taxi search app_user | Planned | Created | P0 | T-0031 | app_user | [T-0034](tasks/T-0034/) |
 | T-0035 | Booking confirmation & payment UI app_user | Planned | Created | P0 | T-0034 | app_user | [T-0035](tasks/T-0035/) |

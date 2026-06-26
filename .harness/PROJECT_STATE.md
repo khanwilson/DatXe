@@ -108,6 +108,14 @@
 ### Logging
 - [To be documented]
 
+### Permissions (Mobile Apps)
+- **Xin quyền theo ngữ cảnh (just-in-time)**, không gom hết vào onboarding.
+- Onboarding (app_user) chỉ xin quyền tối thiểu để đặt xe: **Location (foreground)** + **Notifications**. Wired in `app_user/app/onboarding/permissions.tsx` qua `expo-location` + `expo-notifications` (T-0032.2).
+- Permission request là **non-blocking**: allow/deny đều cho user đi tiếp; kiểm tra lại quyền tại điểm sử dụng thực.
+- Quyền khác xin tại đúng màn dùng: Contacts → màn liên hệ; Camera/Photo Library → màn đổi profile.
+- Location: foreground cho app_user (khách); background dành cho app_taixe (tài xế) khi triển khai.
+- iOS usage description strings cấu hình qua plugin trong `app.json`.
+
 ---
 
 ## Known Risks
@@ -140,6 +148,9 @@
 - **T-0004**: WebSocket gateway cơ bản (2026-06-24) - Socket.IO gateway with JWT auth, room helpers, 6 event emitters
 - **T-0005**: API response format và error handling (2026-06-24) - Response interceptor, exception filter, request ID middleware, structured logging
 - **T-0031**: Google Maps routing service backend (2026-06-24) - 5 API endpoints, Google Maps integration, Redis caching, retry logic
+- **T-0032**: Onboarding & Welcome screens app_user (2026-06-25) - splash, welcome carousel, permissions, get-started (Expo Router)
+- **T-0032.1**: Button layout & animation enhancement (2026-06-25) - carousel slide animations, synchronized button transitions
+- **T-0032.2**: Permissions screen wire real OS permission requests (2026-06-26) - Location (foreground) + Notifications via expo-location/expo-notifications, non-blocking onboarding flow
 
 ---
 

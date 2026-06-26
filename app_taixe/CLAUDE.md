@@ -130,6 +130,23 @@ Exported from `src/assets/index.ts`:
 | `react-native-worklets` | 0.8.1 | Reanimated worklets runtime |
 | `i18next` + `react-i18next` | ^25 / ^16 | Localization |
 
+## File Organization
+
+**Screens & routing go in `app/`** (Expo Router file-based routing):
+- All screen components are routes in `app/`
+- Nested folders create route segments (e.g., `app/SigninStack/_layout.tsx`, `app/(tabs)/_layout.tsx`)
+- Each folder with screens must have a `_layout.tsx` to define the stack/tab structure
+- Never place screens in `src/screens/` — that's legacy. Use `app/` exclusively.
+
+**Code, components, state, utilities go in `src/`**:
+- `src/components/` — reusable UI components
+- `src/zustand/` — state management (persist.ts, session.ts)
+- `src/api/` — API client, services, hooks
+- `src/theme/` — theming system
+- `src/localization/` — i18n resources & helpers
+- `src/utils/` — utility functions & helpers
+- `src/assets/` — images, animations, SVG exports
+
 ## Conventions
 
 - **Absolute imports only.** Never use `../` or `../../` across modules. TS `paths` define: `components/*`, `assets/*`, `constants/*`, `utils/*`, `theme/*`, `zustand/*`, `localization/*`, `api/*`. Example: `import { useAppTheme } from 'theme/index'`.
@@ -137,6 +154,68 @@ Exported from `src/assets/index.ts`:
 - **`console.log` is an ESLint error** (`eslint.config.js`). Allowed: `error`, `warn`, `info`, `debug`, `table`, `trace`.
 - Use `AppText` instead of RN `Text`; use `AppTextInput` instead of RN `TextInput`.
 - `.github/prompts.md` is stale (mentions Three.js + yarn); ignore those parts. The absolute-imports and English-comments rules still apply.
+
+### TypeScript/TSX File Organization
+
+**File structure order (top to bottom):**
+
+```
+1. Imports (all import statements)
+2. Variables & Types/Interfaces (module constants, type definitions, interfaces)
+3. Component Function (render — React component definition)
+4. StyleSheet (stylesSheet factory defined AFTER the component)
+5. Export (export default or named export)
+```
+
+**StyleSheet rule (project-wide, both apps):** the stylesheet is a module-level
+factory named `stylesSheet` declared *below* the component, and the component
+consumes it through `useMemo` so styles only rebuild when `theme` (or another
+declared dependency) changes. Never call `StyleSheet.create` inline inside the
+component body.
+
+```tsx
+const styles = useMemo(() => stylesSheet(theme), [theme]);
+// add extra args when a style depends on runtime values:
+// const styles = useMemo(() => stylesSheet(theme, disabled), [theme, disabled]);
+const stylesSheet = (theme: ITheme /*, extra args if needed */) => StyleSheet.create({ ... });
+```
+
+**Example:**
+```tsx
+// 1. IMPORTS
+import React, { useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { ITheme, useAppTheme } from 'theme/index';
+
+// 2. VARIABLES & TYPES/INTERFACES
+interface Props {
+  title: string;
+  onPress: () => void;
+}
+
+// 3. COMPONENT FUNCTION (render)
+const MyComponent: React.FC<Props> = ({ title, onPress }) => {
+  const theme = useAppTheme();
+  const styles = useMemo(() => stylesSheet(theme), [theme]);
+
+  return (
+    <View style={styles.container}>
+      {/* component JSX */}
+    </View>
+  );
+};
+
+// 4. STYLESHEET
+const stylesSheet = (theme: ITheme) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.color.bg.white,
+  },
+});
+
+// 5. EXPORT
+export default MyComponent;
+```
 
 ## Notes on the repo state
 

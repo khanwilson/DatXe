@@ -161,30 +161,43 @@ Exported from `src/assets/index.ts`:
 
 ```
 1. Imports (all import statements)
-2. Types & Interfaces (type definitions, interfaces)
-3. Component Function (React component definition)
-4. StyleSheet (createStyles or StyleSheet.create)
+2. Variables & Types/Interfaces (module constants, type definitions, interfaces)
+3. Component Function (render — React component definition)
+4. StyleSheet (stylesSheet factory defined AFTER the component)
 5. Export (export default or named export)
+```
+
+**StyleSheet rule (project-wide, both apps):** the stylesheet is a module-level
+factory named `stylesSheet` declared *below* the component, and the component
+consumes it through `useMemo` so styles only rebuild when `theme` (or another
+declared dependency) changes. Never call `StyleSheet.create` inline inside the
+component body.
+
+```tsx
+const styles = useMemo(() => stylesSheet(theme), [theme]);
+// add extra args when a style depends on runtime values:
+// const styles = useMemo(() => stylesSheet(theme, disabled), [theme, disabled]);
+const stylesSheet = (theme: ITheme /*, extra args if needed */) => StyleSheet.create({ ... });
 ```
 
 **Example:**
 ```tsx
 // 1. IMPORTS
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useAppTheme } from 'theme/index';
+import { ITheme, useAppTheme } from 'theme/index';
 
-// 2. TYPES & INTERFACES
+// 2. VARIABLES & TYPES/INTERFACES
 interface Props {
   title: string;
   onPress: () => void;
 }
 
-// 3. COMPONENT FUNCTION
+// 3. COMPONENT FUNCTION (render)
 const MyComponent: React.FC<Props> = ({ title, onPress }) => {
   const theme = useAppTheme();
-  const styles = createStyles(theme);
-  
+  const styles = useMemo(() => stylesSheet(theme), [theme]);
+
   return (
     <View style={styles.container}>
       {/* component JSX */}
@@ -193,7 +206,7 @@ const MyComponent: React.FC<Props> = ({ title, onPress }) => {
 };
 
 // 4. STYLESHEET
-const createStyles = (theme: ITheme) => StyleSheet.create({
+const stylesSheet = (theme: ITheme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.color.bg.white,

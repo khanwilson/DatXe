@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAppTheme } from 'theme/index';
+import { ITheme, useAppTheme } from 'theme/index';
 import { AppText } from 'components/text/AppText';
 
 const SplashScreen: React.FC = () => {
   const theme = useAppTheme();
+  const styles = useMemo(() => stylesSheet(theme), [theme]);
   const router = useRouter();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
@@ -33,46 +34,6 @@ const SplashScreen: React.FC = () => {
     return () => clearTimeout(timer);
   }, [router, fadeAnim, scaleAnim]);
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#E63946',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: theme.dimensions.p16,
-    },
-    logoContainer: {
-      alignItems: 'center',
-    },
-    logo: {
-      width: 120,
-      height: 120,
-      borderRadius: 60,
-      backgroundColor: '#FFFFFF',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: theme.dimensions.p24,
-    },
-    logoText: {
-      fontSize: 48,
-      fontWeight: 'bold',
-      color: '#E63946',
-    },
-    brandName: {
-      fontSize: theme.fontSize.p24,
-      fontWeight: '700',
-      color: '#FFFFFF',
-      letterSpacing: 1,
-      marginBottom: theme.dimensions.p8,
-    },
-    tagline: {
-      fontSize: theme.fontSize.p16,
-      color: '#FFFFFF',
-      opacity: 0.9,
-      letterSpacing: 0.5,
-    },
-  });
-
   return (
     <View style={styles.container}>
       <Animated.View
@@ -93,5 +54,45 @@ const SplashScreen: React.FC = () => {
     </View>
   );
 };
+
+const stylesSheet = (theme: ITheme) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#E63946',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: theme.dimensions.p16,
+  },
+  logoContainer: {
+    alignItems: 'center',
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.dimensions.p24,
+  },
+  logoText: {
+    fontSize: 48,
+    fontWeight: 'bold',
+    color: '#E63946',
+  },
+  brandName: {
+    fontSize: theme.fontSize.p24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+    marginBottom: theme.dimensions.p8,
+  },
+  tagline: {
+    fontSize: theme.fontSize.p16,
+    color: '#FFFFFF',
+    opacity: 0.9,
+    letterSpacing: 0.5,
+  },
+});
 
 export default SplashScreen;

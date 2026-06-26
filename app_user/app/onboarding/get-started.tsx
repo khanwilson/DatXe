@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { useAppTheme } from 'theme/index';
+import { ITheme, useAppTheme } from 'theme/index';
 import { AppText } from 'components/text/AppText';
 import { AppButton } from 'components/button/AppButton';
 
 const GetStartedScreen: React.FC = () => {
   const theme = useAppTheme();
+  const styles = useMemo(() => stylesSheet(theme), [theme]);
   const router = useRouter();
 
   const handleGetStarted = async () => {
@@ -18,63 +19,6 @@ const GetStartedScreen: React.FC = () => {
       console.warn('Error saving onboarding status:', error);
     }
   };
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#E63946',
-      justifyContent: 'space-between',
-      paddingHorizontal: theme.dimensions.p20,
-      paddingTop: theme.dimensions.p40,
-      paddingBottom: theme.dimensions.p40,
-    },
-    content: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    icon: {
-      fontSize: 100,
-      marginBottom: theme.dimensions.p40,
-    },
-    title: {
-      fontSize: theme.fontSize.p24,
-      fontWeight: '700',
-      color: '#FFFFFF',
-      textAlign: 'center',
-      marginBottom: theme.dimensions.p16,
-    },
-    subtitle: {
-      fontSize: theme.fontSize.p16,
-      color: 'rgba(255, 255, 255, 0.9)',
-      textAlign: 'center',
-      lineHeight: 24,
-      marginBottom: theme.dimensions.p32,
-    },
-    bottomArea: {
-      gap: theme.dimensions.p12,
-    },
-    getStartedButton: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: 12,
-    },
-    getStartedButtonText: {
-      color: '#E63946',
-      fontSize: theme.fontSize.p16,
-      fontWeight: '600',
-    },
-    signInButton: {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: '#FFFFFF',
-    },
-    signInButtonText: {
-      color: '#FFFFFF',
-      fontSize: theme.fontSize.p16,
-      fontWeight: '600',
-    },
-  });
 
   return (
     <View style={styles.container}>
@@ -103,5 +47,62 @@ const GetStartedScreen: React.FC = () => {
     </View>
   );
 };
+
+const stylesSheet = (theme: ITheme) => StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#E63946',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.dimensions.p20,
+    paddingTop: theme.dimensions.p40,
+    paddingBottom: theme.dimensions.p40,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: {
+    fontSize: 100,
+    marginBottom: theme.dimensions.p40,
+  },
+  title: {
+    fontSize: theme.fontSize.p24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: theme.dimensions.p16,
+  },
+  subtitle: {
+    fontSize: theme.fontSize.p16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: theme.dimensions.p32,
+  },
+  bottomArea: {
+    gap: theme.dimensions.p12,
+  },
+  getStartedButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+  },
+  getStartedButtonText: {
+    color: '#E63946',
+    fontSize: theme.fontSize.p16,
+    fontWeight: '600',
+  },
+  signInButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+  },
+  signInButtonText: {
+    color: '#FFFFFF',
+    fontSize: theme.fontSize.p16,
+    fontWeight: '600',
+  },
+});
 
 export default GetStartedScreen;
