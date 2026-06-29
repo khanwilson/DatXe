@@ -1,17 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { ForwardedRef, forwardRef, useMemo } from 'react';
 import { StyleSheet, TextInput, TextInputProps } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 
 interface IAppTextInput extends TextInputProps {
 }
 
-export const AppTextInput = React.memo((props: IAppTextInput) => {
+export const AppTextInput = forwardRef((props: IAppTextInput, ref: ForwardedRef<TextInput>) => {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { style, placeholderTextColor, ...rest } = props;
 
   return (
     <TextInput
+      ref={ref}
       allowFontScaling={false}
       {...rest}
       style={[styles.defaultStyle, style]}

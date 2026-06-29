@@ -1,54 +1,46 @@
+// 1. IMPORTS
+import { useRequestOtp } from 'api/hooks/useAuth';
 import { AppButton } from 'components/button/AppButton';
-import { AppTextInput } from 'components/input/TextInput';
+import { PhoneInput, PhoneInputChange } from 'components/input/PhoneInput';
 import { AppText } from 'components/text/AppText';
 import { router } from 'expo-router';
+import { getString } from 'localization/index';
 import React, { useMemo, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 
+// 2. COMPONENT FUNCTION
 export default function SignInScreen() {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [email, setEmail] = useState('test@test.com');
-  const [password, setPassword] = useState('password');
-  const [isLoading, setIsLoading] = useState(false);
+  const [national, setNational] = useState('');
+  const [phone, setPhone] = useState<PhoneInputChange | null>(null);
+  const [error, setError] = useState('');
+  const requestOtp = useRequestOtp();
 
-  const handleSignIn = async () => {
-    if (!email || !password) {
-      Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ email và mật khẩu');
+  const handleContinue = () => {
+    if (!phone?.valid) {
+      setError(getString('authPhoneInvalid'));
       return;
     }
-
-    setIsLoading(true);
-
-    // Simulate API call
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock authentication - in production this would call an API
-      if (email === 'test@test.com' && password === 'password') {
-        router.replace('/(tabs)/HomeScreen')
-      } else {
-        Alert.alert('Lỗi', 'Email hoặc mật khẩu không đúng');
+    setError('');
+    requestOtp.mutate(
+      { phone: phone.e164 },
+      {
+        onSuccess: () => {
+          router.push({
+            pathname: '/SigninStack/OtpScreen',
+            params: { phone: phone.e164 },
+          });
+        },
       }
-    } catch (error) {
-      Alert.alert('Lỗi', 'Có lỗi xảy ra khi đăng nhập');
-      console.error('Error signing in:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoToSignUp = () => {
-    router.push('/SigninStack/SignupScreen');
+    );
   };
 
   return (
@@ -58,55 +50,43 @@ export default function SignInScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <AppText style={styles.title}>Đăng nhập</AppText>
-          <AppText style={styles.subtitle}>Chào mừng trở lại với Template</AppText>
+          <AppText style={styles.title}>{getString('authPhoneTitle')}</AppText>
+          <AppText style={styles.subtitle}>{getString('authPhoneSubtitle')}</AppText>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <AppText style={styles.label}>Email</AppText>
-            <AppTextInput
-              placeholder="Nhập email của bạn"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
+            <AppText style={styles.label}>{getString('authPhoneLabel')}</AppText>
+            <PhoneInput
+              value={national}
+              defaultCountry="VN"
+              placeholder={getString('authPhonePlaceholder')}
+              autoFocus
+              validStatus={phone?.valid ?? null}
+              onChange={(change) => {
+                setNational(change.national);
+                setPhone(change);
+                if (error) {
+                  setError('');
+                }
+              }}
             />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <AppText style={styles.label}>Mật khẩu</AppText>
-            <AppTextInput
-              placeholder="Nhập mật khẩu"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            {!!error && <AppText style={styles.errorText}>{error}</AppText>}
           </View>
 
           <AppButton
-            text={isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-            onPress={handleSignIn}
-            disabled={isLoading}
+            text={getString('authContinue')}
+            onPress={handleContinue}
+            disabled={requestOtp.isPending}
             style={styles.button}
-            textStyle={styles.buttonText}
           />
-
-          <View style={styles.footer}>
-            <AppText style={styles.footerText}>Chưa có tài khoản? </AppText>
-            <TouchableOpacity onPress={handleGoToSignUp}>
-              <AppText style={styles.linkText}>Đăng ký ngay</AppText>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
+// 3. STYLESHEET
 const createStyles = (theme: ITheme) => StyleSheet.create({
   container: {
     flex: 1,
@@ -144,25 +124,12 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
     color: theme.color.text.primary,
     marginBottom: theme.dimensions.p8,
   },
+  errorText: {
+    color: theme.color.state.error,
+    fontSize: theme.fontSize.p14,
+    marginTop: theme.dimensions.p8,
+  },
   button: {
     marginTop: theme.dimensions.p20,
-    marginBottom: theme.dimensions.p30,
-  },
-  buttonText: {
-    color: theme.color.button.primaryText,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footerText: {
-    color: theme.color.text.secondary,
-    fontSize: theme.fontSize.p16,
-  },
-  linkText: {
-    color: theme.color.primary.actionGreen,
-    fontSize: theme.fontSize.p16,
-    fontWeight: 'bold',
   },
 });

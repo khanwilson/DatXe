@@ -1,6 +1,6 @@
 # Decisions Log
 
-**Last Updated**: 2026-06-24  
+**Last Updated**: 2026-06-26  
 **Format**: Per-decision tracking with status and impact
 
 ---
@@ -40,6 +40,17 @@
 | **Impacted Projects** | nestjs_prisma, app_taixe, app_user |
 | **Consequences** | <ul><li>User.role determines user type</li><li>Customer/Driver models extend User with type-specific fields</li><li>Auth JWT payload includes role for authorization guards</li><li>Register endpoint defaults role=CUSTOMER (backward compatible)</li></ul> |
 
+### D-0005: Mobile Auth — Phone + OTP
+
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | T-0033 (2026-06-26) |
+| **Context** | App gọi xe tại VN; cần auth thân thiện, không mật khẩu. UI cũ mock email/password vênh với `ENDPOINTS.AUTH` (đã định hình phone/OTP). |
+| **Decision** | Đăng nhập/đăng ký bằng **số điện thoại + OTP 6 số**. Flow: `requestOtp({phone})` → `verifyOtp({phone, code})` → token + user. Bỏ email/password. Mã vùng +84, SĐT VN `0xxxxxxxxx`. |
+| **Impacted Projects** | app_user, app_taixe (T-0040 tái dùng), nestjs_prisma (T-0006 implement endpoints) |
+| **Consequences** | <ul><li>`authService` dùng requestOtp/verifyOtp; hooks `useRequestOtp`/`useVerifyOtp`</li><li>`user` shape: phone required, name/email optional</li><li>Mock `__DEV__` code `000000` auto-pass — gỡ khi backend live</li><li>Kiến trúc service tách biệt để sau wire nhà mạng (SMS) hoặc Zalo OTP</li><li>Backend T-0006 phải cung cấp `/auth/otp/request` + `/auth/otp/verify`</li></ul> |
+
 ---
 
 ## Pending Decisions
@@ -52,7 +63,7 @@
 | **Trigger** | T-0006 (Auth API refresh token) |
 | **Options** | <ul><li>JWT with refresh tokens</li><li>Session-based with cookies</li><li>OAuth 2.0 integration</li><li>Firebase Auth</li></ul> |
 | **Impact Scope** | NestJS backend, both mobile apps, database schema |
-| **Notes** | T-0001 set up JWT access/refresh tokens. T-0002 added role to JWT payload. T-0006 will implement full refresh token flow. |
+| **Notes** | T-0001 set up JWT access/refresh tokens. T-0002 added role to JWT payload. T-0033 chốt phương thức **phone + OTP** cho mobile (xem D-0005). T-0006 sẽ implement full refresh token flow + OTP endpoints thật. |
 
 ### P-D-0002: Database Strategy
 

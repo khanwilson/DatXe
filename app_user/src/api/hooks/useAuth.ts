@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, LoginRequest, RegisterRequest } from 'api/services/authService';
+import {
+  authService,
+  RequestOtpRequest,
+  VerifyOtpRequest,
+} from 'api/services/authService';
 import ZustandPersist from 'zustand/persist';
 
 // Query Keys
@@ -7,40 +11,31 @@ export const AUTH_KEYS = {
   user: ['user'] as const,
 };
 
-// Login mutation hook
-export const useLogin = () => {
-  const queryClient = useQueryClient();
-
+// Request OTP mutation hook
+export const useRequestOtp = () => {
   return useMutation({
-    mutationFn: (data: LoginRequest) => authService.login(data),
-    onSuccess: (response) => {
-      // Save tokens to zustand
-      ZustandPersist.getState().setTokens(response.accessToken, response.refreshToken);
-      ZustandPersist.getState().setUser(response.user);
-      // Invalidate user queries
-      queryClient.invalidateQueries({ queryKey: AUTH_KEYS.user });
-    },
+    mutationFn: (data: RequestOtpRequest) => authService.requestOtp(data),
     onError: (error) => {
-      console.error('Login failed:', error);
+      console.error('Request OTP failed:', error);
     },
   });
 };
 
-// Register mutation hook
-export const useRegister = () => {
+// Verify OTP mutation hook
+export const useVerifyOtp = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: RegisterRequest) => authService.register(data),
+    mutationFn: (data: VerifyOtpRequest) => authService.verifyOtp(data),
     onSuccess: (response) => {
-      // Save tokens to zustand
+      // Save tokens + user to zustand
       ZustandPersist.getState().setTokens(response.accessToken, response.refreshToken);
       ZustandPersist.getState().setUser(response.user);
       // Invalidate user queries
       queryClient.invalidateQueries({ queryKey: AUTH_KEYS.user });
     },
     onError: (error) => {
-      console.error('Register failed:', error);
+      console.error('Verify OTP failed:', error);
     },
   });
 };

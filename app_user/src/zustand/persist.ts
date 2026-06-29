@@ -15,8 +15,9 @@ export interface PersistState {
   // User
   user?: {
     id: string;
-    email: string;
-    name: string;
+    phone: string;
+    name?: string;
+    email?: string;
   };
 
   // Actions

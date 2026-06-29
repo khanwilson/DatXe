@@ -7,47 +7,19 @@
   },
   "permissions": {
     "allow": [
-      "Bash(npm run lint*)",
-      "Bash(npm run test*)",
-      "Bash(npm run build*)",
-      "Bash(npm run typecheck*)",
+      "Bash(bun run lint*)",
+      "Bash(bun run test*)",
+      "Bash(bun run build*)",
+      "Bash(bun run typecheck*)",
 
-      "Bash(pnpm run lint*)",
-      "Bash(pnpm run test*)",
-      "Bash(pnpm run build*)",
-      "Bash(pnpm run typecheck*)",
+      "Bash(bun lint*)",
+      "Bash(bun test*)",
+      "Bash(bun build*)",
+      "Bash(bun typecheck*)",
 
-      "Bash(yarn run lint*)",
-      "Bash(yarn run test*)",
-      "Bash(yarn run build*)",
-      "Bash(yarn run typecheck*)",
-
-      "Bash(npm lint*)",
-      "Bash(npm test*)",
-      "Bash(npm build*)",
-      "Bash(npm typecheck*)",
-
-      "Bash(pnpm lint*)",
-      "Bash(pnpm test*)",
-      "Bash(pnpm build*)",
-      "Bash(pnpm typecheck*)",
-
-      "Bash(yarn lint*)",
-      "Bash(yarn test*)",
-      "Bash(yarn build*)",
-      "Bash(yarn typecheck*)",
-
-      "Bash(npm run prisma:generate*)",
-      "Bash(npm run prisma:validate*)",
-      "Bash(npm run prisma:migrate*)",
-
-      "Bash(pnpm run prisma:generate*)",
-      "Bash(pnpm run prisma:validate*)",
-      "Bash(pnpm run prisma:migrate*)",
-
-      "Bash(yarn run prisma:generate*)",
-      "Bash(yarn run prisma:validate*)",
-      "Bash(yarn run prisma:migrate*)",
+      "Bash(bun run prisma:generate*)",
+      "Bash(bun run prisma:validate*)",
+      "Bash(bun run prisma:migrate*)",
 
       "Bash(./scripts/harness/create-task.sh*)",
       "Bash(./scripts/harness/run-checks.sh*)",

@@ -4,8 +4,9 @@ import { ENDPOINTS } from 'api/axios/config';
 // Types
 export interface User {
   id: string;
-  email: string;
-  name: string;
+  phone: string;
+  name?: string;
+  email?: string;
   avatar?: string;
 }
 

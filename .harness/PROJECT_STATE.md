@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2026-06-24  
+**Last Updated**: 2026-06-26  
 **Harness Version**: 1.0
 
 ---
@@ -29,6 +29,7 @@
 
 - [x] User registration (driver & customer) - T-0002 schema ready
 - [x] User authentication - T-0001 + T-0002 JWT with role
+- [x] Customer login/registration UI (phone + OTP) - T-0033 (app_user, mock DEV)
 - [x] WebSocket gateway (Socket.IO with JWT auth) - T-0004
 - [ ] Driver profile management
 - [ ] Customer profile management
@@ -42,10 +43,12 @@
 ## Active API Contracts
 
 ### Authentication API
-- **Endpoint**: `POST /api/auth/register` | `POST /api/auth/login`
-- **Status**: Not yet documented
-- **Last Updated**: -
-- **Projects**: app_taixe, app_user, nestjs_prisma
+- **Endpoint**: `POST /auth/otp/request` | `POST /auth/otp/verify` (phone + OTP)
+- **Status**: Client contract defined (T-0033); backend mock cho tới T-0006
+- **Last Updated**: 2026-06-26
+- **Projects**: app_user (app_taixe sẽ tái dùng ở T-0040), nestjs_prisma
+- **Flow**: nhập SĐT (VN `0xxxxxxxxx`) → `requestOtp` → nhập OTP 6 số → `verifyOtp` → token + user
+- **DEV mock**: `__DEV__` + code `000000` auto-pass (gỡ khi backend live)
 
 ---
 
@@ -151,6 +154,8 @@
 - **T-0032**: Onboarding & Welcome screens app_user (2026-06-25) - splash, welcome carousel, permissions, get-started (Expo Router)
 - **T-0032.1**: Button layout & animation enhancement (2026-06-25) - carousel slide animations, synchronized button transitions
 - **T-0032.2**: Permissions screen wire real OS permission requests (2026-06-26) - Location (foreground) + Notifications via expo-location/expo-notifications, non-blocking onboarding flow
+- **T-0046**: Bộ theme Mai Linh semantic cho app_user (2026-06-26) - IAppColor semantic, palette Mai Linh, migrate mọi consumer sang token, khử hardcode đỏ
+- **T-0033**: Login & Registration screens app_user (2026-06-26) - flow Phone + OTP (màn nhập SĐT + màn OTP resend countdown), authService/hooks OTP, mock DEV `000000`, AppTextInput forwardRef
 
 ---
 
