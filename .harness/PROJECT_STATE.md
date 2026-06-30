@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2026-06-26  
+**Last Updated**: 2026-06-29  
 **Harness Version**: 1.0
 
 ---
@@ -30,6 +30,7 @@
 - [x] User registration (driver & customer) - T-0002 schema ready
 - [x] User authentication - T-0001 + T-0002 JWT with role
 - [x] Customer login/registration UI (phone + OTP) - T-0033 (app_user, mock DEV)
+- [x] Customer home + map screen (current location, search UI) - T-0034 (app_user)
 - [x] WebSocket gateway (Socket.IO with JWT auth) - T-0004
 - [ ] Driver profile management
 - [ ] Customer profile management
@@ -156,6 +157,8 @@
 - **T-0032.2**: Permissions screen wire real OS permission requests (2026-06-26) - Location (foreground) + Notifications via expo-location/expo-notifications, non-blocking onboarding flow
 - **T-0046**: Bộ theme Mai Linh semantic cho app_user (2026-06-26) - IAppColor semantic, palette Mai Linh, migrate mọi consumer sang token, khử hardcode đỏ
 - **T-0033**: Login & Registration screens app_user (2026-06-26) - flow Phone + OTP (màn nhập SĐT + màn OTP resend countdown), authService/hooks OTP, mock DEV `000000`, AppTextInput forwardRef
+- **T-0033.1**: PhoneInput component + libphonenumber-js validation (2026-06-29) - PhoneInput tái sử dụng (country picker 75% + search, digits-only, E.164 output), static CLDR country-name map (Hermes không có Intl.DisplayNames)
+- **T-0034**: Home & map taxi search app_user (2026-06-29) - react-native-maps + PROVIDER_GOOGLE (cả iOS/Android), HomeScreen full-screen map + recenter + "Where to?" search UI + saved shortcuts, useCurrentLocation hook, app.config.ts inject Google Maps keys từ env
 
 ---
 
@@ -185,6 +188,15 @@
 
 ## Environment Variables & Secrets
 
+### app_user
+- `GOOGLE_MAPS_ANDROID_API_KEY` — Google Maps SDK key (Android), injected via `app.config.ts` (T-0034)
+- `GOOGLE_MAPS_IOS_API_KEY` — Google Maps SDK key (iOS), injected via `app.config.ts` (T-0034)
+- Stored in `.env` (gitignored); placeholders documented in `.env.example`. Build-time only (no
+  `EXPO_PUBLIC_` prefix). For EAS builds, set both as EAS secrets/env.
+- **Build model**: app_user now requires a **development build / `expo prebuild`** (react-native-maps
+  native module, T-0034) — **Expo Go no longer works**.
+
+### Backend / other
 **[Not yet configured]**
 
 Define once first task needs it:

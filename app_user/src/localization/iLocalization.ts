@@ -22,4 +22,10 @@ export interface iLocalization {
   countryPickerTitle: string;
   countryPickerSearch: string;
   countryPickerEmpty: string;
+  // Home — map & search
+  homeWhereTo: string;
+  homeSavedHome: string;
+  homeSavedWork: string;
+  homeLocationDenied: string;
+  homeEnableLocation: string;
 }

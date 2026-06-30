@@ -24,5 +24,11 @@ const vi: iLocalization = {
   countryPickerTitle: 'Chọn quốc gia',
   countryPickerSearch: 'Tìm theo tên hoặc mã',
   countryPickerEmpty: 'Không tìm thấy quốc gia',
+  // Home — map & search
+  homeWhereTo: 'Bạn muốn đi đâu?',
+  homeSavedHome: 'Nhà',
+  homeSavedWork: 'Cơ quan',
+  homeLocationDenied: 'Vị trí đang tắt. Bật để tìm xe ở gần bạn.',
+  homeEnableLocation: 'Bật vị trí',
 }
 export default vi;

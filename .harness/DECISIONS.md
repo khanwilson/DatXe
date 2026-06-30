@@ -51,9 +51,18 @@
 | **Impacted Projects** | app_user, app_taixe (T-0040 tái dùng), nestjs_prisma (T-0006 implement endpoints) |
 | **Consequences** | <ul><li>`authService` dùng requestOtp/verifyOtp; hooks `useRequestOtp`/`useVerifyOtp`</li><li>`user` shape: phone required, name/email optional</li><li>Mock `__DEV__` code `000000` auto-pass — gỡ khi backend live</li><li>Kiến trúc service tách biệt để sau wire nhà mạng (SMS) hoặc Zalo OTP</li><li>Backend T-0006 phải cung cấp `/auth/otp/request` + `/auth/otp/verify`</li></ul> |
 
----
+### D-0006: Mobile Maps — react-native-maps + PROVIDER_GOOGLE
 
-## Pending Decisions
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | T-0034 (2026-06-29) |
+| **Context** | App gọi xe cần Google Maps thật (Maps/Places/Routes nhất quán) trên cả 2 nền tảng. `expo-maps` chỉ hỗ trợ Google trên Android (iOS rơi về Apple Maps) → không hợp yêu cầu. |
+| **Decision** | Dùng **react-native-maps** với `PROVIDER_GOOGLE` trên **cả iOS và Android**. API key (Android + iOS) inject qua **env** trong `app.config.ts` (`ios.config.googleMapsApiKey`, `android.config.googleMaps.apiKey`). |
+| **Impacted Projects** | app_user (app_taixe sẽ tái dùng pattern ở các task map của tài xế) |
+| **Consequences** | <ul><li>**Rời Expo Go** — bắt buộc development build / `expo prebuild` (native module đầu tiên của project)</li><li>`react-native-maps@1.20.1` KHÔNG có config plugin → không thêm vào `plugins`; prebuild đọc key trực tiếp từ config</li><li>Keys build-time, không prefix `EXPO_PUBLIC_`, không commit (chỉ `.env.example` placeholder)</li><li>EAS build cần set 2 key làm secrets/env</li><li>Components `AppMap`/`SearchPanel`/`useCurrentLocation` tái dùng cho booking/trip + app_taixe</li><li>Place search (Places autocomplete/geocode qua backend `/routes/*`) để T-0035</li></ul> |
+
+---
 
 ### P-D-0001: Authentication Strategy
 

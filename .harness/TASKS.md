@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-06-29  
 **Total Tasks**: 46  
-**Completed**: 12  
+**Completed**: 13  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -31,7 +31,7 @@
 | T-0046 | Bộ theme Mai Linh (semantic) | Done | Done | P1 | T-0032 | app_user, app_taixe | [T-0046](tasks/T-0046/) |
 | T-0033 | Login & Registration screens app_user (Phone+OTP) | Done | Done | P0 | - | app_user | [T-0033](tasks/T-0033/) |
 | T-0033.1 | PhoneInput component + libphonenumber-js validation | Done | Done | P1 | T-0033 | app_user | [T-0033.1](tasks/T-0033.1/) |
-| T-0034 | Home & map taxi search app_user | Planned | Created | P0 | T-0031 | app_user | [T-0034](tasks/T-0034/) |
+| T-0034 | Home & map taxi search app_user | Done | Done | P0 | T-0031 | app_user | [T-0034](tasks/T-0034/) |
 | T-0035 | Booking confirmation & payment UI app_user | Planned | Created | P0 | T-0034 | app_user | [T-0035](tasks/T-0035/) |
 | T-0036 | Active trip tracking with routing app_user | Planned | Created | P0 | T-0035, T-0031 | app_user | [T-0036](tasks/T-0036/) |
 | T-0037 | Trip history & bookings list app_user | Planned | Created | P0 | T-0036 | app_user | [T-0037](tasks/T-0037/) |

@@ -24,5 +24,11 @@ const en: iLocalization = {
   countryPickerTitle: 'Select country',
   countryPickerSearch: 'Search by name or code',
   countryPickerEmpty: 'No country found',
+  // Home — map & search
+  homeWhereTo: 'Where to?',
+  homeSavedHome: 'Home',
+  homeSavedWork: 'Work',
+  homeLocationDenied: 'Location is off. Turn it on to find rides near you.',
+  homeEnableLocation: 'Enable location',
 }
 export default en;
