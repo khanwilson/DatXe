@@ -32,7 +32,7 @@ hethong/
 Mỗi task **phải** tuân theo quy trình:
 
 ```
-Created → Planning → Contracting → Generating → Evaluating → Fixing (nếu cần) → Closing → Done
+Created → Planning → Contracting → Implementing → Evaluating → Fixing/Architecting (nếu cần) -> Reviewing → Closing → Done
 ```
 
 ### 2. Không Code Trước Plan & Contract
@@ -131,45 +131,6 @@ Không có side-effect documentation ở nơi khác.
 - Tất cả changes đều local
 - Người dùng quyết định khi nào push
 - Không tự động commit hoặc push
-
----
-
-## Model Routing cho Harness Tasks
-
-Phân loại công việc theo mức độ phức tạp để chọn model phù hợp:
-
-### Opus 4.8 — Công việc tư duy (thinking tasks)
-
-Dùng cho các phase đòi hỏi phân tích sâu, ra quyết định phức tạp, implement code:
-
-- **Planning**: Đọc task, phân tích scope, dependencies, risks → tạo `plan.md`
-- **Contracting**: Xác định scope, allowed files, acceptance criteria → tạo `contract.md`
-- **Generating**: Viết code, sửa logic, tạo files mới, refactor, optimize
-- **Evaluating**: QA review, kiểm tra acceptance criteria, phân tích test results, tìm bugs
-- **Fixing**: Debug phức tạp, sửa lỗi, resolve conflicts, refactor solutions
-
-### Sonnet 4.6 — Công việc ghi chép (documentation tasks)
-
-Dùng cho các phase chỉ cập nhật documentation và status, không cần reasoning phức tạp:
-
-- **Status updates**: Cập nhật `status.md` (chuyển phase, tick checkboxes)
-- **Logging**: Cập nhật `files-changed.md`, `implementation.md` summary
-- **Handoff documentation**: Điền `handoff.md` từ thông tin đã có
-- **Task metadata**: Cập nhật `TASKS.md` index, `PROJECT_STATE.md` (khi không có architectural change)
-- **Decisions log**: Cập nhật `decisions.md` task-scoped
-- **Evaluation templates**: Điền evaluation checklist từ kết quả đã có
-
-### Rule áp dụng
-
-```
-Nếu task đang trong phase Planning/Contracting/Generating/Evaluating/Fixing
-→ Dùng Opus 4.8 (for deeper reasoning & complex implementation)
-
-Nếu chỉ cập nhật .md files, log status, document decisions
-→ Dùng Sonnet 4.6 (for structured documentation work)
-```
-
-Khi Sonnet 4.6 (documentation task) phát hiện vấn đề cần ra quyết định sâu (conflict, risk, architectural choice) → **dừng lại và chuyển sang Opus 4.8**. Không tự quyết định những việc ngoài scope documentation.
 
 ---
 

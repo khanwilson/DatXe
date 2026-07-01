@@ -1,8 +1,8 @@
 # Task Registry
 
-**Last Updated**: 2026-06-22  
-**Total Tasks**: 0  
-**Completed**: 0  
+**Last Updated**: 2026-07-01  
+**Total Tasks**: 53  
+**Completed**: 15  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -26,14 +26,8 @@
 
 ## Phase Legend
 
-- **Created** - Task folder initialized, awaiting planning
-- **Planning** - Planner analyzing requirements
-- **Contracting** - Contract being defined
-- **Generating** - Implementation in progress
-- **Evaluating** - Testing, checks, validation
-- **Fixing** - Issues found, being fixed
-- **Closing** - Final cleanup, handoff documentation
-- **Done** - Task complete
+| ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
+|----|-------|--------|-------|----------|-----------|----------|--------|
 
 ## Priority Legend
 

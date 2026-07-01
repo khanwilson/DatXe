@@ -2,7 +2,7 @@
 
 View current status of a task.
 
-**Model**: Haiku 4.5 (documentation task — just reads and displays status)
+**Model**: `claude-haiku-4-5-20251001` (documentation task — just reads and displays status). Nguồn chân lý: [`.claude/harness-model-policy.md`](../harness-model-policy.md)
 
 ## Usage
 
@@ -30,7 +30,7 @@ View current status of a task.
 ```
 Task: T-0001 - Implement user registration
 Status: In Progress
-Phase: Generating
+Phase: Implementing
 Progress:
   ✅ Task created
   ✅ Plan drafted
