@@ -1,9 +1,7 @@
 # Contractor Skill
 
 **Model**: `claude-sonnet-4-6` (default — contract, acceptance criteria, file scope, constraints, dependencies, handoff).
-**Escalate → `claude-opus-4-6`** khi contract liên quan: architecture, security, payment, auth, database migration, native build, release.
 Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
-Xem policy đầy đủ: [`.claude/harness-model-policy.md`](../../harness-model-policy.md)
 
 **Purpose**: Define explicit scope boundaries and acceptance criteria
 

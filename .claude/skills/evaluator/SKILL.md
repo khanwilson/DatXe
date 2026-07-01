@@ -3,7 +3,6 @@
 **Model**: `claude-sonnet-4-6` (quyết định pass/fail và root cause).
 Có thể dùng `claude-haiku-4-5-20251001` cho việc tóm tắt log; nhưng quyết định pass/fail vẫn dùng Sonnet.
 Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
-Xem policy đầy đủ: [`.claude/harness-model-policy.md`](../../harness-model-policy.md)
 
 **Purpose**: Validate implementation against contract & quality standards
 

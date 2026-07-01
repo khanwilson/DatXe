@@ -3,7 +3,6 @@
 **Model**: `claude-opus-4-6` (triển khai đúng contract, không tự mở rộng scope).
 **Escalate** về planner/architect/reviewer nếu implementation fail nhiều lần hoặc gặp lỗi không rõ nguyên nhân — không tự đoán quá nhiều.
 Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
-Xem policy đầy đủ: [`.claude/harness-model-policy.md`](../../harness-model-policy.md)
 
 **Purpose**: Code implementation per contract boundaries
 

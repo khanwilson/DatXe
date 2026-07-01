@@ -5,6 +5,12 @@
     "HARNESS_ROOT": "/Users/chubo/Work/DatXe",
     "HARNESS_DOCS": "/Users/chubo/Work/DatXe/docs/harness"
   },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false
+  },
   "permissions": {
     "allow": [
       "Bash(npm run lint*)",
@@ -68,15 +74,52 @@
       "Bash(git log*)",
       "Bash(git diff*)",
       "Bash(git branch*)",
-      "Bash(git show*)"
+      "Bash(git show*)",
+
+      "Bash(rm -f ./*)",
+      "Bash(rm -f ./**)",
+      "Bash(rm -rf ./*)",
+      "Bash(rm -rf ./**)",
+      "Bash(rmdir ./*)",
+      "Bash(rmdir ./**)"
     ],
     "deny": [
       "Bash(git push*)",
       "Bash(git reset*)",
       "Bash(git clean*)",
-      "Bash(rm -rf*)",
+
       "Bash(rm -f /*)",
-      "Bash(rm ***)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -f /)",
+      "Bash(rm -f ~*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -f ../*)",
+      "Bash(rm -rf ../*)",
+      "Bash(rm -f ../**)",
+      "Bash(rm -rf ../**)",
+      "Bash(rm -f /Users*)",
+      "Bash(rm -rf /Users*)",
+      "Bash(rm -f /etc*)",
+      "Bash(rm -rf /etc*)",
+      "Bash(rm -f /System*)",
+      "Bash(rm -rf /System*)",
+      "Bash(rm -f /Applications*)",
+      "Bash(rm -rf /Applications*)",
+      "Bash(rm -f /Library*)",
+      "Bash(rm -rf /Library*)",
+      "Bash(rmdir /*)",
+      "Bash(rmdir /)",
+      "Bash(rmdir ~*)",
+      "Bash(rmdir ../*)",
+      "Bash(rmdir ../**)",
+
+      "Bash(find /* -delete*)",
+      "Bash(find ~* -delete*)",
+      "Bash(find ../* -delete*)",
+      "Bash(find ../** -delete*)",
+      "Bash(find * -exec rm*)",
+
       "Bash(mv *src/*src/*)",
       "Bash(git *--force*)",
       "Bash(git * -f *)"
