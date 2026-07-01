@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GoogleMapsService } from './services/google-maps.service';
+import { GoongService } from './services/goong.service';
 import { RouteCacheService } from './services/route-cache.service';
 
 @Injectable()
@@ -7,7 +7,7 @@ export class RoutesService {
   private logger = new Logger('RoutesService');
 
   constructor(
-    private googleMapsService: GoogleMapsService,
+    private goongService: GoongService,
     private routeCacheService: RouteCacheService,
   ) {}
 
@@ -24,7 +24,7 @@ export class RoutesService {
       return cached;
     }
 
-    const apiResponse = await this.googleMapsService.getDirections(
+    const apiResponse = await this.goongService.getDirections(
       origin,
       destination,
       mode,
@@ -49,7 +49,7 @@ export class RoutesService {
       return cached;
     }
 
-    const apiResponse = await this.googleMapsService.getDistanceMatrix(
+    const apiResponse = await this.goongService.getDistanceMatrix(
       origins,
       destinations,
       mode,
@@ -68,7 +68,7 @@ export class RoutesService {
       return cached;
     }
 
-    const apiResponse = await this.googleMapsService.getGeocoding(lat, lng);
+    const apiResponse = await this.goongService.getGeocoding(lat, lng);
     const transformed = this.transformGeocoding(apiResponse);
     await this.routeCacheService.setGeocoding(lat, lng, transformed);
 
@@ -82,7 +82,7 @@ export class RoutesService {
       return cached;
     }
 
-    const apiResponse = await this.googleMapsService.getPlacesAutocomplete(query, language);
+    const apiResponse = await this.goongService.getPlacesAutocomplete(query, language);
     const transformed = this.transformPlacesAutocomplete(apiResponse);
     await this.routeCacheService.setPlacesAutocomplete(query, transformed);
 
@@ -96,7 +96,7 @@ export class RoutesService {
       return cached;
     }
 
-    const apiResponse = await this.googleMapsService.getPlacesDetails(placeId);
+    const apiResponse = await this.goongService.getPlacesDetails(placeId);
     const transformed = this.transformPlacesDetails(apiResponse);
     await this.routeCacheService.setPlacesDetails(placeId, transformed);
 

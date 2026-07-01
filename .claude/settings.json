@@ -1,6 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "model": "claude-haiku-4-5-20251001",
   "env": {
     "HARNESS_ROOT": "/Users/chubo/Work/DatXe",
     "HARNESS_DOCS": "/Users/chubo/Work/DatXe/docs/harness"

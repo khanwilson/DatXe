@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2026-06-29  
+**Last Updated**: 2026-07-01  
 **Harness Version**: 1.0
 
 ---
@@ -159,6 +159,7 @@
 - **T-0033**: Login & Registration screens app_user (2026-06-26) - flow Phone + OTP (màn nhập SĐT + màn OTP resend countdown), authService/hooks OTP, mock DEV `000000`, AppTextInput forwardRef
 - **T-0033.1**: PhoneInput component + libphonenumber-js validation (2026-06-29) - PhoneInput tái sử dụng (country picker 75% + search, digits-only, E.164 output), static CLDR country-name map (Hermes không có Intl.DisplayNames)
 - **T-0034**: Home & map taxi search app_user (2026-06-29) - react-native-maps + PROVIDER_GOOGLE (cả iOS/Android), HomeScreen full-screen map + recenter + "Where to?" search UI + saved shortcuts, useCurrentLocation hook, app.config.ts inject Google Maps keys từ env
+- **T-0050**: Backend Goong API service (2026-07-01) - `GoongService` adapter thay `GoogleMapsService` trong `RoutesModule`; normalize Goong responses về Google-shaped fields nên `RoutesService.transform*` + DTOs + endpoints `/routes/*` không đổi; mode `driving→car`/`walking→bike`, `transit` bị reject; retry+backoff giữ nguyên; cache prefix bump `goong:*`; env `GOONG_API_KEY`/`GOONG_BASE_URL`. Google Maps files còn lại (gỡ ở T-0056)
 
 ---
 
@@ -197,13 +198,9 @@
   native module, T-0034) — **Expo Go no longer works**.
 
 ### Backend / other
-**[Not yet configured]**
-
-Define once first task needs it:
-- Backend API URL
-- Database connection string
-- Authentication secrets
-- Third-party API keys
+- `GOONG_API_KEY` — Goong API key for routing/places/geocoding (T-0050), used by `GoongService`. Config throws hard on missing key at boot.
+- `GOONG_BASE_URL` — Goong API base URL, default `https://rsapi.goong.io`.
+- `GOOGLE_MAPS_API_KEY` / `GOOGLE_MAPS_BASE_URL` — **legacy**, no longer wired into `RoutesModule` (Goong swapped in at T-0050). Removal deferred to T-0056.
 
 ---
 

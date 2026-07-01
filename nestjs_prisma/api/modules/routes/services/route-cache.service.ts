@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '../../../common/redis/cache.service';
-import { GoogleMapsConfig } from '../../../config/google-maps.config';
+import { GoongConfig } from '../../../config/goong.config';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class RouteCacheService {
   constructor(
     private cacheService: CacheService,
-    private config: GoogleMapsConfig,
+    private config: GoongConfig,
   ) {}
 
   private hash(value: string): string {
@@ -15,7 +15,7 @@ export class RouteCacheService {
   }
 
   async getDirections(origin: string, destination: string, mode: string): Promise<any> {
-    const key = `route:${this.hash(origin)}:${this.hash(destination)}:${mode}`;
+    const key = `goong:route:${this.hash(origin)}:${this.hash(destination)}:${mode}`;
     return this.cacheService.get(key);
   }
 
@@ -25,14 +25,14 @@ export class RouteCacheService {
     mode: string,
     data: any,
   ): Promise<void> {
-    const key = `route:${this.hash(origin)}:${this.hash(destination)}:${mode}`;
+    const key = `goong:route:${this.hash(origin)}:${this.hash(destination)}:${mode}`;
     await this.cacheService.set(key, data, this.config.cache.directionsTTL);
   }
 
   async getDistanceMatrix(origins: string[], destinations: string[]): Promise<any> {
     const originsHash = this.hash(origins.join('|'));
     const destHash = this.hash(destinations.join('|'));
-    const key = `distance:${originsHash}:${destHash}`;
+    const key = `goong:distance:${originsHash}:${destHash}`;
     return this.cacheService.get(key);
   }
 
@@ -43,41 +43,41 @@ export class RouteCacheService {
   ): Promise<void> {
     const originsHash = this.hash(origins.join('|'));
     const destHash = this.hash(destinations.join('|'));
-    const key = `distance:${originsHash}:${destHash}`;
+    const key = `goong:distance:${originsHash}:${destHash}`;
     await this.cacheService.set(key, data, this.config.cache.distanceMatrixTTL);
   }
 
   async getGeocoding(lat: number, lng: number): Promise<any> {
     const latRounded = Math.round(lat * 1000000) / 1000000;
     const lngRounded = Math.round(lng * 1000000) / 1000000;
-    const key = `geocode:${latRounded}:${lngRounded}`;
+    const key = `goong:geocode:${latRounded}:${lngRounded}`;
     return this.cacheService.get(key);
   }
 
   async setGeocoding(lat: number, lng: number, data: any): Promise<void> {
     const latRounded = Math.round(lat * 1000000) / 1000000;
     const lngRounded = Math.round(lng * 1000000) / 1000000;
-    const key = `geocode:${latRounded}:${lngRounded}`;
+    const key = `goong:geocode:${latRounded}:${lngRounded}`;
     await this.cacheService.set(key, data, this.config.cache.geocodingTTL);
   }
 
   async getPlacesAutocomplete(query: string): Promise<any> {
-    const key = `places:${this.hash(query)}`;
+    const key = `goong:places:${this.hash(query)}`;
     return this.cacheService.get(key);
   }
 
   async setPlacesAutocomplete(query: string, data: any): Promise<void> {
-    const key = `places:${this.hash(query)}`;
+    const key = `goong:places:${this.hash(query)}`;
     await this.cacheService.set(key, data, this.config.cache.placesAutocompleteTTL);
   }
 
   async getPlacesDetails(placeId: string): Promise<any> {
-    const key = `place_details:${placeId}`;
+    const key = `goong:place_details:${placeId}`;
     return this.cacheService.get(key);
   }
 
   async setPlacesDetails(placeId: string, data: any): Promise<void> {
-    const key = `place_details:${placeId}`;
+    const key = `goong:place_details:${placeId}`;
     await this.cacheService.set(key, data, this.config.cache.placesDetailsTTL);
   }
 }

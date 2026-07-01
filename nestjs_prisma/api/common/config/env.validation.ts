@@ -70,6 +70,14 @@ class EnvironmentVariables {
   @IsNumber()
   @IsOptional()
   RATE_LIMIT_WINDOW_MS?: number;
+
+  @IsString()
+  @IsOptional()
+  GOONG_API_KEY?: string;
+
+  @IsString()
+  @IsOptional()
+  GOONG_BASE_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

@@ -1,8 +1,8 @@
 # Task Registry
 
-**Last Updated**: 2026-06-29  
-**Total Tasks**: 46  
-**Completed**: 13  
+**Last Updated**: 2026-07-01  
+**Total Tasks**: 53  
+**Completed**: 14  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -33,16 +33,28 @@
 | T-0033.1 | PhoneInput component + libphonenumber-js validation | Done | Done | P1 | T-0033 | app_user | [T-0033.1](tasks/T-0033.1/) |
 | T-0034 | Home & map taxi search app_user | Done | Done | P0 | T-0031 | app_user | [T-0034](tasks/T-0034/) |
 | T-0035 | Booking confirmation & payment UI app_user | Planned | Created | P0 | T-0034 | app_user | [T-0035](tasks/T-0035/) |
-| T-0036 | Active trip tracking with routing app_user | Planned | Created | P0 | T-0035, T-0031 | app_user | [T-0036](tasks/T-0036/) |
+| T-0036 | Active trip tracking with routing app_user | Planned | Created | P0 | T-0035, T-0050 | app_user | [T-0036](tasks/T-0036/) |
 | T-0037 | Trip history & bookings list app_user | Planned | Created | P0 | T-0036 | app_user | [T-0037](tasks/T-0037/) |
 | T-0038 | Profile & settings screen app_user | Planned | Created | P0 | T-0033 | app_user | [T-0038](tasks/T-0038/) |
 | T-0039 | Onboarding & Welcome screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0039](tasks/T-0039/) |
 | T-0040 | Login & Registration screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0040](tasks/T-0040/) |
-| T-0041 | Driver status dashboard app_taixe | Planned | Created | P0 | T-0031 | app_taixe | [T-0041](tasks/T-0041/) |
+| T-0041 | Driver status dashboard app_taixe | Planned | Created | P0 | T-0050, T-0055 | app_taixe | [T-0041](tasks/T-0041/) |
 | T-0042 | Booking offers & acceptance UI app_taixe | Planned | Created | P0 | T-0041 | app_taixe | [T-0042](tasks/T-0042/) |
-| T-0043 | Navigation to pickup with routing app_taixe | Planned | Created | P0 | T-0042, T-0031 | app_taixe | [T-0043](tasks/T-0043/) |
+| T-0043 | Navigation to pickup with routing app_taixe | Planned | Created | P0 | T-0042, T-0050 | app_taixe | [T-0043](tasks/T-0043/) |
 | T-0044 | Trip in progress & routing display app_taixe | Planned | Created | P0 | T-0043 | app_taixe | [T-0044](tasks/T-0044/) |
 | T-0045 | Ride history & driver profile app_taixe | Planned | Created | P0 | T-0044 | app_taixe | [T-0045](tasks/T-0045/) |
+
+### Wave Mapbox: Mapbox & Goong API Integration (Replace Google Maps)
+
+| ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
+|----|-------|--------|-------|----------|-----------|----------|--------|
+| T-0050 | Backend: Goong API service (replace GoogleMapsService) | Done | Done | P1 | - | nestjs_prisma | [T-0050](tasks/T-0050/) |
+| T-0051 | Frontend: Install & configure @rnmapbox/maps (app_user) | Planned | Created | P1 | - | app_user | [T-0051](tasks/T-0051/) |
+| T-0052 | Frontend: Migrate AppMap component to Mapbox (app_user) | Planned | Created | P1 | T-0051 | app_user | [T-0052](tasks/T-0052/) |
+| T-0053 | Frontend: Goong Places Autocomplete integration (app_user) | Planned | Created | P1 | T-0050, T-0052 | app_user | [T-0053](tasks/T-0053/) |
+| T-0054 | Frontend: Route display with Mapbox directions layer (app_user) | Planned | Created | P1 | T-0050, T-0052 | app_user | [T-0054](tasks/T-0054/) |
+| T-0055 | Frontend: Install & configure @rnmapbox/maps (app_taixe) | Planned | Created | P2 | T-0051 | app_taixe | [T-0055](tasks/T-0055/) |
+| T-0056 | Cleanup: Remove Google Maps dependencies & env vars | Planned | Created | P2 | T-0052, T-0053, T-0054 | all | [T-0056](tasks/T-0056/) |
 
 ### Wave 2: Core Backend APIs
 
@@ -116,6 +128,15 @@ T-0001 (Backend env) ─┬─→ T-0002 (Prisma schema)
                        ├─→ T-0004 (WebSocket) ── depends on T-0003
                        └─→ T-0031 (Google Maps Service) ── depends on T-0003
 T-0005 (API format)    ────────────────────────────────────────
+
+Wave Map: Mapbox & Goong (replaces Google Maps)
+──────────────────────────────────────────
+T-0050 (Goong backend) ─────────────────── independent (replaces T-0031 internally)
+T-0051 (Mapbox setup app_user) ──┬─→ T-0052 (Migrate AppMap)
+                                  └─→ T-0055 (Mapbox setup app_taixe)
+T-0050 + T-0052 ─→ T-0053 (Goong Autocomplete)
+T-0050 + T-0052 ─→ T-0054 (Route display)
+T-0052 + T-0053 + T-0054 ─→ T-0056 (Cleanup Google Maps)
                                                                                       
 Wave 2: Core Backend APIs
 ──────────────────────────────────────────
@@ -139,14 +160,14 @@ T-0015 ─→ T-0017 (Login/Register app_taixe)
 
 Wave 5: Booking Flow app_user
 ──────────────────────────────────────────
-T-0014 + T-0031 ─→ T-0018 (Map + Location Picker + Google Maps)
+T-0014 + T-0050 ─→ T-0018 (Map + Location Picker + Mapbox/Goong)
 T-0018 + T-0008 ─→ T-0019 (Booking Create)
 T-0019 + T-0004 ─→ T-0020 (Booking Tracking)
 T-0020 + T-0010 + T-0011 ─→ T-0021 (Trip + Payment)
 
 Wave 6: Driver Flow app_taixe
 ──────────────────────────────────────────
-T-0015 + T-0031 ─→ T-0022 (Online/Offline + Google Maps)
+T-0015 + T-0050 ─→ T-0022 (Online/Offline + Mapbox/Goong)
 T-0022 + T-0009 ─→ T-0023 (Receive Offer)
 T-0023 + T-0010 ─→ T-0024 (Trip Management)
 T-0024 ─→ T-0025 (Revenue History)
@@ -169,10 +190,10 @@ T-0006..T-0011 + T-0031 ─→ T-0029 (Swagger Docs)
 
 | Project | Tasks | Descriptions |
 |---------|-------|-------------|
-| **nestjs_prisma** | 14 | T-0001→T-0011 + T-0029 + T-0030 + T-0031 |
-| **app_user** | 15 | T-0012, T-0014, T-0016, T-0018→T-0021, T-0026, T-0028 + UI: T-0032, T-0033, T-0034, T-0035, T-0036, T-0037, T-0038 |
-| **app_taixe** | 14 | T-0013, T-0015, T-0017, T-0022→T-0025, T-0027 + UI: T-0039, T-0040, T-0041, T-0042, T-0043, T-0044, T-0045 |
-| **Cross-project** | 2 | T-0026 (app_user+backend), T-0027 (app_taixe+backend) |
+| **nestjs_prisma** | 15 | T-0001→T-0011 + T-0029 + T-0030 + T-0031 + T-0050 |
+| **app_user** | 19 | T-0012, T-0014, T-0016, T-0018→T-0021, T-0026, T-0028 + UI: T-0032→T-0038 + Map: T-0051→T-0054 |
+| **app_taixe** | 15 | T-0013, T-0015, T-0017, T-0022→T-0025, T-0027 + UI: T-0039→T-0045 + Map: T-0055 |
+| **Cross-project** | 3 | T-0026 (app_user+backend), T-0027 (app_taixe+backend), T-0056 (all) |
 
 ---
 

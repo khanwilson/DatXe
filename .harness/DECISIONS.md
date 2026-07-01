@@ -1,6 +1,6 @@
 # Decisions Log
 
-**Last Updated**: 2026-06-26  
+**Last Updated**: 2026-07-01  
 **Format**: Per-decision tracking with status and impact
 
 ---
@@ -64,7 +64,18 @@
 
 ---
 
-### P-D-0001: Authentication Strategy
+### D-0007: Backend Routing Provider — Goong API (replaces Google Maps)
+
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | T-0050 (2026-07-01) |
+| **Context** | App gọi xe tại VN cần routing/places/geocoding chính xác cho địa chỉ Việt Nam và chi phí hợp lý. Goong là nhà cung cấp bản đồ nội địa VN (tiles + routing + places), thay cho Google Maps. Backend T-0031 đã dựng `GoogleMapsService`; nay swap provider mà không đổi API contract. |
+| **Decision** | Backend `/routes/*` dùng **`GoongService`** (base `https://rsapi.goong.io`) thay `GoogleMapsService`. `GoongService` là **adapter**: gọi Goong rồi normalize response về đúng shape Google-compatible mà `RoutesService.transform*()` đang đọc → `RoutesController` + tất cả DTO **không đổi**. Env: `GOONG_API_KEY` + `GOONG_BASE_URL`. |
+| **Impacted Projects** | nestjs_prisma (T-0050); app_user (T-0053 Places autocomplete, T-0054 route display); T-0056 (cleanup Google Maps) |
+| **Consequences** | <ul><li>Mode mapping: `driving→car`, `walking→bike`; **`transit` bị reject** (Goong không hỗ trợ) → `BadRequestException`</li><li>Cache key prefix đổi sang `goong:*` để không phục vụ entry Google-shaped cũ</li><li>Google Maps files (config/service) **còn nằm nguyên** — xóa ở T-0056</li><li>Frontend map stack (Mapbox tiles + Goong routing/places) — xem [[map-stack-mapbox-goong]]</li><li>Bổ sung D-0006: backend routing provider chuyển từ Google sang Goong; `PROVIDER_GOOGLE` phía mobile map SDK là vấn đề tách biệt (đang được thay bằng Mapbox ở T-0051+)</li></ul> |
+
+---
 
 | Field | Value |
 |-------|-------|
