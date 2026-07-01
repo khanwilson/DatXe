@@ -7,7 +7,7 @@ Resume work on an existing task from its current phase.
 - Contracting → `claude-sonnet-4-6` (escalate Opus nếu architecture/security/payment/auth/DB migration/native/release)
 - Implementing → `claude-opus-4-6`
 - Evaluating → `claude-sonnet-4-6`
-- Reviewing → `claude-sonnet-4-6` (escalate Opus nếu high-risk)
+- Reviewing → `claude-sonnet-4-6`
 - Fixing → theo skill đang xử lý (implementer/reviewer)
 - Closing → `claude-haiku-4-5-20251001` (documentation only)
 

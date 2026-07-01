@@ -1,15 +1,14 @@
 // 1. IMPORTS
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
-import { Region } from 'react-native-maps';
-import { DEFAULT_REGION, FOCUSED_DELTA } from 'constants/map';
+import { DEFAULT_CAMERA, FOCUSED_ZOOM, MapCamera } from 'constants/mapbox';
 
 // 2. TYPES
 export type LocationStatus = 'idle' | 'loading' | 'granted' | 'denied';
 
 export interface UseCurrentLocationResult {
-  // Region to render — user's location when known, otherwise the fallback.
-  region: Region;
+  // Render-ready camera — user's location when known, otherwise the fallback.
+  camera: MapCamera;
   // Resolved coordinate, undefined until the first successful fix.
   coordinate?: { latitude: number; longitude: number };
   status: LocationStatus;
@@ -19,10 +18,10 @@ export interface UseCurrentLocationResult {
 
 // 3. HOOK
 // Resolves the device's foreground location in a non-blocking way: it always
-// returns a usable region (falling back to DEFAULT_REGION) so the map never
+// returns a usable camera (falling back to DEFAULT_CAMERA) so the map never
 // blocks on permission or a slow GPS fix.
 export const useCurrentLocation = (): UseCurrentLocationResult => {
-  const [region, setRegion] = useState<Region>(DEFAULT_REGION);
+  const [camera, setCamera] = useState<MapCamera>(DEFAULT_CAMERA);
   const [coordinate, setCoordinate] =
     useState<{ latitude: number; longitude: number } | undefined>(undefined);
   const [status, setStatus] = useState<LocationStatus>('idle');
@@ -44,10 +43,11 @@ export const useCurrentLocation = (): UseCurrentLocationResult => {
         longitude: position.coords.longitude,
       };
       setCoordinate(next);
-      setRegion({ ...next, ...FOCUSED_DELTA });
+      // GeoJSON order: [longitude, latitude]
+      setCamera({ centerCoordinate: [next.longitude, next.latitude], zoomLevel: FOCUSED_ZOOM });
       setStatus('granted');
     } catch {
-      // Location services off or transient failure — keep the fallback region.
+      // Location services off or transient failure — keep the fallback camera.
       setStatus('denied');
     }
   }, []);
@@ -56,5 +56,5 @@ export const useCurrentLocation = (): UseCurrentLocationResult => {
     resolve();
   }, [resolve]);
 
-  return { region, coordinate, status, request: resolve };
+  return { camera, coordinate, status, request: resolve };
 };

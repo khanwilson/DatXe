@@ -1,9 +1,7 @@
 # Reviewer Skill
 
 **Model**: `claude-sonnet-4-6` (default — quality, regression risk, contract compliance, edge cases).
-**Escalate → `claude-opus-4-6`** khi task high-risk: auth, payment, billing, database migration, native signing, release, security, architecture boundary.
 Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
-Xem policy đầy đủ: [`.claude/harness-model-policy.md`](../../harness-model-policy.md)
 
 **Purpose**: Review code for quality, correctness, and standards
 

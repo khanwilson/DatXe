@@ -3,11 +3,11 @@ import { AppMap, AppMapHandle } from 'components/map/AppMap';
 import { SearchPanel } from 'components/map/SearchPanel';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import { AppText } from 'components/text/AppText';
+import { FOCUSED_ZOOM } from 'constants/mapbox';
 import { getString } from 'localization/index';
 import React, { useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FOCUSED_DELTA } from 'constants/map';
 import { ITheme, useAppTheme } from 'theme/index';
 
 // 2. COMPONENT FUNCTION
@@ -16,11 +16,15 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const mapRef = useRef<AppMapHandle>(null);
-  const { region, coordinate, status, request } = useCurrentLocation();
+  const { camera, coordinate, status, request } = useCurrentLocation();
 
   const handleRecenter = () => {
     if (coordinate) {
-      mapRef.current?.animateToRegion({ ...coordinate, ...FOCUSED_DELTA });
+      // GeoJSON order: [longitude, latitude]
+      mapRef.current?.moveCamera({
+        centerCoordinate: [coordinate.longitude, coordinate.latitude],
+        zoomLevel: FOCUSED_ZOOM,
+      });
     } else {
       // No fix yet — try to (re)acquire the location.
       request();
@@ -33,7 +37,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <AppMap ref={mapRef} region={region} userCoordinate={coordinate} />
+      <AppMap ref={mapRef} camera={camera} />
 
       {/* Permission-denied banner — non-blocking, offers a re-request. */}
       {status === 'denied' && (
