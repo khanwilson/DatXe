@@ -1,6 +1,6 @@
 # Decisions Log
 
-**Last Updated**: 2026-07-01  
+**Last Updated**: 2026-07-01 (T-0051)  
 **Format**: Per-decision tracking with status and impact
 
 ---
@@ -76,6 +76,21 @@
 | **Consequences** | <ul><li>Mode mapping: `driving→car`, `walking→bike`; **`transit` bị reject** (Goong không hỗ trợ) → `BadRequestException`</li><li>Cache key prefix đổi sang `goong:*` để không phục vụ entry Google-shaped cũ</li><li>Google Maps files (config/service) **còn nằm nguyên** — xóa ở T-0056</li><li>Frontend map stack (Mapbox tiles + Goong routing/places) — xem [[map-stack-mapbox-goong]]</li><li>Bổ sung D-0006: backend routing provider chuyển từ Google sang Goong; `PROVIDER_GOOGLE` phía mobile map SDK là vấn đề tách biệt (đang được thay bằng Mapbox ở T-0051+)</li></ul> |
 
 ---
+
+### D-0008: Mobile Map SDK — @rnmapbox/maps (replaces react-native-maps + PROVIDER_GOOGLE)
+
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | T-0051 (2026-07-01) |
+| **Context** | Sau khi backend chuyển routing/places sang Goong (D-0007), map tiles phía mobile cũng chuyển sang Mapbox để đồng bộ map stack (Mapbox tiles + Goong routing/places). Thay `react-native-maps`+`PROVIDER_GOOGLE` (D-0006) bằng `@rnmapbox/maps`. T-0051 chỉ setup SDK; migrate `AppMap` là T-0052. |
+| **Decision** | Mobile dùng **`@rnmapbox/maps@10.3.1`** (Mapbox GL Native). Two-token model: **`MAPBOX_DOWNLOAD_TOKEN`** (`sk.`, build-time, inject vào config plugin `RNMapboxMapsDownloadToken` qua `app.config.ts`, **KHÔNG** `EXPO_PUBLIC_`) + **`EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`** (`pk.`, runtime, gọi `Mapbox.setAccessToken()` ở app entry). Camera model (`centerCoordinate: [lng, lat]`, `zoomLevel`) thay `Region` (lat/lng + delta). |
+| **Impacted Projects** | app_user (T-0051 setup, T-0052 migrate AppMap, T-0053/T-0054 search/route); app_taixe (T-0055 tái dùng pattern); T-0056 (gỡ react-native-maps) |
+| **Consequences** | <ul><li>Supersede D-0006 (mobile tile provider): react-native-maps + PROVIDER_GOOGLE → Mapbox. `react-native-maps` **còn cài song song** cho tới T-0056</li><li>Coordinate order đảo sang GeoJSON `[lng, lat]` — đồng nhất với Goong (xem [[map-stack-mapbox-goong]])</li><li>`app.config.ts` giờ inject cả Google Maps key (cũ) lẫn Mapbox download token — Google key gỡ ở T-0056</li><li>`@rnmapbox/maps@10.3.1` tương thích Expo 54 / RN 0.81 / New Arch (peer `react-native >=0.79`, `expo >=47`)</li><li>Vẫn cần dev build / `expo prebuild` (đã có từ D-0006)</li><li>`src/constants/map.ts` (Region-based) giữ nguyên tới T-0052; types Mapbox mới nằm ở `src/constants/mapbox.ts`</li></ul> |
+
+---
+
+### P-D-0001: Authentication Strategy
 
 | Field | Value |
 |-------|-------|

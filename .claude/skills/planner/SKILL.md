@@ -1,6 +1,8 @@
 # Planner Skill
 
-**Model**: Opus 4.8 (scope analysis, risk assessment, dependency mapping)
+**Model**: `claude-sonnet-4-6` (default — single task hoặc task nhỏ/độc lập).
+**Escalate → `claude-opus-4-6`** khi: phân tích hệ thống, tạo plan tổng thể, chia nhiều wave, chia nhiều task, hoặc planning cho 1 wave gồm nhiều task.
+Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
 
 **Purpose**: Analyze task requirements and create implementation plans
 

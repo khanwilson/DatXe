@@ -1,3 +1,4 @@
+import Mapbox from '@rnmapbox/maps';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from 'api/axios/queryClient';
 import { useCustomHeader } from 'components/navigation/CustomHeader';
@@ -8,6 +9,8 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ThemeProvider from 'theme/index';
 import ZustandPersist from 'zustand/persist';
+
+Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '');
 
 export default function RootLayout() {
   const customHeaderOptions = useCustomHeader();

@@ -9,12 +9,24 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig => {
   const androidKey = process.env.GOOGLE_MAPS_ANDROID_API_KEY ?? '';
   const iosKey = process.env.GOOGLE_MAPS_IOS_API_KEY ?? '';
+  const mapboxDownloadToken = process.env.MAPBOX_DOWNLOAD_TOKEN ?? '';
 
   return {
     ...config,
     // ExpoConfig requires name + slug; app.json always provides them.
     name: config.name ?? 'Dat Xe',
     slug: config.slug ?? 'datxe',
+    plugins: [
+      ...(config.plugins ?? []),
+      // @rnmapbox/maps config plugin. The download token (sk., build-time only)
+      // is injected here from env so it is never committed to app.json.
+      [
+        '@rnmapbox/maps',
+        {
+          RNMapboxMapsDownloadToken: mapboxDownloadToken,
+        },
+      ],
+    ],
     ios: {
       ...config.ios,
       config: {

@@ -1,6 +1,8 @@
 # Architect Skill
 
-**Model**: Opus 4.8 (architectural reasoning)
+**Model**: `claude-opus-4-6` (kiến trúc, boundary, module interaction, risk, trade-off, technical direction cho task/wave phức tạp).
+Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
+Xem policy đầy đủ: [`.claude/harness-model-policy.md`](../../harness-model-policy.md)
 
 **Purpose**: Make and review long-term architectural decisions
 
