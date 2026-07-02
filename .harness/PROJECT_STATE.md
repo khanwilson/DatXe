@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2026-07-01  
+**Last Updated**: 2026-07-02  
 **Harness Version**: 1.0
 
 ---
@@ -32,6 +32,7 @@
 - [x] Customer login/registration UI (phone + OTP) - T-0033 (app_user, mock DEV)
 - [x] Customer home + map screen (current location, search UI) - T-0034 (app_user)
 - [x] WebSocket gateway (Socket.IO with JWT auth) - T-0004
+- [x] Goong Places Autocomplete integration - T-0053 (app_user)
 - [ ] Driver profile management
 - [ ] Customer profile management
 - [ ] Ride booking flow
@@ -160,6 +161,7 @@
 - **T-0033.1**: PhoneInput component + libphonenumber-js validation (2026-06-29) - PhoneInput tái sử dụng (country picker 75% + search, digits-only, E.164 output), static CLDR country-name map (Hermes không có Intl.DisplayNames)
 - **T-0034**: Home & map taxi search app_user (2026-06-29) - react-native-maps + PROVIDER_GOOGLE (cả iOS/Android), HomeScreen full-screen map + recenter + "Where to?" search UI + saved shortcuts, useCurrentLocation hook, app.config.ts inject Google Maps keys từ env
 - **T-0050**: Backend Goong API service (2026-07-01) - `GoongService` adapter thay `GoogleMapsService` trong `RoutesModule`; normalize Goong responses về Google-shaped fields nên `RoutesService.transform*` + DTOs + endpoints `/routes/*` không đổi; mode `driving→car`/`walking→bike`, `transit` bị reject; retry+backoff giữ nguyên; cache prefix bump `goong:*`; env `GOONG_API_KEY`/`GOONG_BASE_URL`. Google Maps files còn lại (gỡ ở T-0056)
+- **T-0053**: Goong Places Autocomplete integration app_user (2026-07-02) - SearchDestinationScreen với debounce 300ms, gọi backend `/routes/places/autocomplete` + `/routes/places/:placeId`, hiển thị predictions, fetch place detail khi chọn, lưu destination vào ZustandSession, HomeScreen đọc qua useFocusEffect
 
 ---
 

@@ -1,8 +1,8 @@
 # Task Registry
 
-**Last Updated**: 2026-07-01  
+**Last Updated**: 2026-07-02  
 **Total Tasks**: 53  
-**Completed**: 15  
+**Completed**: 16  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -50,8 +50,9 @@
 |----|-------|--------|-------|----------|-----------|----------|--------|
 | T-0050 | Backend: Goong API service (replace GoogleMapsService) | Done | Done | P1 | - | nestjs_prisma | [T-0050](tasks/T-0050/) |
 | T-0051 | Frontend: Install & configure @rnmapbox/maps (app_user) | Done | Done | P1 | - | app_user | [T-0051](tasks/T-0051/) |
-| T-0052 | Frontend: Migrate AppMap component to Mapbox (app_user) | Planned | Created | P1 | T-0051 | app_user | [T-0052](tasks/T-0052/) |
-| T-0053 | Frontend: Goong Places Autocomplete integration (app_user) | Planned | Created | P1 | T-0050, T-0052 | app_user | [T-0053](tasks/T-0053/) |
+| T-0052 | Frontend: Migrate AppMap component to Mapbox (app_user) | Done | Done | P1 | T-0051 | app_user | [T-0052](tasks/T-0052/) |
+| T-0053 | Frontend: Goong Places Autocomplete integration (app_user) | Done | Done | P1 | T-0050, T-0052 | app_user | [T-0053](tasks/T-0053/) |
+| T-0053.1 | Frontend: Enhance Autocomplete UI/UX for SearchDestinationScreen (app_user) | Done | Done | P2 | T-0053 | app_user | [T-0053.1](tasks/T-0053.1/) |
 | T-0054 | Frontend: Route display with Mapbox directions layer (app_user) | Planned | Created | P1 | T-0050, T-0052 | app_user | [T-0054](tasks/T-0054/) |
 | T-0055 | Frontend: Install & configure @rnmapbox/maps (app_taixe) | Planned | Created | P2 | T-0051 | app_taixe | [T-0055](tasks/T-0055/) |
 | T-0056 | Cleanup: Remove Google Maps dependencies & env vars | Planned | Created | P2 | T-0052, T-0053, T-0054 | all | [T-0056](tasks/T-0056/) |

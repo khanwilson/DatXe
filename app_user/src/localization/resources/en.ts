@@ -30,5 +30,11 @@ const en: iLocalization = {
   homeSavedWork: 'Work',
   homeLocationDenied: 'Location is off. Turn it on to find rides near you.',
   homeEnableLocation: 'Enable location',
+  // Search destination
+  searchDestinationTitle: 'Find destination',
+  searchDestinationPlaceholder: 'Enter address',
+  searchNoResults: 'No results found',
+  searchError: 'Search error',
+  searchRetry: 'Retry',
 }
 export default en;

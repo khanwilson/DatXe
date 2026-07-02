@@ -9,6 +9,8 @@ import React, { useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ITheme, useAppTheme } from 'theme/index';
+import { router, useFocusEffect } from 'expo-router';
+import ZustandSession from 'zustand/session';
 
 // 2. COMPONENT FUNCTION
 export default function HomeScreen() {
@@ -17,6 +19,19 @@ export default function HomeScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const mapRef = useRef<AppMapHandle>(null);
   const { camera, coordinate, status, request } = useCurrentLocation();
+
+  // Read selected destination from session storage when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      const destination = ZustandSession.getState().selectedDestination;
+      if (destination) {
+        // TODO: Handle destination (move camera, show marker, etc.)
+        console.info('Selected destination:', destination);
+        // Clear after reading
+        ZustandSession.getState().save('selectedDestination', null);
+      }
+    }, [])
+  );
 
   const handleRecenter = () => {
     if (coordinate) {
@@ -32,7 +47,7 @@ export default function HomeScreen() {
   };
 
   const handleSearch = () => {
-    // Destination search / booking entry is wired in T-0035.
+    router.push('/SearchDestinationScreen');
   };
 
   return (

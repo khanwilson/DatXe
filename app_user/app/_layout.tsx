@@ -32,6 +32,7 @@ export default function RootLayout() {
               name="DetailToDoScreen"
               options={{ ...customHeaderOptions, headerTitle: 'Detail To Do' }}
             />
+            <Stack.Screen name="SearchDestinationScreen" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />

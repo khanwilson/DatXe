@@ -30,5 +30,11 @@ const vi: iLocalization = {
   homeSavedWork: 'Cơ quan',
   homeLocationDenied: 'Vị trí đang tắt. Bật để tìm xe ở gần bạn.',
   homeEnableLocation: 'Bật vị trí',
+  // Search destination
+  searchDestinationTitle: 'Tìm điểm đến',
+  searchDestinationPlaceholder: 'Nhập địa chỉ',
+  searchNoResults: 'Không tìm thấy kết quả',
+  searchError: 'Lỗi khi tìm kiếm',
+  searchRetry: 'Thử lại',
 }
 export default vi;

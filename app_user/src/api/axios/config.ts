@@ -1,5 +1,5 @@
 export const baseUrl = {
-  value: 'http://192.168.1.40:4000/api',
+  value: 'http://192.168.1.25:3000/api/v1',
 };
 
 // API Endpoints
@@ -17,5 +17,10 @@ export const ENDPOINTS = {
   USER: {
     PROFILE: '/user/profile',
     UPDATE_PROFILE: '/user/profile',
+  },
+  // Routes / Places (Goong)
+  ROUTES: {
+    AUTOCOMPLETE: '/routes/places/autocomplete',
+    PLACE_DETAIL: '/routes/places',
   },
 };

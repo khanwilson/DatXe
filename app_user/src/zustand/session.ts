@@ -6,6 +6,12 @@ import { devtools } from 'zustand/middleware';
 // Define the store state type
 export interface SessionState {
   ModalDebugStatus?: boolean;
+  selectedDestination?: {
+    lat: number;
+    lng: number;
+    name: string;
+    address: string;
+  } | null;
 }
 // Config store interface
 interface IRootState extends SessionState {
