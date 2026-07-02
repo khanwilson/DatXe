@@ -30,6 +30,10 @@ const vi: iLocalization = {
   homeSavedWork: 'Cơ quan',
   homeLocationDenied: 'Vị trí đang tắt. Bật để tìm xe ở gần bạn.',
   homeEnableLocation: 'Bật vị trí',
+  // Route summary
+  routeFetchError: 'Không lấy được lộ trình',
+  routeDistanceLabel: 'Khoảng cách',
+  routeDurationLabel: 'Thời gian',
   // Search destination
   searchDestinationTitle: 'Tìm điểm đến',
   searchDestinationPlaceholder: 'Nhập địa chỉ',

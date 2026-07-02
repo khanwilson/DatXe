@@ -30,6 +30,10 @@ const en: iLocalization = {
   homeSavedWork: 'Work',
   homeLocationDenied: 'Location is off. Turn it on to find rides near you.',
   homeEnableLocation: 'Enable location',
+  // Route summary
+  routeFetchError: 'Could not fetch route',
+  routeDistanceLabel: 'Distance',
+  routeDurationLabel: 'Duration',
   // Search destination
   searchDestinationTitle: 'Find destination',
   searchDestinationPlaceholder: 'Enter address',

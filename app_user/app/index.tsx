@@ -37,7 +37,8 @@ export default function SplashScreen() {
         setTimeout(() => {
           if (hasSeenOnboarding === 'true') {
             // User has seen onboarding, go to signin
-            router.replace('/SigninStack/SigninScreen');
+            // router.replace('/SigninStack/SigninScreen');
+            router.replace('/(tabs)/HomeScreen');
           } else {
             // User hasn't seen onboarding, start the onboarding flow
             router.replace('/onboarding/welcome');

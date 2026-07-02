@@ -22,5 +22,6 @@ export const ENDPOINTS = {
   ROUTES: {
     AUTOCOMPLETE: '/routes/places/autocomplete',
     PLACE_DETAIL: '/routes/places',
+    DIRECTIONS: '/routes/directions',
   },
 };

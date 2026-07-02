@@ -247,6 +247,38 @@ Bạn có muốn tiếp tục Phase 4 không?
 
 ---
 
+## Context Loading Rule
+
+Để tối ưu hoá chi phí model và tốc độ khởi động task:
+
+### Khi bắt đầu harness task
+
+1. **KHÔNG** chạy broad Explore scan mặc định.
+2. **CHỈ** đọc những file cần thiết:
+   - `task/description.md`
+   - `task/contract.md`
+   - `task/handoff.md` (nếu có)
+   - Relevant harness state file (e.g., `PROJECT_STATE.md`, `DECISIONS.md`)
+   - Nearest `CLAUDE.md`
+   - Files explicitly referenced by task
+
+3. **Model routing cho context discovery:**
+   - **Haiku** — context discovery & read-only exploration
+   - **Sonnet** — planning, contracting, evaluating, reviewing (default)
+   - **Opus** — implementing, architecting, multi-system reasoning
+
+4. **Khi nào cần Explore:**
+   - Nếu task không rõ scope, cần broad search.
+   - Nếu task ảnh hưởng nhiều module chưa biết.
+   - Nếu cần tìm file pattern hoặc symbol không rõ vị trí.
+   - Khi đó: giải thích WHY và giới hạn scope (quick/medium/very thorough).
+
+5. **Avoid duplicate work:**
+   - Nếu đã delegate research cho subagent, KHÔNG tự search lại.
+   - Dùng kết quả từ subagent làm input cho phase tiếp theo.
+
+---
+
 ## Architect Invocation Policy
 
 Architect không phải phase bắt buộc.
@@ -961,7 +993,34 @@ Tiếp tục phase này không?
 
 ---
 
+## Context Loading Rule
+
+At the start of a harness task, optimize model usage and context loading:
+
+1. **Do not run broad Explore by default.** Use targeted reads instead.
+2. **First read only**:
+   - `task/description.md`
+   - `task/contract.md`
+   - `task/handoff.md` (if present)
+   - Relevant harness state file (`PROJECT_STATE.md`, `DECISIONS.md`)
+   - Nearest `CLAUDE.md`
+   - Files explicitly referenced by the task
+3. **Use Haiku for context discovery** and read-only exploration.
+4. **Use Sonnet for normal phases**: planning, contracting, evaluating, reviewing.
+5. **Use Opus only when**:
+   - The task crosses architecture boundaries
+   - Requires multi-system reasoning
+   - The reviewer explicitly escalates
+   - Implementing (per model routing table)
+6. **If broad Explore is needed**, explain why and keep scope targeted.
+
+**Why**: Reduce token cost, preserve context window, load only what's necessary.
+
+**How to apply**: Before planning, read the 6 sources above. Use Haiku to summarize if needed. Only escalate model or run Explore if the task actually requires it.
+
+---
+
 ## Version
 
-**Last Updated**: 2026-07-01  
-**Version**: 4.0
+**Last Updated**: 2026-07-02  
+**Version**: 5.0

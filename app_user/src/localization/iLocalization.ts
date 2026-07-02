@@ -28,6 +28,10 @@ export interface iLocalization {
   homeSavedWork: string;
   homeLocationDenied: string;
   homeEnableLocation: string;
+  // Route summary
+  routeFetchError: string;
+  routeDistanceLabel: string;
+  routeDurationLabel: string;
   // Search destination
   searchDestinationTitle: string;
   searchDestinationPlaceholder: string;
