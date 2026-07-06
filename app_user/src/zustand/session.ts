@@ -12,6 +12,12 @@ export interface SessionState {
     name: string;
     address: string;
   } | null;
+  selectedPickup?: {
+    lat: number;
+    lng: number;
+    name: string;
+    address: string;
+  } | null;
 }
 // Config store interface
 interface IRootState extends SessionState {

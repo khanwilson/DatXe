@@ -73,6 +73,7 @@ export const AppMap = forwardRef<AppMapHandle, IAppMapProps>((props, ref) => {
         compassEnabled={false}
         logoEnabled={false}
         attributionEnabled={false}
+        surfaceView={false}
       >
         <MapboxGL.Camera
           ref={cameraRef}
@@ -80,22 +81,24 @@ export const AppMap = forwardRef<AppMapHandle, IAppMapProps>((props, ref) => {
             centerCoordinate: camera.centerCoordinate,
             zoomLevel: camera.zoomLevel,
           }}
-          centerCoordinate={camera.centerCoordinate}
-          zoomLevel={camera.zoomLevel}
-          animationMode="flyTo"
-          animationDuration={DEFAULT_ANIMATION_MS}
-          bounds={
-            bounds
-              ? {
+          {...(bounds
+            ? {
+                bounds: {
                   ne: bounds.ne,
                   sw: bounds.sw,
                   paddingTop: bounds.paddingTop ?? 100,
                   paddingBottom: bounds.paddingBottom ?? 200,
                   paddingLeft: bounds.paddingLeft ?? 50,
                   paddingRight: bounds.paddingRight ?? 50,
-                }
-              : undefined
-          }
+                },
+                maxZoomLevel: 16,
+              }
+            : {
+                centerCoordinate: camera.centerCoordinate,
+                zoomLevel: camera.zoomLevel,
+              })}
+          animationMode="flyTo"
+          animationDuration={DEFAULT_ANIMATION_MS}
         />
         <MapboxGL.LocationPuck puckBearingEnabled visible />
 

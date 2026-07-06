@@ -6,8 +6,22 @@ export interface Bounds {
 }
 
 export const decodePolyline = (encodedPolyline: string): [number, number][] => {
-  const decoded = polyline.decode(encodedPolyline);
-  return decoded.map(([lat, lng]) => [lng, lat]);
+  // Handle edge cases where encodedPolyline is null, undefined, or empty
+  if (!encodedPolyline || typeof encodedPolyline !== 'string' || encodedPolyline.length === 0) {
+    return [];
+  }
+
+  try {
+    const decoded = polyline.decode(encodedPolyline);
+    // Ensure decoded is an array before mapping
+    if (!Array.isArray(decoded)) {
+      return [];
+    }
+    return decoded.map(([lat, lng]) => [lng, lat]);
+  } catch (error) {
+    console.error('Error decoding polyline:', error);
+    return [];
+  }
 };
 
 export const getBounds = (coordinates: [number, number][]): Bounds => {

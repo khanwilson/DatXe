@@ -1,7 +1,8 @@
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
-  BottomSheetModalProps
+  BottomSheetModalProps,
+  BottomSheetView
 } from '@gorhom/bottom-sheet';
 import React, { ForwardedRef, forwardRef, useMemo } from 'react';
 import { useAppTheme } from 'theme/index';
@@ -25,10 +26,10 @@ export const AppBottomSheet = forwardRef<BottomSheetModal, IProps>((props: IProp
         appearsOnIndex={0}
         disappearsOnIndex={-1}
         opacity={0.5}
-        onPress={onDismiss}
+        pressBehavior="close"
       />
     )
-  }, [onDismiss]);
+  }, []);
 
   return (
     <BottomSheetModal
@@ -41,7 +42,9 @@ export const AppBottomSheet = forwardRef<BottomSheetModal, IProps>((props: IProp
       backdropComponent={renderBackdrop}
       onDismiss={onDismiss}
     >
-      {children}
+      <BottomSheetView>
+        {children}
+      </BottomSheetView>
     </BottomSheetModal>
   );
 }

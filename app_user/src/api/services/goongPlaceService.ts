@@ -77,7 +77,6 @@ export const goongPlaceService = {
         params: { query, language },
       }
     );
-    console.log('Autocomplete response:', response.data); // Log the response data for debugging
     return response.data?.data;
   },
 
@@ -94,14 +93,39 @@ export const goongPlaceService = {
     destination: { lat: number; lng: number },
     mode: string = 'driving'
   ): Promise<DirectionsResponse> {
-    const response = await apiClient.post<ApiResponse<{ data: DirectionsResponse }>>(
-      ENDPOINTS.ROUTES.DIRECTIONS,
-      {
-        origin: `${origin.lat},${origin.lng}`,
-        destination: `${destination.lat},${destination.lng}`,
-        mode,
+    try {
+      const response = await apiClient.post<ApiResponse<{ data: DirectionsResponse }>>(
+        ENDPOINTS.ROUTES.DIRECTIONS,
+        {
+          origin: `${origin.lat},${origin.lng}`,
+          destination: `${destination.lat},${destination.lng}`,
+          mode,
+        }
+      );
+
+      // Validate response
+      if (!response.data?.data) {
+        throw new Error('Invalid response from directions API');
       }
-    );
-    return response.data?.data as DirectionsResponse;
+
+      const directionsData = response.data.data;
+
+      // Ensure routes array exists
+      if (!Array.isArray(directionsData.routes)) {
+        directionsData.routes = [];
+      }
+
+      return directionsData;
+    } catch (error) {
+      console.error('Error in getDirections:', error);
+      // Return a safe default structure to prevent crashes
+      return {
+        routes: [],
+        summary: {
+          totalDistance: { text: '', value: 0 },
+          totalDuration: { text: '', value: 0 },
+        },
+      };
+    }
   },
 };

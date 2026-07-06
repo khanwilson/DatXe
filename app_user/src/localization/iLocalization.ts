@@ -38,4 +38,21 @@ export interface iLocalization {
   searchNoResults: string;
   searchError: string;
   searchRetry: string;
+  // Route booking modal
+  bookingDiscountCode: string;
+  bookingPaymentCash: string;
+  bookingBookButton: string;
+  // Home screen
+  homeServicesTitle: string;
+  homeServiceRide: string;
+  homeServiceDelivery: string;
+  homeServiceGrocery: string;
+  homeServiceFood: string;
+  homeServiceParcel: string;
+  homeServiceMore: string;
+  homeBannersTitle: string;
+  homeNearbyTitle: string;
+  // Search destination — pickup mode
+  searchPickupLocation: string;
+  searchChangePickup: string;
 }

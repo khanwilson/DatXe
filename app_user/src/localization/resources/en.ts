@@ -40,5 +40,22 @@ const en: iLocalization = {
   searchNoResults: 'No results found',
   searchError: 'Search error',
   searchRetry: 'Retry',
+  // Route booking modal
+  bookingDiscountCode: 'Discount code',
+  bookingPaymentCash: 'Cash',
+  bookingBookButton: 'BOOK RIDE',
+  // Home screen
+  homeServicesTitle: 'Services',
+  homeServiceRide: 'Book Ride',
+  homeServiceDelivery: 'Delivery',
+  homeServiceGrocery: 'Grocery',
+  homeServiceFood: 'Food',
+  homeServiceParcel: 'Parcel',
+  homeServiceMore: 'More',
+  homeBannersTitle: 'Order Now',
+  homeNearbyTitle: 'Nearby',
+  // Search destination — pickup mode
+  searchPickupLocation: 'Your pickup location',
+  searchChangePickup: 'Change',
 }
 export default en;

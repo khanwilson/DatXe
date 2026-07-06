@@ -5,6 +5,7 @@ import { PlacePrediction } from 'api/services/goongPlaceService';
 import { AppText } from 'components/text/AppText';
 import { AppTextInput } from 'components/input/TextInput';
 import { RenderImage } from 'components/image/RenderImage';
+import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import Closure from 'utils/Closure';
 import ZustandSession from 'zustand/session';
 import { getString } from 'localization/index';
@@ -21,6 +22,8 @@ import { ITheme, useAppTheme } from 'theme/index';
 import { router } from 'expo-router';
 
 // 2. TYPES
+type SearchMode = 'destination' | 'pickup';
+
 type Styles = ReturnType<typeof stylesSheet>;
 
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
@@ -73,7 +76,7 @@ const ResultItem = React.memo(({ item, styles, onSelect }: ResultItemProps) => {
             </AppText>
           )}
         </View>
-        <AppText style={styles.chevron}>›</AppText>
+        <AppText style={styles.chevron}>{'›'}</AppText>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -89,8 +92,23 @@ export default function SearchDestinationScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [searchMode, setSearchMode] = useState<SearchMode>('destination');
   const closureRef = useRef(new Closure());
   const shimmer = useRef(new Animated.Value(0)).current;
+  const { coordinate } = useCurrentLocation();
+
+  // Set default pickup from GPS on first open if none saved yet.
+  useEffect(() => {
+    const existingPickup = ZustandSession.getState().selectedPickup;
+    if (existingPickup === undefined && coordinate) {
+      ZustandSession.getState().save('selectedPickup', {
+        lat: coordinate.latitude,
+        lng: coordinate.longitude,
+        name: getString('searchPickupLocation'),
+        address: '',
+      });
+    }
+  }, [coordinate]);
 
   const { data: autocompleteData, isLoading, isError, refetch } = useAutocomplete(debouncedQuery);
   const { data: placeDetailData, isLoading: isDetailLoading } = usePlaceDetail(selectedPlaceId);
@@ -116,18 +134,43 @@ export default function SearchDestinationScreen() {
     setSelectedPlaceId(prediction.placeId);
   }, []);
 
-  // When place detail loads, save to session and navigate back.
+  // Handle place detail: save pickup or destination depending on mode.
   useEffect(() => {
     if (placeDetailData && selectedPlaceId) {
-      ZustandSession.getState().save('selectedDestination', {
+      const placeData = {
         lat: placeDetailData.location.lat,
         lng: placeDetailData.location.lng,
         name: placeDetailData.name,
         address: placeDetailData.address,
-      });
-      router.back();
+      };
+
+      if (searchMode === 'pickup') {
+        // Save pickup and switch back to destination search.
+        ZustandSession.getState().save('selectedPickup', placeData);
+        setSearchMode('destination');
+        setQuery('');
+        setDebouncedQuery('');
+        setSelectedPlaceId(null);
+      } else {
+        // Destination mode: save destination and navigate to BookingRouteScreen.
+        const pickup = ZustandSession.getState().selectedPickup;
+        ZustandSession.getState().save('selectedDestination', placeData);
+        // Also persist the pickup if not already saved in this flow.
+        if (!pickup) {
+          // If no pickup was set, use current location as default
+          if (coordinate) {
+            ZustandSession.getState().save('selectedPickup', {
+              lat: coordinate.latitude,
+              lng: coordinate.longitude,
+              name: getString('searchPickupLocation'),
+              address: '',
+            });
+          }
+        }
+        router.replace('/BookingRouteScreen');
+      }
     }
-  }, [placeDetailData, selectedPlaceId]);
+  }, [placeDetailData, selectedPlaceId, searchMode]);
 
   useEffect(() => {
     const closure = closureRef.current;
@@ -217,6 +260,18 @@ export default function SearchDestinationScreen() {
     </View>
   );
 
+  // Show pickup row only in destination mode.
+  const savedPickup = searchMode === 'destination'
+    ? ZustandSession.getState().selectedPickup
+    : null;
+
+  const handlePickupRowPress = () => {
+    setSearchMode('pickup');
+    setQuery('');
+    setDebouncedQuery('');
+    setSelectedPlaceId(null);
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -233,11 +288,44 @@ export default function SearchDestinationScreen() {
             style={styles.backIcon}
           />
         </TouchableOpacity>
-        <AppText style={styles.title}>{getString('searchDestinationTitle')}</AppText>
+        <AppText style={styles.title}>
+          {searchMode === 'pickup'
+            ? getString('searchPickupLocation')
+            : getString('searchDestinationTitle')}
+        </AppText>
         <View style={styles.backButton} />
       </View>
 
       <View style={styles.searchContainer}>
+        {/* Pickup location row — shown above the search bar in destination mode */}
+        {searchMode === 'destination' && (
+          <TouchableOpacity
+            style={styles.pickupRow}
+            onPress={handlePickupRowPress}
+            activeOpacity={0.7}
+          >
+            <View style={styles.pickupDot} />
+            <View style={styles.pickupTextGroup}>
+              <AppText style={styles.pickupLabel}>
+                {getString('searchPickupLocation')}
+              </AppText>
+              <AppText
+                style={styles.pickupValue}
+                numberOfLines={1}
+              >
+                {savedPickup?.name
+                  ? savedPickup.address || savedPickup.name
+                  : getString('homeWhereTo')}
+              </AppText>
+            </View>
+            {savedPickup && (
+              <AppText style={styles.changeText}>
+                {getString('searchChangePickup')}
+              </AppText>
+            )}
+          </TouchableOpacity>
+        )}
+
         <View style={[styles.searchBar, isFocused && styles.searchBarFocused]}>
           <View style={styles.searchIcon}>
             <View style={styles.searchIconRing} />
@@ -249,11 +337,11 @@ export default function SearchDestinationScreen() {
             onChangeText={handleTextChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder={getString('searchDestinationPlaceholder')}
+            placeholder={searchMode === 'pickup'
+              ? getString('searchPickupLocation')
+              : getString('searchDestinationPlaceholder')}
             placeholderTextColor={theme.color.input.placeholder}
             autoFocus
-            autoCapitalize="none"
-            autoCorrect={false}
             returnKeyType="search"
           />
           {query.length > 0 && (
@@ -263,7 +351,7 @@ export default function SearchDestinationScreen() {
               activeOpacity={0.7}
               accessibilityRole="button"
             >
-              <AppText style={styles.clearGlyph}>✕</AppText>
+              <AppText style={styles.clearGlyph}>{'✕'}</AppText>
             </TouchableOpacity>
           )}
         </View>
@@ -325,6 +413,39 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     paddingTop: theme.dimensions.p16,
     paddingBottom: theme.dimensions.p12,
     backgroundColor: theme.color.navigation.headerBg,
+    gap: theme.dimensions.p10,
+  },
+  pickupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.color.input.bg,
+    borderRadius: theme.dimensions.p10,
+    paddingHorizontal: theme.dimensions.p12,
+    paddingVertical: theme.dimensions.p10,
+    gap: theme.dimensions.p10,
+  },
+  pickupDot: {
+    width: theme.dimensions.p10,
+    height: theme.dimensions.p10,
+    borderRadius: theme.dimensions.p4,
+    backgroundColor: theme.color.primary.actionGreen,
+  },
+  pickupTextGroup: {
+    flex: 1,
+  },
+  pickupLabel: {
+    fontSize: theme.fontSize.p12,
+    color: theme.color.text.secondary,
+  },
+  pickupValue: {
+    fontSize: theme.fontSize.p14,
+    color: theme.color.text.primary,
+    fontWeight: '500',
+  },
+  changeText: {
+    fontSize: theme.fontSize.p14,
+    fontWeight: '600',
+    color: theme.color.primary.actionGreen,
   },
   searchBar: {
     flexDirection: 'row',
@@ -347,7 +468,6 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
   searchIcon: {
     width: theme.dimensions.p20,
     height: theme.dimensions.p20,
-    marginRight: theme.dimensions.p8,
     alignItems: 'center',
     justifyContent: 'center',
   },

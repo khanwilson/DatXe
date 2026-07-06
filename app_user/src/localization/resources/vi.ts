@@ -40,5 +40,22 @@ const vi: iLocalization = {
   searchNoResults: 'Không tìm thấy kết quả',
   searchError: 'Lỗi khi tìm kiếm',
   searchRetry: 'Thử lại',
+  // Route booking modal
+  bookingDiscountCode: 'Mã giảm giá',
+  bookingPaymentCash: 'Tiền mặt',
+  bookingBookButton: 'ĐẶT XE',
+  // Home screen
+  homeServicesTitle: 'Dịch vụ',
+  homeServiceRide: 'Đặt xe',
+  homeServiceDelivery: 'Giao hàng',
+  homeServiceGrocery: 'Đi chợ',
+  homeServiceFood: 'Đồ ăn',
+  homeServiceParcel: 'Gửi hàng',
+  homeServiceMore: 'Thêm',
+  homeBannersTitle: 'Đặt ngay',
+  homeNearbyTitle: 'Gần đây',
+  // Search destination — pickup mode
+  searchPickupLocation: 'Điểm đón của bạn',
+  searchChangePickup: 'Thay đổi',
 }
 export default vi;
