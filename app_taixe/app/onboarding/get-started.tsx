@@ -1,20 +1,20 @@
-import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import { ITheme, useAppTheme } from 'theme/index';
-import { AppText } from 'components/text/AppText';
 import { AppButton } from 'components/button/AppButton';
+import { AppText } from 'components/text/AppText';
+import { useRouter } from 'expo-router';
+import React, { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { ITheme, useAppTheme } from 'theme/index';
 
 const GetStartedScreen: React.FC = () => {
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
   const router = useRouter();
 
-  const handleGetStarted = async () => {
+  const handleSignIn = async () => {
     try {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      router.replace('/(tabs)/HomeScreen');
+      router.replace('/SigninStack/SigninScreen');
     } catch (error) {
       console.warn('Error saving onboarding status:', error);
     }
@@ -32,14 +32,8 @@ const GetStartedScreen: React.FC = () => {
 
       <View style={styles.bottomArea}>
         <AppButton
-          text="Get Started"
-          onPress={handleGetStarted}
-          style={styles.getStartedButton}
-          textStyle={styles.getStartedButtonText}
-        />
-        <AppButton
           text="Sign In"
-          onPress={handleGetStarted}
+          onPress={handleSignIn}
           style={styles.signInButton}
           textStyle={styles.signInButtonText}
         />

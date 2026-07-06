@@ -9,10 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "bundleIdentifier": "com.taixe-mailinh.app",
       "supportsTablet": true,
-      "bundleIdentifier": "com.taixe-mailinh.app"
+      "config": {
+        "googleMapsApiKey": ""
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.taixe-mailinh.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./src/assets/images/android-icon-foreground.png",
@@ -20,8 +27,7 @@
         "monochromeImage": "./src/assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.taixe-mailinh.app"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
@@ -52,6 +58,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ae5329f8-8456-4b4d-a062-2a170fe5b9fa"
+      }
     }
   }
 }
