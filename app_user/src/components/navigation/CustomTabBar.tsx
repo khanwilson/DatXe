@@ -1,9 +1,19 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { AppText } from 'components/text/AppText';
+import { iLocalization } from 'localization/iLocalization';
+import { getString } from 'localization/index';
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ITheme, useAppTheme } from 'theme/index';
+
+// Maps each tab route name to its localized label key. Looked up by route name
+// (not array index) so tab order can change without breaking the labels.
+const TAB_LABEL_KEYS: Record<string, keyof iLocalization> = {
+  HomeScreen: 'tabHome',
+  ExploreScreen: 'tabExplore',
+  ProfileScreen: 'tabProfile',
+};
 
 export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const theme = useAppTheme();
@@ -11,20 +21,9 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
   const insets = useSafeAreaInsets();
   const insetsBottom = useMemo(() => insets.bottom, [insets.bottom]);
 
-  const tabs = useMemo(() => {
-    return [
-      {
-        name: 'Home',
-        icon: 'home',
-      },
-      {
-        name: 'Explore',
-        icon: 'explore',
-      },
-    ]
-  }, [])
-
-  const renderTab = useCallback((index: number, isFocused: boolean) => {
+  const renderTab = useCallback((routeName: string, isFocused: boolean) => {
+    const labelKey = TAB_LABEL_KEYS[routeName];
+    const label = labelKey ? getString(labelKey) : routeName;
     return <View
       style={[
         styles.tabContent,
@@ -43,10 +42,10 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
           },
         ]}
       >
-        {tabs[index].name}
+        {label}
       </AppText>
     </View>
-  }, [tabs, theme, styles]);
+  }, [theme, styles]);
 
   return (
     <View
@@ -94,7 +93,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             onLongPress={onLongPress}
             style={styles.tab}
           >
-            {renderTab(index, isFocused)}
+            {renderTab(route.name, isFocused)}
           </TouchableOpacity>
         );
       })}

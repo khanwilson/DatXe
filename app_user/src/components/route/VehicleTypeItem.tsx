@@ -1,4 +1,5 @@
 // 1. IMPORTS
+import { RenderImage } from 'components/image/RenderImage';
 import { AppText } from 'components/text/AppText';
 import React, { useMemo } from 'react';
 import { ImageSourcePropType, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -8,7 +9,7 @@ import { ITheme, useAppTheme } from 'theme/index';
 export interface VehicleType {
   id: string;
   name: string;
-  icon: ImageSourcePropType;
+  icon: ImageSourcePropType | string;
   eta: string;
   realPrice: number;
   discountPrice: number;
@@ -36,7 +37,7 @@ export const VehicleTypeItem: React.FC<Props> = ({ vehicle, selected, onPress })
       activeOpacity={0.8}
     >
       <View style={styles.iconWrap}>
-        <View style={styles.iconPlaceholder} />
+        <RenderImage source={vehicle.icon} style={styles.iconPlaceholder} />
       </View>
       <View style={styles.info}>
         <AppText style={styles.name}>{vehicle.name}</AppText>

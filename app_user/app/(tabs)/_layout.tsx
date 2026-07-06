@@ -7,6 +7,10 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <CustomTabBar {...props} />}
-    />
+    >
+      <Tabs.Screen name="HomeScreen" />
+      <Tabs.Screen name="ExploreScreen" />
+      <Tabs.Screen name="ProfileScreen" />
+    </Tabs>
   );
 }

@@ -57,5 +57,35 @@ const vi: iLocalization = {
   // Search destination — pickup mode
   searchPickupLocation: 'Điểm đón của bạn',
   searchChangePickup: 'Thay đổi',
+  // Bottom tabs
+  tabHome: 'Trang chủ',
+  tabExplore: 'Khám phá',
+  tabProfile: 'Cá nhân',
+  // Profile & settings
+  profileTitle: 'Cá nhân',
+  profileEdit: 'Sửa',
+  profileSave: 'Lưu',
+  profileCancel: 'Hủy',
+  profileNameLabel: 'Tên hiển thị',
+  profileNamePlaceholder: 'Nhập tên của bạn',
+  profilePhoneLabel: 'Số điện thoại',
+  profileEmailLabel: 'Email',
+  profileSettingsTitle: 'Cài đặt',
+  profileThemeLabel: 'Chế độ tối',
+  profileThemeDark: 'Tối',
+  profileThemeLight: 'Sáng',
+  profileLanguageLabel: 'Ngôn ngữ',
+  profileLogout: 'Đăng xuất',
+  profileUpdateError: 'Không cập nhật được hồ sơ',
+  // Active trip tracking
+  tripFinding: 'Đang tìm tài xế',
+  tripEnRoute: 'Tài xế đang đến',
+  tripArrived: 'Tài xế đã đến điểm đón',
+  tripInProgress: 'Đang trên đường đi',
+  tripCompleted: 'Chuyến đi hoàn tất',
+  tripFindingHint: 'Vui lòng chờ trong giây lát...',
+  tripFare: 'Cước phí',
+  tripCancel: 'Hủy chuyến',
+  tripDone: 'Hoàn tất',
 }
 export default vi;

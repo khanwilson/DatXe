@@ -36,6 +36,7 @@ export default function RootLayout() {
               />
               <Stack.Screen name="SearchDestinationScreen" options={{ headerShown: false }} />
               <Stack.Screen name="BookingRouteScreen" options={{ headerShown: false }} />
+              <Stack.Screen name="ActiveTripScreen" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             </Stack>
             <StatusBar style="auto" />

@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-07-02  
 **Total Tasks**: 53  
-**Completed**: 16  
+**Completed**: 17  
 **In Progress**: 0  
 **Blocked**: 0
 
@@ -35,7 +35,7 @@
 | T-0035 | Booking confirmation & payment UI app_user | Planned | Created | P0 | T-0034 | app_user | [T-0035](tasks/T-0035/) |
 | T-0036 | Active trip tracking with routing app_user | Planned | Created | P0 | T-0035, T-0050 | app_user | [T-0036](tasks/T-0036/) |
 | T-0037 | Trip history & bookings list app_user | Planned | Created | P0 | T-0036 | app_user | [T-0037](tasks/T-0037/) |
-| T-0038 | Profile & settings screen app_user | Planned | Created | P0 | T-0033 | app_user | [T-0038](tasks/T-0038/) |
+| T-0038 | Profile & settings screen app_user | Done | Done | P0 | T-0033 | app_user | [T-0038](tasks/T-0038/) |
 | T-0039 | Onboarding & Welcome screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0039](tasks/T-0039/) |
 | T-0040 | Login & Registration screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0040](tasks/T-0040/) |
 | T-0041 | Driver status dashboard app_taixe | Planned | Created | P0 | T-0050, T-0055 | app_taixe | [T-0041](tasks/T-0041/) |

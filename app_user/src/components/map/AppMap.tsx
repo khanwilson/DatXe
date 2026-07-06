@@ -29,6 +29,8 @@ interface IAppMapProps {
   origin?: [number, number];
   // Destination marker coordinate [lng, lat]
   destination?: [number, number];
+  // Live driver marker coordinate [lng, lat] (active trip tracking)
+  driver?: [number, number];
   // Bounds to fit the map to (typically for route display)
   bounds?: MapBounds;
 }
@@ -37,7 +39,7 @@ const DEFAULT_ANIMATION_MS = 500;
 
 // 3. COMPONENT FUNCTION
 export const AppMap = forwardRef<AppMapHandle, IAppMapProps>((props, ref) => {
-  const { camera = DEFAULT_CAMERA, route, origin, destination, bounds } = props;
+  const { camera = DEFAULT_CAMERA, route, origin, destination, driver, bounds } = props;
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
   const cameraRef = useRef<MapboxGL.Camera>(null);
@@ -127,6 +129,14 @@ export const AppMap = forwardRef<AppMapHandle, IAppMapProps>((props, ref) => {
             <View style={styles.markerDestination} />
           </MapboxGL.PointAnnotation>
         )}
+
+        {driver && (
+          <MapboxGL.PointAnnotation id="driverMarker" coordinate={driver}>
+            <View style={styles.markerDriver}>
+              <View style={styles.markerDriverDot} />
+            </View>
+          </MapboxGL.PointAnnotation>
+        )}
       </MapboxGL.MapView>
     </View>
   );
@@ -155,6 +165,22 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     backgroundColor: theme.color.map.pinEnd,
     borderWidth: 3,
     borderColor: '#fff',
+  },
+  markerDriver: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    borderWidth: 3,
+    borderColor: theme.color.map.route,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markerDriverDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: theme.color.map.route,
   },
 });
 

@@ -7,6 +7,7 @@ import { BackButton } from 'components/navigation/BackButton';
 import ZustandSession from 'zustand/session';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useDirections } from 'api/hooks/useGoongPlace';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
@@ -17,7 +18,7 @@ const MOCK_VEHICLES: VehicleType[] = [
   {
     id: 'xe4cho',
     name: 'Xe 4 chỗ',
-    icon: require('assets/images/img_fallback.png'),
+    icon: 'https://www.shutterstock.com/image-vector/car-icon-small-sedan-600w-521952196.jpg',
     eta: '3 phút',
     realPrice: 50000,
     discountPrice: 45000,
@@ -25,7 +26,7 @@ const MOCK_VEHICLES: VehicleType[] = [
   {
     id: 'xe7cho',
     name: 'Xe 7 chỗ',
-    icon: require('assets/images/img_fallback.png'),
+    icon: 'https://png.pngtree.com/png-clipart/20220110/ourmid/pngtree-hand-drawn-suv-models-png-image_4136981.png',
     eta: '5 phút',
     realPrice: 80000,
     discountPrice: 72000,
@@ -33,7 +34,7 @@ const MOCK_VEHICLES: VehicleType[] = [
   {
     id: 'xevip',
     name: 'Xe VIP',
-    icon: require('assets/images/img_fallback.png'),
+    icon: 'https://thumbs.dreamstime.com/b/vip-taxi-service-vector-icon-filled-flat-sign-mobile-concept-web-design-luxury-glyph-symbol-logo-illustration-graphics-224065941.jpg',
     eta: '7 phút',
     realPrice: 120000,
     discountPrice: 108000,
@@ -44,6 +45,7 @@ const MOCK_VEHICLES: VehicleType[] = [
 export default function BookingRouteScreen() {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const router = useRouter();
   const mapRef = useRef<AppMapHandle>(null);
   const bookingModalRef = useRef<BottomSheetModal>(null);
   const { camera, coordinate } = useCurrentLocation();
@@ -166,7 +168,17 @@ export default function BookingRouteScreen() {
         vehicles={MOCK_VEHICLES}
         selectedVehicleId={selectedVehicleId}
         onSelectVehicle={setSelectedVehicleId}
-        onBook={() => bookingModalRef.current?.dismiss()}
+        onBook={() => {
+          const selected = MOCK_VEHICLES.find((v) => v.id === selectedVehicleId);
+          bookingModalRef.current?.dismiss();
+          router.push({
+            pathname: '/ActiveTripScreen',
+            params: {
+              vehicleName: selected?.name ?? '',
+              fare: String(selected?.discountPrice ?? selected?.realPrice ?? 0),
+            },
+          });
+        }}
       />
     </View>
   );

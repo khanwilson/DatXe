@@ -55,4 +55,34 @@ export interface iLocalization {
   // Search destination — pickup mode
   searchPickupLocation: string;
   searchChangePickup: string;
+  // Bottom tabs
+  tabHome: string;
+  tabExplore: string;
+  tabProfile: string;
+  // Profile & settings
+  profileTitle: string;
+  profileEdit: string;
+  profileSave: string;
+  profileCancel: string;
+  profileNameLabel: string;
+  profileNamePlaceholder: string;
+  profilePhoneLabel: string;
+  profileEmailLabel: string;
+  profileSettingsTitle: string;
+  profileThemeLabel: string;
+  profileThemeDark: string;
+  profileThemeLight: string;
+  profileLanguageLabel: string;
+  profileLogout: string;
+  profileUpdateError: string;
+  // Active trip tracking
+  tripFinding: string;
+  tripFindingHint: string;
+  tripEnRoute: string;
+  tripArrived: string;
+  tripInProgress: string;
+  tripCompleted: string;
+  tripFare: string;
+  tripCancel: string;
+  tripDone: string;
 }

@@ -57,5 +57,35 @@ const en: iLocalization = {
   // Search destination — pickup mode
   searchPickupLocation: 'Your pickup location',
   searchChangePickup: 'Change',
+  // Bottom tabs
+  tabHome: 'Home',
+  tabExplore: 'Explore',
+  tabProfile: 'Profile',
+  // Profile & settings
+  profileTitle: 'Profile',
+  profileEdit: 'Edit',
+  profileSave: 'Save',
+  profileCancel: 'Cancel',
+  profileNameLabel: 'Display name',
+  profileNamePlaceholder: 'Enter your name',
+  profilePhoneLabel: 'Phone number',
+  profileEmailLabel: 'Email',
+  profileSettingsTitle: 'Settings',
+  profileThemeLabel: 'Dark mode',
+  profileThemeDark: 'Dark',
+  profileThemeLight: 'Light',
+  profileLanguageLabel: 'Language',
+  profileLogout: 'Log out',
+  profileUpdateError: 'Could not update profile',
+  // Active trip tracking
+  tripFinding: 'Finding a driver',
+  tripFindingHint: 'Matching you with a nearby driver...',
+  tripEnRoute: 'Driver on the way',
+  tripArrived: 'Driver has arrived',
+  tripInProgress: 'On the trip',
+  tripCompleted: 'Trip completed',
+  tripFare: 'Total fare',
+  tripCancel: 'Cancel trip',
+  tripDone: 'Done',
 }
 export default en;
