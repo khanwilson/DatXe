@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
-import { PaymentMethod, PaymentStatus } from '@prisma/client';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { BookingStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { WebSocketGateway } from '../../common/websocket/websocket.gateway';
@@ -20,14 +20,17 @@ export class PaymentService {
     private readonly webSocketGateway: WebSocketGateway,
   ) {}
 
-  async createVnpayPayment(dto: CreateVnpayPaymentDto) {
-    // Verify booking exists
+  async createVnpayPayment(dto: CreateVnpayPaymentDto, customerId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: dto.booking_id },
     });
 
     if (!booking) {
       throw new BadRequestException('Booking not found');
+    }
+
+    if (booking.customer_id !== customerId) {
+      throw new BadRequestException('Booking does not belong to this user');
     }
 
     // Generate unique transaction ref: bookingId-timestamp
@@ -38,8 +41,8 @@ export class PaymentService {
       data: {
         booking_id: dto.booking_id,
         amount: dto.amount,
-        method: 'VNPAY',
-        status: 'PENDING',
+        method: PaymentMethod.VNPAY,
+        status: PaymentStatus.PENDING,
         transaction_id: txnRef, // Store txnRef temporarily, will be overwritten on success
         note: dto.order_info,
       },
@@ -132,10 +135,10 @@ export class PaymentService {
       }
 
       // Update Payment with success status and real VNPay transaction number
-      const updatedPayment = await this.prisma.payment.update({
+      await this.prisma.payment.update({
         where: { id: payment.id },
         data: {
-          status: 'SUCCESSFUL',
+          status: PaymentStatus.SUCCESSFUL,
           transaction_id: vnpTransactionNo,
           paid_at: new Date(),
         },
@@ -144,14 +147,14 @@ export class PaymentService {
       // Update Booking status to PAYMENT_COMPLETED
       await this.prisma.booking.update({
         where: { id: payment.booking_id },
-        data: { status: 'PAYMENT_COMPLETED' },
+        data: { status: BookingStatus.PAYMENT_COMPLETED },
       });
 
       // Emit WebSocket event
       this.webSocketGateway.emitPaymentSuccess(
         payment.booking_id,
-        updatedPayment.id,
-        Number(updatedPayment.amount),
+        BookingStatus.PAYMENT_COMPLETED,
+        PaymentStatus.SUCCESSFUL,
       );
 
       this.logger.log(

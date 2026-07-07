@@ -40,7 +40,7 @@ export function buildVnpayUrl(
     encodeURIComponent: (s) => s,
   });
   const hmac = crypto.createHmac('sha512', hashSecret);
-  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+  const signed = hmac.update(signData, 'utf-8').digest('hex');
 
   sorted['vnp_SecureHash'] = signed;
   return `${baseUrl}?${querystring.stringify(sorted)}`;
@@ -68,7 +68,7 @@ export function verifyVnpayCallback(
     encodeURIComponent: (s) => s,
   });
   const hmac = crypto.createHmac('sha512', hashSecret);
-  const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+  const signed = hmac.update(signData, 'utf-8').digest('hex');
 
   return { valid: signed === secureHash, responseCode };
 }

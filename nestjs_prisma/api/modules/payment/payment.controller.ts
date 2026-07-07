@@ -45,7 +45,7 @@ export class PaymentController {
     @Body() dto: CreateVnpayPaymentDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    const result = await this.paymentService.createVnpayPayment(dto);
+    const result = await this.paymentService.createVnpayPayment(dto, user.sub);
     return {
       success: true,
       data: result,
