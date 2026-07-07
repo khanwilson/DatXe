@@ -78,6 +78,22 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   GOONG_BASE_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  VNPAY_TMN_CODE?: string;
+
+  @IsString()
+  @IsOptional()
+  VNPAY_HASH_SECRET?: string;
+
+  @IsString()
+  @IsOptional()
+  VNPAY_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  VNPAY_RETURN_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

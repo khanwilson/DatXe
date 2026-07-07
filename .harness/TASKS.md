@@ -1,10 +1,11 @@
 # Task Registry
 
-**Last Updated**: 2026-07-02  
-**Total Tasks**: 53  
+**Last Updated**: 2026-07-07  
+**Total Tasks**: 64  
 **Completed**: 17  
-**In Progress**: 0  
-**Blocked**: 0
+**In Progress**: 1  
+**Blocked**: 0  
+**Cancelled**: 5
 
 ---
 
@@ -32,16 +33,16 @@
 | T-0033 | Login & Registration screens app_user (Phone+OTP) | Done | Done | P0 | - | app_user | [T-0033](tasks/T-0033/) |
 | T-0033.1 | PhoneInput component + libphonenumber-js validation | Done | Done | P1 | T-0033 | app_user | [T-0033.1](tasks/T-0033.1/) |
 | T-0034 | Home & map taxi search app_user | Done | Done | P0 | T-0031 | app_user | [T-0034](tasks/T-0034/) |
-| T-0035 | Booking confirmation & payment UI app_user | Planned | Created | P0 | T-0034 | app_user | [T-0035](tasks/T-0035/) |
-| T-0036 | Active trip tracking with routing app_user | Planned | Created | P0 | T-0035, T-0050 | app_user | [T-0036](tasks/T-0036/) |
+| T-0035 | Booking confirmation & payment UI app_user | Cancelled | Created | P0 | T-0034 | app_user | [T-0035](tasks/T-0035/) — superseded by T-0064 |
+| T-0036 | Active trip tracking with routing app_user | Done | Done | P0 | T-0035, T-0050 | app_user | [T-0036](tasks/T-0036/) |
 | T-0037 | Trip history & bookings list app_user | Planned | Created | P0 | T-0036 | app_user | [T-0037](tasks/T-0037/) |
 | T-0038 | Profile & settings screen app_user | Done | Done | P0 | T-0033 | app_user | [T-0038](tasks/T-0038/) |
 | T-0039 | Onboarding & Welcome screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0039](tasks/T-0039/) |
 | T-0040 | Login & Registration screens app_taixe | Planned | Created | P0 | - | app_taixe | [T-0040](tasks/T-0040/) |
-| T-0041 | Driver status dashboard app_taixe | Planned | Created | P0 | T-0050, T-0055 | app_taixe | [T-0041](tasks/T-0041/) |
-| T-0042 | Booking offers & acceptance UI app_taixe | Planned | Created | P0 | T-0041 | app_taixe | [T-0042](tasks/T-0042/) |
-| T-0043 | Navigation to pickup with routing app_taixe | Planned | Created | P0 | T-0042, T-0050 | app_taixe | [T-0043](tasks/T-0043/) |
-| T-0044 | Trip in progress & routing display app_taixe | Planned | Created | P0 | T-0043 | app_taixe | [T-0044](tasks/T-0044/) |
+| T-0041 | Driver status dashboard app_taixe | Cancelled | Created | P0 | T-0050, T-0055 | app_taixe | [T-0041](tasks/T-0041/) — superseded by T-0069 |
+| T-0042 | Booking offers & acceptance UI app_taixe | Cancelled | Created | P0 | T-0041 | app_taixe | [T-0042](tasks/T-0042/) — superseded by T-0070 |
+| T-0043 | Navigation to pickup with routing app_taixe | Cancelled | Created | P0 | T-0042, T-0050 | app_taixe | [T-0043](tasks/T-0043/) — superseded by T-0070 |
+| T-0044 | Trip in progress & routing display app_taixe | Cancelled | Created | P0 | T-0043 | app_taixe | [T-0044](tasks/T-0044/) — superseded by T-0070 |
 | T-0045 | Ride history & driver profile app_taixe | Planned | Created | P0 | T-0044 | app_taixe | [T-0045](tasks/T-0045/) |
 
 ### Wave Mapbox: Mapbox & Goong API Integration (Replace Google Maps)
@@ -56,6 +57,27 @@
 | T-0054 | Frontend: Route display with Mapbox directions layer (app_user) | Planned | Created | P1 | T-0050, T-0052 | app_user | [T-0054](tasks/T-0054/) |
 | T-0055 | Frontend: Install & configure @rnmapbox/maps (app_taixe) | Planned | Created | P2 | T-0051 | app_taixe | [T-0055](tasks/T-0055/) |
 | T-0056 | Cleanup: Remove Google Maps dependencies & env vars | Planned | Created | P2 | T-0052, T-0053, T-0054 | all | [T-0056](tasks/T-0056/) |
+
+### Wave VNPay: VNPay Sandbox Payment Integration
+
+| ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
+|----|-------|--------|-------|----------|-----------|----------|--------|
+| T-0061 | Wave VNPay Master Plan | In Progress | Planning | P0 | - | all | [T-0061](tasks/T-0061/) |
+| T-0062 | BE: Booking + Payment + VNPay Module | Planned | Created | P0 | - | nestjs_prisma | [T-0062](tasks/T-0062/) |
+| T-0063 | BE: Dispatch Module (find nearest driver) | Planned | Created | P0 | T-0062 | nestjs_prisma | [T-0063](tasks/T-0063/) |
+| T-0064 | FE app_user: Booking submit + VNPay payment flow | Planned | Created | P0 | T-0062 | app_user | [T-0064](tasks/T-0064/) |
+| T-0065 | FE app_user: ActiveTripScreen sau payment | Cancelled | Created | P0 | T-0064 | app_user | [T-0065](tasks/T-0065/) — superseded by T-0071 |
+
+### Wave Trip Flow: Payment → Driver → Hoàn Thành
+
+| ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
+|----|-------|--------|-------|----------|-----------|----------|--------|
+| T-0067 | Wave Trip Flow Master Plan | In Progress | Planning | P0 | - | all | [T-0067](tasks/T-0067/) |
+| T-0068 | BE: Driver Location & Dispatch Enhancement | Planned | Created | P0 | T-0062, T-0063 | nestjs_prisma | [T-0068](tasks/T-0068/) |
+| T-0069 | FE app_taixe: Foundation (Mapbox + Auth + Dashboard) | Planned | Created | P0 | T-0055, T-0058 | app_taixe | [T-0069](tasks/T-0069/) |
+| T-0070 | FE app_taixe: Trip Flow (Offer → Pickup → Dropoff → Complete) | Planned | Created | P0 | T-0068, T-0069 | app_taixe | [T-0070](tasks/T-0070/) |
+| T-0071 | FE app_user: Trip Flow (Looking → Pickup → Dropoff → Complete) | Planned | Created | P0 | T-0064, T-0068 | app_user | [T-0071](tasks/T-0071/) |
+| T-0072 | Integration & Realtime Wiring | Planned | Created | P0 | T-0068, T-0070, T-0071 | all | [T-0072](tasks/T-0072/) |
 
 ### Wave 2: Core Backend APIs
 
@@ -183,6 +205,16 @@ Wave 8: Polish
 ──────────────────────────────────────────
 T-0003 + T-0005 ─→ T-0030 (Health Check)
 T-0006..T-0011 + T-0031 ─→ T-0029 (Swagger Docs)
+
+Wave Trip Flow: Payment → Driver → Hoàn Thành
+──────────────────────────────────────────
+T-0062 (BE Booking + Payment) ─┬─→ T-0063 (BE Dispatch) ─→ T-0068 (BE Dispatch Enhancement)
+                                └─→ T-0064 (FE app_user Payment)
+T-0055 (Mapbox app_taixe) ─┬─→ T-0069 (app_taixe Foundation)
+T-0058 (Auth app_taixe) ───┘
+T-0068 + T-0069 ─→ T-0070 (app_taixe Trip Flow)
+T-0068 + T-0064 ─→ T-0071 (app_user Trip Flow)
+T-0068 + T-0070 + T-0071 ─→ T-0072 (Integration)
 ```
 
 ---

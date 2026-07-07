@@ -63,6 +63,7 @@ enum PaymentMethod {
   CASH
   CARD
   WALLET
+  VNPAY
 }
 
 enum OfferStatus {
@@ -162,6 +163,7 @@ model Booking {
   estimated_duration  Int?
   actual_distance     Float?
   note                String?
+  vehicle_type        String?
   cancelled_at        DateTime?
   cancel_reason       String?
   created_at          DateTime      @default(now())
