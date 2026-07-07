@@ -3,6 +3,8 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 
+export type BookingScreenState = 'IDLE' | 'BOOKING' | 'PAYMENT' | 'LOOKING' | 'DRIVER_FOUND';
+
 // Define the store state type
 export interface SessionState {
   ModalDebugStatus?: boolean;
@@ -18,6 +20,8 @@ export interface SessionState {
     name: string;
     address: string;
   } | null;
+  activeBookingId?: string | null;
+  bookingScreenState?: BookingScreenState;
 }
 // Config store interface
 interface IRootState extends SessionState {

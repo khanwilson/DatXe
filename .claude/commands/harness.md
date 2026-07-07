@@ -235,15 +235,15 @@ Bạn có muốn tiếp tục Phase 4 không?
 
 ## Model Routing theo Phase
 
-| Phase / Skill                  | Default model                  | Escalate → `claude-opus-4-6` khi |
-|--------------------------------|--------------------------------|----------------------------------|
-| **Planning** / `planner`       | `claude-sonnet-4-6`            | Phân tích hệ thống, plan tổng thể, chia nhiều wave, chia nhiều task, hoặc planning cho 1 wave gồm nhiều task |
-| **Architect**                  | `claude-opus-4-6`              | Luôn Opus khi được gọi — kiến trúc, boundary, module interaction, risk, trade-off, technical direction |
-| **Contracting** / `contractor` | `claude-sonnet-4-6`            | Không |
-| **Implementing** / `implementer` | `claude-opus-4-6`            | Luôn Opus — chỉ triển khai đúng contract, không tự mở rộng scope |
-| **Evaluating** / `evaluator`   | `claude-sonnet-4-6`            | Không |
-| **Reviewing** / `reviewer`     | `claude-sonnet-4-6`            | Không |
-| **Closing**                    | `claude-haiku-4-5-20251001`    | Không |
+| Phase / Skill                     | Default model                  | Escalate → `claude-opus-4-6` khi |
+|-----------------------------------|--------------------------------|----------------------------------|
+| **Planning** / `planner`          | `claude-sonnet-4-6`            | Phân tích hệ thống, plan tổng thể, chia nhiều wave, chia nhiều task, hoặc planning cho 1 wave gồm nhiều task |
+| **Architect**                     | `claude-opus-4-6`              | Luôn Opus khi được gọi — kiến trúc, boundary, module interaction, risk, trade-off, technical direction |
+| **Contracting** / `contractor`    | `claude-sonnet-4-6`            | Không |
+| **Implementing** / `implementer`  | `claude-opus-4-6`              | Luôn Opus — chỉ triển khai đúng contract, không tự mở rộng scope |
+| **Evaluating** / `evaluator`      | `claude-sonnet-4-6`            | Không |
+| **Reviewing** / `reviewer`        | `claude-sonnet-4-6`            | Không |
+| **Closing**                       | `claude-haiku-4-5-20251001`    | Không |
 
 ---
 

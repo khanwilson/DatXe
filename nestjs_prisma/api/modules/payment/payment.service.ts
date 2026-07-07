@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { BookingStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { WebSocketGateway } from '../../common/websocket/websocket.gateway';
 import { CreateVnpayPaymentDto } from './dto/create-vnpay-payment.dto';
@@ -18,6 +19,7 @@ export class PaymentService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly webSocketGateway: WebSocketGateway,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createVnpayPayment(dto: CreateVnpayPaymentDto, customerId: string) {
@@ -156,6 +158,9 @@ export class PaymentService {
         BookingStatus.PAYMENT_COMPLETED,
         PaymentStatus.SUCCESSFUL,
       );
+
+      // Emit internal event for DispatchService to start driver search
+      this.eventEmitter.emit('payment.success', { bookingId: payment.booking_id });
 
       this.logger.log(
         `VNPay payment successful: booking=${payment.booking_id}, txnNo=${vnpTransactionNo}`,

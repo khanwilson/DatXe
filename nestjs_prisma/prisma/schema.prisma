@@ -41,6 +41,9 @@ enum BookingStatus {
   PAYMENT_PENDING
   PAYMENT_COMPLETED
   NO_SHOW
+  LOOKING_DRIVER
+  NO_DRIVER
+  DRIVER_ARRIVED
 }
 
 enum TripStatus {

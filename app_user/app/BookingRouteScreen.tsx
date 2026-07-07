@@ -1,19 +1,26 @@
 // 1. IMPORTS
 import { AppMap, AppMapHandle, MapBounds } from 'components/map/AppMap';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
+import { RadarAnimation } from 'components/map/RadarAnimation';
 import { RouteBookingModal } from 'components/route/RouteBookingModal';
 import { VehicleType } from 'components/route/VehicleTypeItem';
 import { BackButton } from 'components/navigation/BackButton';
 import ZustandSession from 'zustand/session';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useDirections } from 'api/hooks/useGoongPlace';
+import { bookingService, CreateBookingDto } from 'api/services/bookingService';
+import { paymentService } from 'api/services/paymentService';
+import { useBookingSocket } from 'api/socket/useBookingSocket';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 import { decodePolyline, getBounds } from 'utils/functions/decodePolyline';
 
 // 2. VARIABLES & TYPES
+type BookingScreenState = 'IDLE' | 'BOOKING' | 'PAYMENT' | 'LOOKING' | 'DRIVER_FOUND';
+
 const MOCK_VEHICLES: VehicleType[] = [
   {
     id: 'xe4cho',
@@ -41,6 +48,8 @@ const MOCK_VEHICLES: VehicleType[] = [
   },
 ];
 
+const DRIVER_WAIT_TIMEOUT_MS = 90_000;
+
 // 3. COMPONENT FUNCTION
 export default function BookingRouteScreen() {
   const theme = useAppTheme();
@@ -49,33 +58,32 @@ export default function BookingRouteScreen() {
   const mapRef = useRef<AppMapHandle>(null);
   const bookingModalRef = useRef<BottomSheetModal>(null);
   const { camera, coordinate } = useCurrentLocation();
+
+  const [screenState, setScreenState] = useState<BookingScreenState>('IDLE');
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>(MOCK_VEHICLES[0].id);
   const [routeData, setRouteData] = useState<{
     route: [number, number][];
     origin: [number, number];
     destination: [number, number];
     bounds: MapBounds;
   } | null>(null);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<string>(MOCK_VEHICLES[0].id);
 
-  // Subscribe to session pickup + destination reactively so the screen rebuilds
-  // the route when either changes (getState() would only read a static snapshot).
   const savedPickup = ZustandSession((s) => s.selectedPickup);
   const savedDestination = ZustandSession((s) => s.selectedDestination);
+  const activeBookingId = ZustandSession((s) => s.activeBookingId);
 
-  // Determine the effective origin: use the saved pickup if it has a coordinate,
-  // otherwise fall back to the device's current location.
-  const effectiveOrigin = savedPickup
-    ? { lat: savedPickup.lat, lng: savedPickup.lng }
-    : coordinate
-      ? { lat: coordinate.latitude, lng: coordinate.longitude }
-      : null;
+  const effectiveOrigin = useMemo(() => {
+    if (savedPickup) {
+      return { lat: savedPickup.lat, lng: savedPickup.lng };
+    }
+    if (coordinate) {
+      return { lat: coordinate.latitude, lng: coordinate.longitude };
+    }
+    return null;
+  }, [savedPickup, coordinate]);
 
-  const originParam = effectiveOrigin
-    ? `${effectiveOrigin.lat},${effectiveOrigin.lng}`
-    : null;
-  const destinationParam = savedDestination
-    ? `${savedDestination.lat},${savedDestination.lng}`
-    : null;
+  const originParam = effectiveOrigin ? `${effectiveOrigin.lat},${effectiveOrigin.lng}` : null;
+  const destinationParam = savedDestination ? `${savedDestination.lat},${savedDestination.lng}` : null;
 
   const { data: directionsData, isSuccess: directionsSuccess, isError, error } = useDirections(originParam, destinationParam);
 
@@ -84,30 +92,22 @@ export default function BookingRouteScreen() {
   const destLat = savedDestination?.lat;
   const destLng = savedDestination?.lng;
 
-  // Log any errors for debugging
   useEffect(() => {
     if (isError && error) {
       console.error('Directions error:', error);
     }
   }, [isError, error]);
 
-  // Build markers + polyline in a single effect keyed on the coordinates and the
-  // directions payload. Keeping it in one place avoids the race where the polyline
-  // effect read a stale (null) routeData before the markers effect had committed.
   useEffect(() => {
-    if (originLat == null || originLng == null || destLat == null || destLng == null) {
-      return;
-    }
+    if (originLat == null || originLng == null || destLat == null || destLng == null) return;
 
     const originCoord: [number, number] = [originLng, originLat];
     const destCoord: [number, number] = [destLng, destLat];
-
-    // More robust handling of directions data
     const route = directionsData?.routes?.[0];
+
     if (route?.overview_polyline?.points) {
       try {
         const decodedCoords = decodePolyline(route.overview_polyline.points);
-        // Additional check to ensure decodedCoords is valid
         if (Array.isArray(decodedCoords) && decodedCoords.length > 0) {
           const bounds = getBounds(decodedCoords);
           setRouteData({
@@ -116,39 +116,120 @@ export default function BookingRouteScreen() {
             destination: destCoord,
             bounds: { ...bounds, paddingBottom: 520, paddingTop: 100 },
           });
-          // Only present modal if we have a valid route
-          if (directionsSuccess) {
+          if (directionsSuccess && screenState === 'IDLE') {
             bookingModalRef.current?.present();
           }
-        } else {
-          // Invalid or empty route data - show markers only
-          setRouteData({
-            route: [],
-            origin: originCoord,
-            destination: destCoord,
-            bounds: { ne: destCoord, sw: originCoord, paddingBottom: 520, paddingTop: 100 },
-          });
+          return;
         }
-      } catch (decodeError) {
-        console.error('Error decoding polyline:', decodeError);
-        // Show markers only on decode error
-        setRouteData({
-          route: [],
-          origin: originCoord,
-          destination: destCoord,
-          bounds: { ne: destCoord, sw: originCoord, paddingBottom: 520, paddingTop: 100 },
-        });
+      } catch {
+        // fall through
       }
-    } else {
-      // Coordinates known but directions not resolved yet — show the markers.
-      setRouteData({
-        route: [],
-        origin: originCoord,
-        destination: destCoord,
-        bounds: { ne: destCoord, sw: originCoord, paddingBottom: 520, paddingTop: 100 },
-      });
     }
-  }, [originLat, originLng, destLat, destLng, directionsData, directionsSuccess, isError]);
+
+    setRouteData({
+      route: [],
+      origin: originCoord,
+      destination: destCoord,
+      bounds: { ne: destCoord, sw: originCoord, paddingBottom: 520, paddingTop: 100 },
+    });
+  }, [originLat, originLng, destLat, destLng, directionsData, directionsSuccess, isError, screenState]);
+
+  // Driver wait timeout — if LOOKING for too long
+  useEffect(() => {
+    if (screenState !== 'LOOKING') return;
+    const timer = setTimeout(() => {
+      setScreenState('IDLE');
+      ZustandSession.getState().save('activeBookingId', null);
+      bookingModalRef.current?.present();
+      Alert.alert('Không tìm được tài xế', 'Hệ thống không tìm được tài xế gần bạn. Vui lòng thử lại.');
+    }, DRIVER_WAIT_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [screenState]);
+
+  const handlePaymentSuccess = useCallback(() => {
+    // Payment confirmed via WS — stay in LOOKING state, waiting for driver
+    setScreenState('LOOKING');
+  }, []);
+
+  const handleDriverAssigned = useCallback(() => {
+    setScreenState('DRIVER_FOUND');
+    const selected = MOCK_VEHICLES.find((v) => v.id === selectedVehicleId);
+    router.push({
+      pathname: '/ActiveTripScreen',
+      params: {
+        vehicleName: selected?.name ?? '',
+        fare: String(selected?.discountPrice ?? selected?.realPrice ?? 0),
+        bookingId: activeBookingId ?? '',
+      },
+    });
+  }, [router, selectedVehicleId, activeBookingId]);
+
+  const handleNoDriverFound = useCallback(() => {
+    setScreenState('IDLE');
+    ZustandSession.getState().save('activeBookingId', null);
+    bookingModalRef.current?.present();
+    Alert.alert('Không tìm được tài xế', 'Hệ thống đã tìm trong khu vực của bạn nhưng không có tài xế khả dụng. Vui lòng thử lại sau.');
+  }, []);
+
+  useBookingSocket({
+    bookingId: screenState === 'LOOKING' || screenState === 'DRIVER_FOUND' ? (activeBookingId ?? null) : null,
+    onPaymentSuccess: handlePaymentSuccess,
+    onDriverAssigned: handleDriverAssigned,
+    onNoDriverFound: handleNoDriverFound,
+  });
+
+  const handleBook = useCallback(async () => {
+    if (!effectiveOrigin || !savedDestination || !routeData) {
+      Alert.alert('Lỗi', 'Vui lòng chọn điểm đón và điểm đến trước khi đặt xe.');
+      return;
+    }
+
+    const selected = MOCK_VEHICLES.find((v) => v.id === selectedVehicleId);
+    if (!selected) return;
+
+    setScreenState('BOOKING');
+
+    try {
+      const totalDistance = directionsData?.summary?.totalDistance?.value ?? 0;
+      const totalDuration = directionsData?.summary?.totalDuration?.value ?? 0;
+
+      const bookingDto: CreateBookingDto = {
+        pickup_lat: effectiveOrigin.lat,
+        pickup_lng: effectiveOrigin.lng,
+        pickup_address: savedPickup?.address ?? savedPickup?.name ?? '',
+        dropoff_lat: savedDestination.lat,
+        dropoff_lng: savedDestination.lng,
+        dropoff_address: savedDestination.address ?? savedDestination.name,
+        vehicle_type: selected.id,
+        estimated_price: selected.discountPrice ?? selected.realPrice,
+        distance: totalDistance / 1000,
+        estimated_duration: Math.round(totalDuration / 60),
+      };
+
+      const booking = await bookingService.createBooking(bookingDto);
+      ZustandSession.getState().save('activeBookingId', booking.data.id);
+
+      const vnpayResult = await paymentService.createVnpayUrl(booking.data.id);
+      const paymentUrl = vnpayResult.data.paymentUrl;
+
+      setScreenState('PAYMENT');
+      bookingModalRef.current?.dismiss();
+
+      await WebBrowser.openBrowserAsync(paymentUrl, { dismissButtonStyle: 'close' });
+
+      // Browser closed — switch to LOOKING state (WS will confirm payment)
+      setScreenState('LOOKING');
+    } catch {
+      setScreenState('IDLE');
+      ZustandSession.getState().save('activeBookingId', null);
+      bookingModalRef.current?.present();
+      Alert.alert('Đặt xe thất bại', 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.');
+    }
+  }, [effectiveOrigin, savedDestination, savedPickup, routeData, selectedVehicleId, directionsData]);
+
+  const isModalVisible = screenState === 'IDLE' || screenState === 'BOOKING';
+  const isLooking = screenState === 'LOOKING';
+  const mapPaddingBottom = isModalVisible ? 520 : 0;
 
   return (
     <View style={styles.container}>
@@ -158,28 +239,26 @@ export default function BookingRouteScreen() {
         route={routeData?.route}
         origin={routeData?.origin}
         destination={routeData?.destination}
-        bounds={routeData?.bounds}
+        bounds={routeData ? { ...routeData.bounds, paddingBottom: mapPaddingBottom } : undefined}
       />
       <View style={styles.backButtonContainer}>
         <BackButton />
       </View>
-      <RouteBookingModal
-        ref={bookingModalRef}
-        vehicles={MOCK_VEHICLES}
-        selectedVehicleId={selectedVehicleId}
-        onSelectVehicle={setSelectedVehicleId}
-        onBook={() => {
-          const selected = MOCK_VEHICLES.find((v) => v.id === selectedVehicleId);
-          bookingModalRef.current?.dismiss();
-          router.push({
-            pathname: '/ActiveTripScreen',
-            params: {
-              vehicleName: selected?.name ?? '',
-              fare: String(selected?.discountPrice ?? selected?.realPrice ?? 0),
-            },
-          });
-        }}
-      />
+      {isLooking && (
+        <View style={styles.radarContainer}>
+          <RadarAnimation size={280} />
+        </View>
+      )}
+      {isModalVisible && (
+        <RouteBookingModal
+          ref={bookingModalRef}
+          vehicles={MOCK_VEHICLES}
+          selectedVehicleId={selectedVehicleId}
+          onSelectVehicle={setSelectedVehicleId}
+          loading={screenState === 'BOOKING'}
+          onBook={handleBook}
+        />
+      )}
     </View>
   );
 }
@@ -203,11 +282,19 @@ const createStyles = (theme: ITheme) => StyleSheet.create({
     alignItems: 'center',
     elevation: 3,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  radarContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5,
+    pointerEvents: 'none',
   },
 });

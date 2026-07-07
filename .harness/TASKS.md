@@ -55,17 +55,17 @@
 | T-0053 | Frontend: Goong Places Autocomplete integration (app_user) | Done | Done | P1 | T-0050, T-0052 | app_user | [T-0053](tasks/T-0053/) |
 | T-0053.1 | Frontend: Enhance Autocomplete UI/UX for SearchDestinationScreen (app_user) | Done | Done | P2 | T-0053 | app_user | [T-0053.1](tasks/T-0053.1/) |
 | T-0054 | Frontend: Route display with Mapbox directions layer (app_user) | Planned | Created | P1 | T-0050, T-0052 | app_user | [T-0054](tasks/T-0054/) |
-| T-0055 | Frontend: Install & configure @rnmapbox/maps (app_taixe) | Planned | Created | P2 | T-0051 | app_taixe | [T-0055](tasks/T-0055/) |
-| T-0056 | Cleanup: Remove Google Maps dependencies & env vars | Planned | Created | P2 | T-0052, T-0053, T-0054 | all | [T-0056](tasks/T-0056/) |
+| T-0055 | Frontend: Install & configure @rnmapbox/maps (app_taixe) | Planned | Done | P2 | T-0051 | app_taixe | [T-0055](tasks/T-0055/) |
+| T-0056 | Cleanup: Remove Google Maps dependencies & env vars | Planned | skip | P2 | T-0052, T-0053, T-0054 | all | [T-0056](tasks/T-0056/) |
 
 ### Wave VNPay: VNPay Sandbox Payment Integration
 
 | ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
 |----|-------|--------|-------|----------|-----------|----------|--------|
 | T-0061 | Wave VNPay Master Plan | In Progress | Planning | P0 | - | all | [T-0061](tasks/T-0061/) |
-| T-0062 | BE: Booking + Payment + VNPay Module | Planned | Created | P0 | - | nestjs_prisma | [T-0062](tasks/T-0062/) |
-| T-0063 | BE: Dispatch Module (find nearest driver) | Planned | Created | P0 | T-0062 | nestjs_prisma | [T-0063](tasks/T-0063/) |
-| T-0064 | FE app_user: Booking submit + VNPay payment flow | Planned | Created | P0 | T-0062 | app_user | [T-0064](tasks/T-0064/) |
+| T-0062 | BE: Booking + Payment + VNPay Module | Done | Done | P0 | - | nestjs_prisma | [T-0062](tasks/T-0062/) |
+| T-0063 | BE: Dispatch Module (find nearest driver) | Done | Done | P0 | T-0062 | nestjs_prisma | [T-0063](tasks/T-0063/) |
+| T-0064 | FE app_user: Booking submit + VNPay payment flow | Done | Done | P0 | T-0062 | app_user | [T-0064](tasks/T-0064/) |
 | T-0065 | FE app_user: ActiveTripScreen sau payment | Cancelled | Created | P0 | T-0064 | app_user | [T-0065](tasks/T-0065/) — superseded by T-0071 |
 
 ### Wave Trip Flow: Payment → Driver → Hoàn Thành

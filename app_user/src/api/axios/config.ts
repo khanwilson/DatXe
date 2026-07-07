@@ -24,4 +24,14 @@ export const ENDPOINTS = {
     PLACE_DETAIL: '/routes/places',
     DIRECTIONS: '/routes/directions',
   },
+  // Booking
+  BOOKING: {
+    CREATE: '/bookings',
+    GET: '/bookings',
+  },
+  // Payment
+  PAYMENT: {
+    VNPAY_CREATE_URL: '/payments/vnpay/create-payment-url',
+    GET_STATUS: '/payments',
+  },
 };

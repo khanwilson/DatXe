@@ -5,7 +5,7 @@ import { VehicleType, VehicleTypeItem } from 'components/route/VehicleTypeItem';
 import { AppText } from 'components/text/AppText';
 import { getString } from 'localization/index';
 import React, { ForwardedRef, forwardRef, useCallback, useMemo } from 'react';
-import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 
 // 2. VARIABLES & TYPES
@@ -15,11 +15,12 @@ interface IProps {
   onSelectVehicle: (id: string) => void;
   onBook: () => void;
   onDismiss?: () => void;
+  loading?: boolean;
 }
 
 // 3. COMPONENT FUNCTION
 export const RouteBookingModal = forwardRef<BottomSheetModal, IProps>((props: IProps, ref: ForwardedRef<BottomSheetModal>) => {
-  const { vehicles, selectedVehicleId, onSelectVehicle, onBook, onDismiss } = props;
+  const { vehicles, selectedVehicleId, onSelectVehicle, onBook, onDismiss, loading = false } = props;
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
 
@@ -73,13 +74,18 @@ export const RouteBookingModal = forwardRef<BottomSheetModal, IProps>((props: IP
             </TouchableOpacity>
           </View>
           <TouchableOpacity
-            style={styles.bookButton}
+            style={[styles.bookButton, loading && styles.bookButtonDisabled]}
             onPress={onBook}
+            disabled={loading}
             activeOpacity={0.8}
           >
-            <AppText style={styles.bookButtonText}>
-              {getString('bookingBookButton')}
-            </AppText>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <AppText style={styles.bookButtonText}>
+                {getString('bookingBookButton')}
+              </AppText>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -168,6 +174,9 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     borderRadius: theme.dimensions.p12,
     paddingVertical: theme.dimensions.p16,
     alignItems: 'center',
+  },
+  bookButtonDisabled: {
+    backgroundColor: theme.color.button.disabledBg,
   },
   bookButtonText: {
     fontSize: theme.fontSize.p16,

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { goongPlaceService, DirectionsResponse } from 'api/services/goongPlaceService';
+import { goongPlaceService } from 'api/services/goongPlaceService';
 
 export const GOONG_PLACE_KEYS = {
   autocomplete: (query: string) => ['goong', 'autocomplete', query] as const,

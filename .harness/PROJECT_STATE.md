@@ -33,11 +33,13 @@
 - [x] Customer home + map screen (current location, search UI) - T-0034 (app_user)
 - [x] WebSocket gateway (Socket.IO with JWT auth) - T-0004
 - [x] Goong Places Autocomplete integration - T-0053 (app_user)
+- [x] Booking create API (POST /bookings) - T-0062 (nestjs_prisma)
+- [x] VNPay sandbox payment integration - T-0062 (nestjs_prisma)
+- [x] Driver location update API (PATCH /drivers/location) - T-0063 (nestjs_prisma)
+- [x] Dispatch module — 3-round sweep, offer WS, Trip creation - T-0063 (nestjs_prisma)
 - [ ] Driver profile management
 - [ ] Customer profile management
-- [ ] Ride booking flow
 - [ ] Ride tracking
-- [ ] Payment system
 - [ ] Rating & review system
 
 ---
@@ -51,6 +53,31 @@
 - **Projects**: app_user (app_taixe sẽ tái dùng ở T-0040), nestjs_prisma
 - **Flow**: nhập SĐT (VN `0xxxxxxxxx`) → `requestOtp` → nhập OTP 6 số → `verifyOtp` → token + user
 - **DEV mock**: `__DEV__` + code `000000` auto-pass (gỡ khi backend live)
+
+### Booking API (T-0062)
+- **POST /api/v1/bookings** — tạo booking mới (JWT required)
+- **GET /api/v1/bookings/:id** — lấy booking theo id (JWT required)
+- **Status**: Implemented (T-0062)
+
+### Payment API (T-0062)
+- **POST /api/v1/payments/vnpay** — tạo VNPay payment URL
+- **GET /api/v1/payments/vnpay/callback** — VNPay callback (no auth)
+- **GET /api/v1/payments/:bookingId** — lấy payment status
+- **Status**: Implemented (T-0062)
+
+### Dispatch API (T-0063)
+- **PATCH /api/v1/drivers/location** — cập nhật vị trí tài xế (JWT driver required)
+  - Body: `{ lat, lng, heading? }`
+- **Status**: Implemented (T-0063)
+
+### WebSocket Events (T-0062 + T-0063)
+| Event | Direction | Room | Trigger |
+|-------|-----------|------|---------|
+| `booking.payment_success` | Server → app_user | `booking:{id}` | VNPay callback success |
+| `driver.new_offer` | Server → app_taixe | `driver:{id}` | Dispatch chọn driver |
+| `driver.offer_response` | app_taixe → Server | — | Driver accept/reject |
+| `booking.driver_assigned` | Server → both | `booking:{id}`, `driver:{id}` | Driver accepted |
+| `booking.no_driver_found` | Server → app_user | `booking:{id}` | Hết 3 vòng |
 
 ---
 
@@ -84,7 +111,7 @@
 - **UserStatus**: ACTIVE, INACTIVE, SUSPENDED
 - **DriverStatus**: ONLINE, OFFLINE, SUSPENDED
 - **VehicleType**: CAR, MOTORBIKE
-- **BookingStatus**: PENDING, CONFIRMED, ACCEPTED, DRIVER_ARRIVING, IN_PROGRESS, COMPLETED, CANCELLED, PAYMENT_PENDING, PAYMENT_COMPLETED, NO_SHOW
+- **BookingStatus**: PENDING, CONFIRMED, ACCEPTED, DRIVER_ARRIVING, IN_PROGRESS, COMPLETED, CANCELLED, PAYMENT_PENDING, PAYMENT_COMPLETED, NO_SHOW, LOOKING_DRIVER (T-0063), DRIVER_ARRIVED (T-0063), NO_DRIVER (T-0063)
 - **TripStatus**: CREATED, DRIVER_EN_ROUTE, DRIVER_ARRIVED, IN_PROGRESS, COMPLETED, CANCELLED
 - **PaymentStatus**: PENDING, SUCCESSFUL, FAILED, REFUNDED
 - **PaymentMethod**: CASH, CARD, WALLET
@@ -162,6 +189,8 @@
 - **T-0034**: Home & map taxi search app_user (2026-06-29) - react-native-maps + PROVIDER_GOOGLE (cả iOS/Android), HomeScreen full-screen map + recenter + "Where to?" search UI + saved shortcuts, useCurrentLocation hook, app.config.ts inject Google Maps keys từ env
 - **T-0050**: Backend Goong API service (2026-07-01) - `GoongService` adapter thay `GoogleMapsService` trong `RoutesModule`; normalize Goong responses về Google-shaped fields nên `RoutesService.transform*` + DTOs + endpoints `/routes/*` không đổi; mode `driving→car`/`walking→bike`, `transit` bị reject; retry+backoff giữ nguyên; cache prefix bump `goong:*`; env `GOONG_API_KEY`/`GOONG_BASE_URL`. Google Maps files còn lại (gỡ ở T-0056)
 - **T-0053**: Goong Places Autocomplete integration app_user (2026-07-02) - SearchDestinationScreen với debounce 300ms, gọi backend `/routes/places/autocomplete` + `/routes/places/:placeId`, hiển thị predictions, fetch place detail khi chọn, lưu destination vào ZustandSession, HomeScreen đọc qua useFocusEffect
+- **T-0062**: BE Booking + Payment + VNPay Module (2026-07-07) - BookingModule (POST /bookings, GET /bookings/:id), PaymentModule (POST /payments/vnpay, GET /payments/vnpay/callback, GET /payments/:bookingId), VNPay HMAC-SHA512, WS `booking.payment_success`, migration `add_vnpay_payment_method`
+- **T-0063**: BE Dispatch Module — find nearest driver (2026-07-07) - DispatchModule với 3-round sweep (5/10/15km Haversine), DispatchOffer lifecycle, PATCH /drivers/location, WS `driver.new_offer` + `booking.driver_assigned` + `booking.no_driver_found`, EventEmitter `payment.success` → dispatch loop, Trip creation on accept, BookingStatus enum +3 values (LOOKING_DRIVER, DRIVER_ARRIVED, NO_DRIVER) - SearchDestinationScreen với debounce 300ms, gọi backend `/routes/places/autocomplete` + `/routes/places/:placeId`, hiển thị predictions, fetch place detail khi chọn, lưu destination vào ZustandSession, HomeScreen đọc qua useFocusEffect
 
 ---
 

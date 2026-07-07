@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from './common/redis/redis.module';
@@ -7,12 +8,14 @@ import { WebSocketModule } from './common/websocket/websocket.module';
 import { RoutesModule } from './modules/routes/routes.module';
 import { BookingModule } from './modules/booking/booking.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { DispatchModule } from './modules/dispatch/dispatch.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     AuthModule,
     RedisModule,
@@ -20,6 +23,7 @@ import { PaymentModule } from './modules/payment/payment.module';
     RoutesModule,
     BookingModule,
     PaymentModule,
+    DispatchModule,
   ],
 })
 export class AppModule {}

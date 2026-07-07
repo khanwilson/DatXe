@@ -1,6 +1,9 @@
 import {
   WebSocketGateway as NestWebSocketGateway,
   WebSocketServer,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
   OnGatewayInit,
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -20,10 +23,20 @@ import { Server, Socket } from 'socket.io';
 export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(WebSocketGateway.name);
 
+  // Injected lazily by DispatchService to avoid circular dependency
+  private dispatchService?: {
+    resolveOffer(offerId: string, accepted: boolean): void;
+  };
+
   constructor(private readonly jwtService: JwtService) {}
 
   @WebSocketServer()
   server!: Server;
+
+  /** Called by DispatchModule to wire the offer resolver without circular deps */
+  registerDispatchService(service: { resolveOffer(offerId: string, accepted: boolean): void }) {
+    this.dispatchService = service;
+  }
 
   afterInit() {
     this.logger.log('WebSocket Gateway initialized');
@@ -91,7 +104,7 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     socket.leave(`user:${userId}`);
   }
 
-  // --- Event emitters (skeleton — called by services) ---
+  // --- Event emitters ---
 
   emitBookingStatusChanged(bookingId: string, status: string) {
     this.server.to(`booking:${bookingId}`).emit('booking.status_changed', {
@@ -140,5 +153,64 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
       bookingStatus,
       paymentStatus,
     });
+  }
+
+  /** Emit offer to specific driver */
+  emitDriverNewOffer(
+    driverId: string,
+    payload: {
+      offerId: string;
+      bookingId: string;
+      pickupAddress: string;
+      dropoffAddress: string;
+      estimatedPrice: number;
+      vehicleType: string;
+      distanceKm: number;
+      expiresAt: string;
+    },
+  ) {
+    this.server.to(`driver:${driverId}`).emit('driver.new_offer', payload);
+  }
+
+  /** Emit driver assigned to both booking room and driver room */
+  emitBookingDriverAssigned(
+    bookingId: string,
+    driverId: string,
+    payload: {
+      bookingId: string;
+      tripId: string;
+      driver: {
+        id: string;
+        name: string;
+        phone: string;
+        vehicleType: string;
+        vehiclePlate: string;
+        rating: number;
+        lat: number;
+        lng: number;
+      };
+    },
+  ) {
+    this.server.to(`booking:${bookingId}`).emit('booking.driver_assigned', payload);
+    this.server.to(`driver:${driverId}`).emit('booking.driver_assigned', payload);
+  }
+
+  /** Emit no driver found to booking room */
+  emitBookingNoDriverFound(bookingId: string) {
+    this.server.to(`booking:${bookingId}`).emit('booking.no_driver_found', {
+      bookingId,
+      message: 'Không tìm được tài xế. Vui lòng thử lại.',
+    });
+  }
+
+  // --- Incoming WS events ---
+
+  @SubscribeMessage('driver.offer_response')
+  handleOfferResponse(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: { offerId: string; accepted: boolean },
+  ) {
+    if (!data?.offerId) return;
+    this.dispatchService?.resolveOffer(data.offerId, data.accepted === true);
   }
 }
