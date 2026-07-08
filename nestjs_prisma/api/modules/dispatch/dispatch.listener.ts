@@ -15,4 +15,12 @@ export class DispatchListener {
       this.logger.error(`Dispatch loop error for booking ${payload.bookingId}: ${err}`, err);
     });
   }
+
+  @OnEvent('booking.retry')
+  async handleBookingRetry(payload: { bookingId: string }) {
+    this.logger.log(`booking.retry received for booking ${payload.bookingId}`);
+    this.dispatchService.runDispatchLoop(payload.bookingId).catch((err) => {
+      this.logger.error(`Dispatch loop error for booking ${payload.bookingId}: ${err}`, err);
+    });
+  }
 }

@@ -1,93 +1,82 @@
+---
+name: evaluator
+description: Harness Evaluator. Use after implementation to run/check lint, typecheck, tests, build, contract compliance, acceptance criteria, and write evaluation.md.
+when_to_use: Use during Evaluating phase of /harness after implementation or after a fix loop.
+argument-hint: T-XXXX
+context: fork
+agent: harness-evaluator
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  - Bash
+---
+
 # Evaluator Skill
 
-**Model**: `claude-sonnet-4-6` (quyết định pass/fail và root cause).
-Có thể dùng `claude-haiku-4-5-20251001` cho việc tóm tắt log; nhưng quyết định pass/fail vẫn dùng Sonnet.
-Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
+Run the Harness Evaluating phase for `$ARGUMENTS`.
 
-**Purpose**: Validate implementation against contract & quality standards
+This skill intentionally runs in a forked subagent context through `agent: harness-evaluator` so evaluation uses the Evaluator subagent and its configured Sonnet model.
 
-**Responsibilities**:
-- Run quality checks (lint, typecheck, test, build)
-- Verify contract compliance
-- Verify acceptance criteria met
-- Check for hard-coded secrets
-- Verify API contracts
-- Verify database changes
-- Document evaluation results
+## Purpose
 
-**Output**: `evaluation.md` with:
-- Test results (PASS/FAIL)
-- Lint results
-- Build results
-- Contract compliance verification
-- Acceptance criteria check
-- Security review (secrets, SQL injection, XSS, etc.)
+Validate the implementation against the contract and write `.harness/tasks/<TASK_ID>/evaluation.md`.
 
-**When Used**: `/evaluator T-XXXX` or automatic in `/harness` workflow
+## Read First
 
-**Quality Criteria**:
-- ✅ All lint errors: 0
-- ✅ All typecheck errors: 0
-- ✅ All tests: PASS
-- ✅ Build: SUCCESS
-- ✅ No hard-coded secrets
-- ✅ No breaking changes
-- ✅ All acceptance criteria: ✓
+- `.claude/commands/harness.md`
+- `.harness/tasks/<TASK_ID>/plan.md`
+- `.harness/tasks/<TASK_ID>/contract.md`
+- `.harness/tasks/<TASK_ID>/implementation.md` if present
+- `.harness/tasks/<TASK_ID>/files-changed.md` if present
+- Relevant package scripts/config files needed to run checks
 
-**Related Files**:
-- Reads: `.harness/tasks/T-XXXX/contract.md`
-- Reads: Source files (modified)
-- Writes: `.harness/tasks/T-XXXX/evaluation.md`
+## Responsibilities
 
-**Checks Performed**:
-1. **Code Quality**
-   - lint ✅
-   - typecheck ✅
-   - no secrets ✅
+- Verify only `Allowed Files` were modified.
+- Verify no Out of Scope files/projects were touched.
+- Run or document required checks from `contract.md`.
+- Validate acceptance criteria.
+- Check for hard-coded secrets and obvious security risks.
+- Identify clear root cause for failures.
+- Decide PASS/FAIL based on evidence.
 
-2. **Functionality**
-   - tests pass ✅
-   - build succeeds ✅
-   - no regressions ✅
+## Output
 
-3. **Contract**
-   - only Allowed Files ✅
-   - not Out of Scope ✅
-   - acceptance criteria met ✅
+Write:
 
-4. **API (if applicable)**
-   - endpoints work ✅
-   - request/response match ✅
-   - no breaking changes ✅
+- `.harness/tasks/<TASK_ID>/evaluation.md`
+- update `.harness/tasks/<TASK_ID>/status.md` if present
 
-5. **Database (if applicable)**
-   - schema valid ✅
-   - migrations ready ✅
-   - no data loss ✅
+## Result Rules
 
-**Result**:
-- ✅ **PASS** → Ready to close
-- ❌ **FAIL** → Issues to fix
+- `PASS` only when required checks and acceptance criteria pass or are explicitly marked not applicable with rationale.
+- `FAIL_FIXABLE` when root cause is clear and fix is inside `Allowed Files`.
+- `BLOCKER` when root cause is unclear, repeated failures occur, fix requires contract/scope change, or high-risk areas are involved.
 
-**Example Output**:
+## Required `evaluation.md` Sections
+
 ```md
-## Evaluation Results
+# Evaluation: <TASK_ID>
 
-### Code Quality
-✅ Lint: PASS
-✅ TypeScript: PASS
-✅ No secrets: PASS
+## Summary
 
-### Tests
-✅ Unit tests: 15 passed
-✅ Integration: 8 passed
-✅ Build: SUCCESS
+## Commands Run
 
-### Contract
-✅ Allowed Files: Only modified expected files
-✅ Out of Scope: Not touched app_user
-✅ Acceptance criteria: All met
+## Results
 
-## Status: ✅ PASS
-Ready to close task.
+## Contract Compliance
+
+## Acceptance Criteria
+
+## Security / Secrets Check
+
+## Failures / Root Cause
+
+## Fix Recommendation
+
+## Decision
+PASS | FAIL_FIXABLE | BLOCKER
 ```

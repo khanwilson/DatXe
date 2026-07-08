@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BookingStatus, DriverStatus, OfferStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { WebSocketGateway } from '../../common/websocket/websocket.gateway';
@@ -38,6 +39,7 @@ export class DispatchService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gateway: WebSocketGateway,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   onModuleInit() {
@@ -65,6 +67,47 @@ export class DispatchService implements OnModuleInit {
       where: { id: driverId },
       data: { current_location: location },
     });
+
+    // Broadcast to booking room if driver has active trip
+    const activeTrip = await this.prisma.trip.findFirst({
+      where: {
+        driver_id: driverId,
+        status: {
+          in: ['DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'IN_PROGRESS'],
+        },
+      },
+      select: { booking_id: true },
+    });
+
+    if (activeTrip) {
+      this.gateway.emitDriverLocationToBooking(
+        activeTrip.booking_id,
+        driverId,
+        dto.lat,
+        dto.lng,
+        dto.heading,
+      );
+    }
+  }
+
+  async getDriverLocation(driverId: string) {
+    const driver = await this.prisma.driver.findUnique({
+      where: { id: driverId },
+      select: { current_location: true },
+    });
+
+    if (!driver || !driver.current_location) {
+      return null;
+    }
+
+    const loc = driver.current_location as unknown as DriverLocation;
+    return {
+      driverId,
+      lat: loc.lat,
+      lng: loc.lng,
+      heading: loc.heading,
+      updatedAt: loc.updated_at,
+    };
   }
 
   async runDispatchLoop(bookingId: string): Promise<void> {
@@ -136,7 +179,7 @@ export class DispatchService implements OnModuleInit {
 
           await this.prisma.booking.update({
             where: { id: bookingId },
-            data: { status: BookingStatus.ACCEPTED, driver_id: driver.id },
+            data: { status: BookingStatus.DRIVER_ARRIVING, driver_id: driver.id },
           });
 
           const trip = await this.prisma.trip.create({
@@ -144,6 +187,7 @@ export class DispatchService implements OnModuleInit {
               booking_id: bookingId,
               driver_id: driver.id,
               customer_id: booking.customer_id,
+              status: 'DRIVER_EN_ROUTE',
               pickup_lat: booking.pickup_lat,
               pickup_lng: booking.pickup_lng,
               dropoff_lat: booking.dropoff_lat,
@@ -191,14 +235,27 @@ export class DispatchService implements OnModuleInit {
       }
     }
 
-    // All rounds exhausted
+    // All rounds exhausted — transition to AWAITING_USER_DECISION instead of NO_DRIVER
     await this.prisma.booking.update({
       where: { id: bookingId },
-      data: { status: BookingStatus.NO_DRIVER },
+      data: { status: BookingStatus.AWAITING_USER_DECISION },
     });
 
-    this.gateway.emitBookingNoDriverFound(bookingId);
-    this.logger.log(`No driver found for booking ${bookingId} after all rounds`);
+    const currentBooking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    this.gateway.emitBookingAwaitingDecision(
+      bookingId,
+      currentBooking?.retry_count ?? 0,
+      3,
+      30_000,
+    );
+
+    // Emit event so BookingCancelService can schedule 30s auto-cancel timeout
+    this.eventEmitter.emit('dispatch.exhausted', { bookingId });
+
+    this.logger.log(`No driver found for booking ${bookingId}, awaiting user decision`);
   }
 
   private waitForOffer(offerId: string): Promise<boolean> {

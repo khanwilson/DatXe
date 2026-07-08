@@ -94,6 +94,55 @@ export class PaymentService {
     return payment;
   }
 
+  async refundPayment(bookingId: string): Promise<void> {
+    const payment = await this.prisma.payment.findUnique({
+      where: { booking_id: bookingId },
+    });
+
+    if (!payment) {
+      this.logger.warn(`No payment found for booking ${bookingId}`);
+      return;
+    }
+
+    if (payment.status !== PaymentStatus.SUCCESSFUL) {
+      this.logger.warn(`Payment ${payment.id} not in SUCCESSFUL state, cannot refund`);
+      return;
+    }
+
+    const tmnCode = this.configService.get<string>('VNPAY_TMN_CODE', '');
+    const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET', '');
+
+    if (!tmnCode || !hashSecret) {
+      this.logger.log(`DEV MODE: Mock refund for payment ${payment.id}`);
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentStatus.REFUNDED },
+      });
+      this.webSocketGateway.emitBookingRefunded(
+        bookingId,
+        Number(payment.amount),
+        'REFUNDED',
+      );
+      return;
+    }
+
+    try {
+      this.logger.log(`Calling VNPay refund API for payment ${payment.id}`);
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: { status: PaymentStatus.REFUNDED },
+      });
+      this.webSocketGateway.emitBookingRefunded(
+        bookingId,
+        Number(payment.amount),
+        'REFUNDED',
+      );
+    } catch (error) {
+      this.logger.error(`VNPay refund failed: ${error}`, error);
+      throw new BadRequestException('Refund failed');
+    }
+  }
+
   async handleVnpayCallback(query: Record<string, string>) {
     const hashSecret = this.configService.get<string>('VNPAY_HASH_SECRET', '');
 

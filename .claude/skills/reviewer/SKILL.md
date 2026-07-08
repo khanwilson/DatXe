@@ -1,88 +1,87 @@
+---
+name: reviewer
+description: Harness Reviewer. Use after evaluation to review quality, correctness, regression risk, contract compliance, edge cases, and write review.md.
+when_to_use: Use during Reviewing phase of /harness after evaluation passes, or when a fix loop needs an independent quality/risk review.
+argument-hint: T-XXXX
+context: fork
+agent: harness-reviewer
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  - Bash
+---
+
 # Reviewer Skill
 
-**Model**: `claude-sonnet-4-6` (default — quality, regression risk, contract compliance, edge cases).
-Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
+Run the Harness Reviewing phase for `$ARGUMENTS`.
 
-**Purpose**: Review code for quality, correctness, and standards
+This skill intentionally runs in a forked subagent context through `agent: harness-reviewer` so review uses the Reviewer subagent and its configured Sonnet model.
 
-**Responsibilities**:
-- Review implementation for bugs
-- Review for security issues
-- Review for performance issues
-- Review for code style/conventions
-- Review for test coverage
-- Suggest improvements
-- Verify against acceptance criteria
+## Purpose
 
-**Output**:
-- Code review comments
-- Bug findings
-- Improvement suggestions
-- Risk assessments
+Review implementation quality, correctness, risk, edge cases, and contract compliance. Write `.harness/tasks/<TASK_ID>/review.md`.
 
-**When Used**: `/code-review T-XXXX` or during evaluation phase
+## Read First
 
-**Quality Criteria**:
-- ✅ No critical bugs
-- ✅ No security vulnerabilities
-- ✅ Follows conventions
-- ✅ Test coverage adequate
-- ✅ Performance acceptable
+- `.claude/commands/harness.md`
+- `.harness/tasks/<TASK_ID>/plan.md`
+- `.harness/tasks/<TASK_ID>/contract.md`
+- `.harness/tasks/<TASK_ID>/implementation.md` if present
+- `.harness/tasks/<TASK_ID>/files-changed.md` if present
+- `.harness/tasks/<TASK_ID>/evaluation.md`
+- Modified source files
 
-**Related Files**:
-- Reads: Source files (modified)
-- Reads: `.harness/tasks/T-XXXX/contract.md`
-- Reads: `.harness/tasks/T-XXXX/plan.md`
-- Writes: Review comments
+## Responsibilities
 
-**Review Dimensions**:
+- Review correctness and edge cases.
+- Review security, auth, input validation, secrets, injection risks.
+- Review performance and regression risk.
+- Review code quality and conventions.
+- Verify contract compliance.
+- Identify missing checks/tests.
+- Decide PASS, FAIL_FIXABLE, or BLOCKER.
 
-### Correctness
-- Logic errors?
-- Edge cases handled?
-- Off-by-one errors?
-- Null/undefined checks?
+## Output
 
-### Security
-- Input validation?
-- SQL injection risks?
-- XSS risks?
-- Hard-coded secrets?
-- Authentication/authorization?
+Write:
 
-### Performance
-- Unnecessary loops?
-- N+1 queries?
-- Memory leaks?
-- Inefficient algorithms?
+- `.harness/tasks/<TASK_ID>/review.md`
+- update `.harness/tasks/<TASK_ID>/status.md` if present
 
-### Code Quality
-- Readable code?
-- Follows conventions?
-- DRY principle?
-- Proper error handling?
-- Good naming?
+## Decision Rules
 
-### Tests
-- Adequate coverage?
-- Edge cases tested?
-- Happy path + error cases?
-- Mock/stub appropriate?
+- `PASS` when no blocking issues remain and risk is acceptable.
+- `FAIL_FIXABLE` when issues are clear, low/medium risk, and fixable inside `Allowed Files`.
+- `BLOCKER` when high-risk, architecture-impacting, unclear, or requires user/contract decision.
 
-**Example Finding**:
+## Required `review.md` Sections
+
 ```md
-## Bug: Potential SQL Injection
+# Review: <TASK_ID>
 
-File: nestjs_prisma/src/auth/auth.service.ts:42
-Issue: Direct string interpolation in query
-Risk: HIGH
+## Summary
 
-Suggestion:
-Use parameterized query or Prisma's built-in escaping
+## Contract Compliance
 
-Before:
-const user = await prisma.$queryRaw(`SELECT * FROM users WHERE email = '${email}'`)
+## Correctness
 
-After:
-const user = await prisma.user.findUnique({ where: { email } })
+## Edge Cases
+
+## Security
+
+## Performance
+
+## Code Quality
+
+## Test Coverage
+
+## Issues Found
+
+## Risk Assessment
+
+## Decision
+PASS | FAIL_FIXABLE | BLOCKER
 ```

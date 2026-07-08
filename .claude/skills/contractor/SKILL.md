@@ -1,61 +1,93 @@
+---
+name: contractor
+description: Harness Contractor. Use after plan.md is approved to define explicit scope, Allowed Files, Out of Scope, acceptance criteria, constraints, checks, and handoff boundaries.
+when_to_use: Use during the Contracting phase of /harness or when a task needs a precise contract before implementation.
+argument-hint: T-XXXX
+context: fork
+agent: harness-contractor
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - MultiEdit
+  - Grep
+  - Glob
+  - Bash
+---
+
 # Contractor Skill
 
-**Model**: `claude-sonnet-4-6` (default — contract, acceptance criteria, file scope, constraints, dependencies, handoff).
-Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
+Run the Harness Contracting phase for `$ARGUMENTS`.
 
-**Purpose**: Define explicit scope boundaries and acceptance criteria
+This skill intentionally runs in a forked subagent context through `agent: harness-contractor` so contracting uses the Contractor subagent and its configured Sonnet model.
 
-**Responsibilities**:
-- Read task.md & plan.md
-- Define clear scope (in/out)
-- List Allowed Files (what CAN be modified)
-- List Out of Scope (what is PROTECTED)
-- Define acceptance criteria
-- Identify API contracts
-- Identify database impacts
-- Define test strategy
+## Purpose
 
-**Output**: `contract.md` with:
-- Clear scope (in/out)
-- Allowed Files (modification boundaries)
-- Out of Scope (protected projects/files)
-- Acceptance criteria
-- API contracts (if applicable)
-- Database impact (if applicable)
-- Test strategy
+Create `.harness/tasks/<TASK_ID>/contract.md` with clear implementation boundaries.
 
-**When Used**: `/contract T-XXXX` or automatic in `/harness` workflow
+## Read First
 
-**Quality Criteria**:
-- ✅ Allowed Files clearly defined
-- ✅ Out of Scope clearly protected
-- ✅ Acceptance criteria are testable
-- ✅ API contracts documented (if applicable)
-- ✅ Database changes documented (if applicable)
+- `.claude/commands/harness.md`
+- `.harness/tasks/<TASK_ID>/task.md` or `description.md`
+- `.harness/tasks/<TASK_ID>/plan.md`
+- `.harness/PROJECT_STATE.md` if present
+- `.harness/DECISIONS.md` if present
+- Relevant `CLAUDE.md` files
 
-**Related Files**:
-- Reads: `.harness/tasks/T-XXXX/task.md`
-- Reads: `.harness/tasks/T-XXXX/plan.md`
-- Writes: `.harness/tasks/T-XXXX/contract.md`
+## Responsibilities
 
-**Critical Sections**:
-- ✅ **Allowed Files** - Defines modification boundaries
-- ✅ **Out of Scope** - Defines what is protected
-- ✅ **Acceptance Criteria** - Defines success
+- Define scope and out-of-scope items.
+- Define `Allowed Files` exactly.
+- Define protected files/projects.
+- Define acceptance criteria that are testable.
+- Identify API contracts, database impact, security impact, and release/native risk when applicable.
+- Define required checks: lint, typecheck, tests, build, manual verification.
+- Detect if Architect escalation is needed before implementation.
 
-**Example Output**:
+## Output
+
+Write:
+
+- `.harness/tasks/<TASK_ID>/contract.md`
+- update `.harness/tasks/<TASK_ID>/status.md` if present
+
+## Stop / Return Blocker
+
+Return `BLOCKER` when:
+
+- `Allowed Files` cannot be determined safely.
+- The plan is ambiguous or conflicts with project state.
+- Architecture boundary needs a decision first.
+- User scope/product decision is required.
+
+## Required `contract.md` Sections
+
 ```md
-## Allowed Files
-- app_taixe/**
-- nestjs_prisma/**
-- .harness/**
+# Contract: <TASK_ID>
+
+## Scope
 
 ## Out of Scope
-- app_user/**
+
+## Allowed Files
+
+## Protected Files / Projects
 
 ## Acceptance Criteria
-- [ ] API endpoint works
-- [ ] Tests pass
-- [ ] Lint/build succeeds
-- [ ] No hard-coded secrets
+
+## Required Checks
+
+## API Contract
+
+## Database / Migration Impact
+
+## Security / Secrets / Auth Impact
+
+## Implementation Constraints
+
+## Escalation Triggers
+
+## User Approvals
+
+## Status
 ```

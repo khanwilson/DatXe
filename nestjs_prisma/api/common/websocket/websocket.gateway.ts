@@ -121,6 +121,32 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     });
   }
 
+  emitDriverLocationToBooking(
+    bookingId: string,
+    driverId: string,
+    lat: number,
+    lng: number,
+    heading?: number,
+  ) {
+    this.server.to(`booking:${bookingId}`).emit('driver.location_updated', {
+      driverId,
+      lat,
+      lng,
+      heading: heading ?? null,
+    });
+  }
+
+  emitTripStatusChanged(
+    tripId: string,
+    bookingId: string,
+    driverId: string,
+    status: string,
+  ) {
+    const payload = { tripId, bookingId, status };
+    this.server.to(`booking:${bookingId}`).emit('trip.status_changed', payload);
+    this.server.to(`driver:${driverId}`).emit('trip.status_changed', payload);
+  }
+
   emitDispatchOffer(bookingId: string, data: { pickup: string; price: number }) {
     this.server.to(`booking:${bookingId}`).emit('dispatch.offer', {
       bookingId,
@@ -200,6 +226,43 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     this.server.to(`booking:${bookingId}`).emit('booking.no_driver_found', {
       bookingId,
       message: 'Không tìm được tài xế. Vui lòng thử lại.',
+    });
+  }
+
+  emitBookingCancelled(bookingId: string, reason: string, refundStatus: string) {
+    this.server.to(`booking:${bookingId}`).emit('booking.cancelled', {
+      bookingId,
+      reason,
+      refundStatus,
+    });
+  }
+
+  emitBookingDriverCancelled(bookingId: string, driverId: string) {
+    this.server.to(`booking:${bookingId}`).emit('booking.driver_cancelled', {
+      bookingId,
+      driverId,
+    });
+  }
+
+  emitBookingAwaitingDecision(
+    bookingId: string,
+    retryCount: number,
+    maxRetries: number,
+    timeoutMs: number,
+  ) {
+    this.server.to(`booking:${bookingId}`).emit('booking.awaiting_decision', {
+      bookingId,
+      retryCount,
+      maxRetries,
+      timeoutMs,
+    });
+  }
+
+  emitBookingRefunded(bookingId: string, amount: number, refundStatus: string) {
+    this.server.to(`booking:${bookingId}`).emit('booking.refunded', {
+      bookingId,
+      amount,
+      refundStatus,
     });
   }
 

@@ -44,6 +44,9 @@ enum BookingStatus {
   LOOKING_DRIVER
   NO_DRIVER
   DRIVER_ARRIVED
+  CANCELLED_BY_USER
+  CANCELLED_BY_DRIVER
+  AWAITING_USER_DECISION
 }
 
 enum TripStatus {
@@ -167,6 +170,7 @@ model Booking {
   actual_distance     Float?
   note                String?
   vehicle_type        String?
+  retry_count         Int           @default(0)
   cancelled_at        DateTime?
   cancel_reason       String?
   created_at          DateTime      @default(now())

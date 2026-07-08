@@ -1,66 +1,93 @@
+---
+name: architect
+description: Harness Architect. Use for architecture boundary decisions, module interaction, cross-project contracts, database/API/security risk, technical direction, or when another harness phase escalates.
+when_to_use: Use when a task touches architecture boundary, shared conventions, API contracts, data flow, database schema, auth/security/payment/billing/native signing/release risk, or when planner/contractor/implementer/evaluator/reviewer cannot safely decide alone.
+argument-hint: T-XXXX [architecture question or escalation reason]
+context: fork
+agent: harness-architect
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - MultiEdit
+  - Grep
+  - Glob
+  - Bash
+---
+
 # Architect Skill
 
-**Model**: `claude-opus-4-6` (kiến trúc, boundary, module interaction, risk, trade-off, technical direction cho task/wave phức tạp).
-Xem policy đầy đủ: [`.claude/commands/harness.md`](../../commands/harness.md)
+Run the Harness Architect role for `$ARGUMENTS`.
 
-**Purpose**: Make and review long-term architectural decisions
+This skill intentionally runs in a forked subagent context through `agent: harness-architect` so architecture work uses the Architect subagent and its configured Opus model.
 
-**Responsibilities**:
-- Analyze architectural implications
-- Review decision impact across projects
-- Update PROJECT_STATE.md
-- Update DECISIONS.md
-- Promote task-scoped decisions to global if applicable
-- Review for consistency with existing architecture
+## Purpose
 
-**Output**:
-- Promoted decisions in `.harness/DECISIONS.md`
-- Updated `.harness/PROJECT_STATE.md`
-- API contracts documented
-- Database conventions documented
-- Shared conventions documented
+Make or review architecture decisions for complex/high-risk harness tasks.
 
-**When Used**: During task closing or when architectural decisions needed
+## Read First
 
-**Quality Criteria**:
-- ✅ Decision rationale clear
-- ✅ Impact analysis complete
-- ✅ Consistency with existing decisions
-- ✅ Future implications considered
+- `.claude/commands/harness.md`
+- `.harness/PROJECT_STATE.md` if present
+- `.harness/DECISIONS.md` if present
+- `.harness/tasks/<TASK_ID>/task.md` or `description.md`
+- `.harness/tasks/<TASK_ID>/plan.md` if present
+- `.harness/tasks/<TASK_ID>/contract.md` if present
+- `.harness/tasks/<TASK_ID>/decisions.md` if present
+- Relevant `CLAUDE.md` files
 
-**Related Files**:
-- Reads: `.harness/DECISIONS.md`
-- Reads: `.harness/PROJECT_STATE.md`
-- Reads: `.harness/tasks/T-XXXX/decisions.md`
-- Writes: `.harness/DECISIONS.md` (if promoting)
-- Writes: `.harness/PROJECT_STATE.md` (if updating)
+## Responsibilities
 
-**When to Promote Decision to Global**:
-- Affects multiple future tasks
-- Affects multiple projects
-- Affects API contracts
-- Affects database schema/conventions
-- Affects authentication/security
-- Affects business flow
+- Analyze architecture implications.
+- Identify affected modules/projects and boundary changes.
+- Compare options and trade-offs.
+- Decide or recommend the safest technical direction.
+- Promote task-scoped decisions to global project decisions when they affect future work.
+- Update architecture-related artifacts only when appropriate.
 
-**Example**:
+## Outputs
+
+Write one or more of:
+
+- `.harness/tasks/<TASK_ID>/architecture.md`
+- `.harness/tasks/<TASK_ID>/risk-notes.md`
+- `.harness/tasks/<TASK_ID>/decisions.md`
+- `.harness/DECISIONS.md` only for accepted global decisions
+- `.harness/PROJECT_STATE.md` only for durable project-state changes
+
+## Stop / Return Blocker
+
+Return a clear `BLOCKER` instead of guessing when:
+
+- A product/business decision is required.
+- Credentials, secrets, external accounts, or billing access are required.
+- The safe direction depends on unavailable repo context.
+- Multiple viable options have high product impact and user approval is required.
+
+## Required Decision Format
+
 ```md
-## Decision: JWT vs Session-based Auth
+## Architecture Decision
 
 ### Context
-Multiple tasks will need auth. Need to decide approach.
+<why architecture review is needed>
 
 ### Options
-1. JWT with refresh tokens
-2. Session-based with cookies
-3. OAuth 2.0
+1. <option A>
+2. <option B>
+3. <option C>
 
-### Decision
-JWT with refresh tokens (Option 1)
+### Decision / Recommendation
+<chosen option or recommendation>
+
+### Rationale
+<why this option is safest>
 
 ### Impact
-- Affects: app_taixe, app_user, nestjs_prisma
-- Consequences: Stateless auth, mobile-friendly, API-friendly
+- Affected projects/modules:
+- API/data/schema impact:
+- Security/release risk:
 
-### Status: ACCEPTED
+### Follow-up Required
+<none or exact follow-up>
 ```

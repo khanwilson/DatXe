@@ -1,7 +1,9 @@
 import {
   Controller,
   Patch,
+  Get,
   Body,
+  Param,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -29,5 +31,17 @@ export class DispatchController {
   ) {
     await this.dispatchService.updateDriverLocation(user.sub, dto);
     return { success: true };
+  }
+
+  @Get(':id/location')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Driver location' })
+  async getDriverLocation(@Param('id') id: string) {
+    const location = await this.dispatchService.getDriverLocation(id);
+    return {
+      success: true,
+      data: location,
+    };
   }
 }

@@ -1,8 +1,8 @@
 # Task Registry
 
-**Last Updated**: 2026-07-07  
+**Last Updated**: 2026-07-08  
 **Total Tasks**: 64  
-**Completed**: 17  
+**Completed**: 18  
 **In Progress**: 1  
 **Blocked**: 0  
 **Cancelled**: 5
@@ -73,7 +73,8 @@
 | ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
 |----|-------|--------|-------|----------|-----------|----------|--------|
 | T-0067 | Wave Trip Flow Master Plan | In Progress | Planning | P0 | - | all | [T-0067](tasks/T-0067/) |
-| T-0068 | BE: Driver Location & Dispatch Enhancement | Planned | Created | P0 | T-0062, T-0063 | nestjs_prisma | [T-0068](tasks/T-0068/) |
+| T-0068 | BE: Driver Location & Dispatch Enhancement | Done | Done | P0 | T-0062, T-0063 | nestjs_prisma | [T-0068](tasks/T-0068/) |
+| T-0068.1 | BE: Trip Cancellation, Retry & Cashback | Done | Done | P0 | T-0062, T-0063, T-0068 | nestjs_prisma | [T-0068.1](tasks/T-0068.1/) |
 | T-0069 | FE app_taixe: Foundation (Mapbox + Auth + Dashboard) | Planned | Created | P0 | T-0055, T-0058 | app_taixe | [T-0069](tasks/T-0069/) |
 | T-0070 | FE app_taixe: Trip Flow (Offer → Pickup → Dropoff → Complete) | Planned | Created | P0 | T-0068, T-0069 | app_taixe | [T-0070](tasks/T-0070/) |
 | T-0071 | FE app_user: Trip Flow (Looking → Pickup → Dropoff → Complete) | Planned | Created | P0 | T-0064, T-0068 | app_user | [T-0071](tasks/T-0071/) |

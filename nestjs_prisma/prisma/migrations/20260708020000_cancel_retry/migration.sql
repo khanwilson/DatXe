@@ -1,0 +1,19 @@
+-- AlterEnum
+BEGIN;
+CREATE TYPE "BookingStatus_new" AS ENUM (
+  'PENDING', 'CONFIRMED', 'ACCEPTED', 'DRIVER_ARRIVING', 'IN_PROGRESS',
+  'COMPLETED', 'CANCELLED', 'PAYMENT_PENDING', 'PAYMENT_COMPLETED', 'NO_SHOW',
+  'LOOKING_DRIVER', 'NO_DRIVER', 'DRIVER_ARRIVED',
+  'CANCELLED_BY_USER', 'CANCELLED_BY_DRIVER', 'AWAITING_USER_DECISION'
+);
+ALTER TABLE "bookings" ALTER COLUMN "status" DROP DEFAULT;
+ALTER TABLE "bookings" ALTER COLUMN "status" TYPE "BookingStatus_new"
+  USING ("status"::text::"BookingStatus_new");
+ALTER TYPE "BookingStatus" RENAME TO "BookingStatus_old";
+ALTER TYPE "BookingStatus_new" RENAME TO "BookingStatus";
+DROP TYPE "BookingStatus_old";
+ALTER TABLE "bookings" ALTER COLUMN "status" SET DEFAULT 'PENDING';
+COMMIT;
+
+-- AlterTable
+ALTER TABLE "bookings" ADD COLUMN "retry_count" INTEGER NOT NULL DEFAULT 0;
