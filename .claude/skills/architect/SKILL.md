@@ -55,6 +55,16 @@ Write one or more of:
 - `.harness/DECISIONS.md` only for accepted global decisions
 - `.harness/PROJECT_STATE.md` only for durable project-state changes
 
+## TASKS.md Status Update
+
+If architect is called as an escalation during a phase:
+
+1. Read `.harness/TASKS.md`
+2. Find the row for `<TASK_ID>` in the task index table
+3. Update the row:
+   - `Status`: `In Progress` (or `Blocked` if architect identifies a blocker)
+   - `Phase`: `Architect` (to indicate architect escalation is in progress or completed)
+
 ## Stop / Return Blocker
 
 Return a clear `BLOCKER` instead of guessing when:

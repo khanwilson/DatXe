@@ -87,5 +87,12 @@ const vi: iLocalization = {
   tripFare: 'Cước phí',
   tripCancel: 'Hủy chuyến',
   tripDone: 'Hoàn tất',
+  // Driver dashboard
+  dashboardOnline: 'Trực tuyến',
+  dashboardOffline: 'Ngoại tuyến',
+  dashboardGoOnline: 'Bắt đầu nhận cuốc',
+  dashboardGoOffline: 'Dừng nhận cuốc',
+  dashboardTripsToday: 'Cuốc hôm nay',
+  dashboardWaitingForOffer: 'Đang chờ cuốc mới...',
 }
 export default vi;

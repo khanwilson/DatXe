@@ -87,5 +87,12 @@ const en: iLocalization = {
   tripFare: 'Total fare',
   tripCancel: 'Cancel trip',
   tripDone: 'Done',
+  // Driver dashboard
+  dashboardOnline: 'Online',
+  dashboardOffline: 'Offline',
+  dashboardGoOnline: 'Start accepting rides',
+  dashboardGoOffline: 'Stop accepting rides',
+  dashboardTripsToday: 'Trips today',
+  dashboardWaitingForOffer: 'Waiting for new offers...',
 }
 export default en;

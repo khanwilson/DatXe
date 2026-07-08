@@ -55,6 +55,26 @@ Write:
 - `.harness/tasks/<TASK_ID>/plan.md`
 - update `.harness/tasks/<TASK_ID>/status.md` if present
 
+## TASKS.md Registration
+
+When creating a **new task** (task folder did not exist before planning):
+
+1. Read `.harness/TASKS.md` to find the next available task ID and the correct wave section.
+2. Add a new row to the appropriate wave table in `.harness/TASKS.md` with:
+   - `ID`: the new task ID (e.g. `T-XXXX`)
+   - `Title`: short task title from `description.md`
+   - `Status`: `Planned`
+   - `Phase`: `Created`
+   - `Priority`: from description or default `P1`
+   - `Depends On`: from description or `-`
+   - `Projects`: affected project names
+   - `Folder`: `[T-XXXX](tasks/T-XXXX/)`
+3. Update the header counts: increment **Total Tasks**.
+
+When the task already exists in `TASKS.md` (resuming a previously registered task):
+
+- Update the row: set `Status` to `In Progress`, `Phase` to `Planning`.
+
 ## Stop Rule
 
 After `plan.md` is created, stop and ask user to approve the plan. Do not continue to Contracting until approval.

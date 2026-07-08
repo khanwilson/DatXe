@@ -51,6 +51,16 @@ Write:
 - `.harness/tasks/<TASK_ID>/contract.md`
 - update `.harness/tasks/<TASK_ID>/status.md` if present
 
+## TASKS.md Status Update
+
+After contracting completes successfully:
+
+1. Read `.harness/TASKS.md`
+2. Find the row for `<TASK_ID>` in the task index table
+3. Update the row:
+   - `Status`: `In Progress`
+   - `Phase`: `Contracting`
+
 ## Stop / Return Blocker
 
 Return `BLOCKER` when:

@@ -55,6 +55,16 @@ Write/update:
 - `.harness/tasks/<TASK_ID>/decisions.md` if implementation decisions were made
 - `.harness/tasks/<TASK_ID>/status.md` if present
 
+## TASKS.md Status Update
+
+After implementation completes successfully:
+
+1. Read `.harness/TASKS.md`
+2. Find the row for `<TASK_ID>` in the task index table
+3. Update the row:
+   - `Status`: `In Progress`
+   - `Phase`: `Implementing`
+
 ## Stop / Return Blocker
 
 Return `BLOCKER` when:

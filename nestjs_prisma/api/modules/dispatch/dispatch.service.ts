@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BookingStatus, DriverStatus, OfferStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -270,5 +270,96 @@ export class DispatchService implements OnModuleInit {
         resolve(accepted);
       });
     });
+  }
+
+  async goOnline(driverUserId: string) {
+    const driver = await this.prisma.driver.findUnique({
+      where: { user_id: driverUserId },
+    });
+
+    if (!driver) {
+      throw new NotFoundException('Driver not found');
+    }
+
+    const updatedDriver = await this.prisma.driver.update({
+      where: { user_id: driverUserId },
+      data: {
+        status: DriverStatus.ONLINE,
+        is_online: true,
+      },
+      select: {
+        id: true,
+        full_name: true,
+        status: true,
+        is_online: true,
+      },
+    });
+
+    return updatedDriver;
+  }
+
+  async goOffline(driverUserId: string) {
+    const driver = await this.prisma.driver.findUnique({
+      where: { user_id: driverUserId },
+    });
+
+    if (!driver) {
+      throw new NotFoundException('Driver not found');
+    }
+
+    const updatedDriver = await this.prisma.driver.update({
+      where: { user_id: driverUserId },
+      data: {
+        status: DriverStatus.OFFLINE,
+        is_online: false,
+      },
+      select: {
+        id: true,
+        full_name: true,
+        status: true,
+        is_online: true,
+      },
+    });
+
+    return updatedDriver;
+  }
+
+  async getDriverStats(driverUserId: string) {
+    const driver = await this.prisma.driver.findUnique({
+      where: { user_id: driverUserId },
+    });
+
+    if (!driver) {
+      throw new NotFoundException('Driver not found');
+    }
+
+    // Calculate start of today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Query completed bookings for today
+    const completedBookings = await this.prisma.booking.findMany({
+      where: {
+        driver_id: driver.id,
+        status: BookingStatus.COMPLETED,
+        updated_at: {
+          gte: today,
+        },
+      },
+      select: {
+        final_price: true,
+      },
+    });
+
+    // Calculate stats
+    const tripsToday = completedBookings.length;
+    const earningsToday = completedBookings.reduce((sum, booking) => {
+      return sum + Number(booking.final_price ?? 0);
+    }, 0);
+
+    return {
+      tripsToday,
+      earningsToday,
+    };
   }
 }

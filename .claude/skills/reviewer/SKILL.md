@@ -51,6 +51,17 @@ Write:
 - `.harness/tasks/<TASK_ID>/review.md`
 - update `.harness/tasks/<TASK_ID>/status.md` if present
 
+## TASKS.md Status Update
+
+After review completes:
+
+1. Read `.harness/TASKS.md`
+2. Find the row for `<TASK_ID>` in the task index table
+3. Update the row based on review result:
+   - If `PASS`: `Phase` → `Reviewing`
+   - If `FAIL_FIXABLE`: `Phase` → `Fixing`
+   - If `BLOCKER`: `Status` → `Blocked`, `Phase` → `Reviewing`
+
 ## Decision Rules
 
 - `PASS` when no blocking issues remain and risk is acceptable.

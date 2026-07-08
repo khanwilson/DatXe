@@ -85,4 +85,11 @@ export interface iLocalization {
   tripFare: string;
   tripCancel: string;
   tripDone: string;
+  // Driver dashboard
+  dashboardOnline: string;
+  dashboardOffline: string;
+  dashboardGoOnline: string;
+  dashboardGoOffline: string;
+  dashboardTripsToday: string;
+  dashboardWaitingForOffer: string;
 }

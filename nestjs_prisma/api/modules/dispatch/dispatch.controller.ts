@@ -2,6 +2,7 @@ import {
   Controller,
   Patch,
   Get,
+  Post,
   Body,
   Param,
   UseGuards,
@@ -31,6 +32,35 @@ export class DispatchController {
   ) {
     await this.dispatchService.updateDriverLocation(user.sub, dto);
     return { success: true };
+  }
+
+  @Post('online')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Driver is now online' })
+  async goOnline(@CurrentUser() user: JwtPayload) {
+    const data = await this.dispatchService.goOnline(user.sub);
+    return { success: true, data };
+  }
+
+  @Post('offline')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Driver is now offline' })
+  async goOffline(@CurrentUser() user: JwtPayload) {
+    const data = await this.dispatchService.goOffline(user.sub);
+    return { success: true, data };
+  }
+
+  @Get('stats')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: 'Driver stats for today' })
+  async getStats(@CurrentUser() user: JwtPayload) {
+    const data = await this.dispatchService.getDriverStats(user.sub);
+    return { success: true, data };
   }
 
   @Get(':id/location')

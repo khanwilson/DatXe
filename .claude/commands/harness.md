@@ -100,6 +100,209 @@ The phase switch must be done by delegating to the matching custom subagent.
 
 ---
 
+## TASKS.md Global Index Maintenance
+
+`.harness/TASKS.md` is the global task registry. Every phase must keep it synchronized with the actual task state.
+
+### Rules
+
+1. **Planner** registers new tasks in `TASKS.md` when creating a task folder for the first time.
+2. **Every phase** updates the task's row in `TASKS.md` after completing its work:
+   - Update `Status` column (Planned | In Progress | Blocked | Done | Cancelled)
+   - Update `Phase` column (Created | Planning | Contracting | Implementing | Evaluating | Fixing | Reviewing | Closing | Done)
+3. **Closer** marks the task as `Done` in both `Status` and `Phase` columns, and updates the header counts.
+4. **Header counts** must always reflect reality:
+   - `Total Tasks`: total number of task rows
+   - `Completed`: count of tasks with Status = Done
+   - `In Progress`: count of tasks with Status = In Progress
+   - `Blocked`: count of tasks with Status = Blocked
+   - `Cancelled`: count of tasks with Status = Cancelled
+   - `Last Updated`: today's date
+
+### Phase → TASKS.md Update Map
+
+| Phase | Status | Phase |
+|---|---|---|
+| Planning (new task) | Planned | Created |
+| Planning (resuming) | In Progress | Planning |
+| Contracting | In Progress | Contracting |
+| Implementing | In Progress | Implementing |
+| Evaluating (pass) | In Progress | Evaluating |
+| Evaluating (fail_fixable) | In Progress | Fixing |
+| Evaluating (blocked) | Blocked | Evaluating |
+| Reviewing (pass) | In Progress | Reviewing |
+| Reviewing (fail_fixable) | In Progress | Fixing |
+| Reviewing (blocked) | Blocked | Reviewing |
+| Architect escalation | In Progress | Architect |
+| Closing | Done | Done |
+
+### Enforcement
+
+Each skill/agent is responsible for updating `TASKS.md` after its phase completes. The Harness orchestrator should verify that `TASKS.md` is current before transitioning to the next phase.
+
+---
+
+## Runtime Telemetry Protocol
+
+Harness must maintain runtime telemetry for statusline display.
+
+Telemetry file:
+
+```txt
+.harness/runtime/agent-status.json
+```
+
+### Owner
+
+The parent `/harness` command is the owner of `"running"` telemetry.
+
+This means the parent Harness command must write `.harness/runtime/agent-status.json` **before** delegating to any subagent with the Task tool.
+
+Subagents may update telemetry at the end of their run, for example `done`, `blocked`, or `escalating`, but Harness must not rely on subagents to set the active running agent.
+
+### Mandatory Pre-Delegation Rule
+
+Before every subagent delegation, Harness MUST do these steps in this exact order:
+
+1. Resolve `<TASK_ID>` from the current task, for example `T-0069`.
+2. Ensure `.harness/runtime/` exists.
+3. Overwrite `.harness/runtime/agent-status.json` with the correct phase telemetry.
+4. Only then call the Task tool to delegate to the target subagent.
+
+This telemetry write must happen immediately before the subagent call.
+
+Do not leave stale telemetry from a previous phase.
+
+### Preferred Write Method
+
+Use a Bash write to avoid stale-file edit problems:
+
+```bash
+mkdir -p .harness/runtime
+cat > .harness/runtime/agent-status.json <<'JSON'
+{
+  "main": {
+    "command": "harness",
+    "skill": "harness"
+  },
+  "active_agent": {
+    "name": "<AGENT_NAME>",
+    "phase": "<PHASE>",
+    "model": "<MODEL>",
+    "skills": ["<SKILL_NAME>"],
+    "task": "<TASK_ID>",
+    "status": "running"
+  }
+}
+JSON
+```
+
+Replace placeholders with real values before writing. Do not write `<TASK_ID>` literally.
+
+### Telemetry Map
+
+Use exactly this mapping when writing `.harness/runtime/agent-status.json` before delegation:
+
+| Delegated subagent | Phase | Model label | Skills |
+|---|---|---|---|
+| `harness-planner` | `Planning` | `sonnet` | `["planner"]` |
+| `harness-planner-opus` | `Planning` | `opus` | `["planner"]` |
+| `harness-contractor` | `Contracting` | `sonnet` | `["contractor"]` |
+| `harness-implementer` | `Implementing` | `opus` | `["implementer"]` |
+| `harness-evaluator` | `Evaluating` | `sonnet` | `["evaluator"]` |
+| `harness-reviewer` | `Reviewing` | `sonnet` | `["reviewer"]` |
+| `harness-architect` | `Architect` | `opus` | `["architect"]` |
+| `harness-closer` | `Closing` | `haiku` | `[]` |
+
+### Runtime Telemetry Map
+
+Before delegating to any subagent, Harness MUST write:
+
+`.harness/runtime/agent-status.json`
+
+Use this exact JSON shape:
+
+```json
+{
+  "main": {
+    "command": "harness",
+    "skill": "harness"
+  },
+  "active_agent": {
+    "name": "<agent>",
+    "phase": "<phase>",
+    "model": "<model>",
+    "skills": ["<skill>"],
+    "task": "<TASK_ID>",
+    "status": "running"
+  }
+}
+```
+
+### Completion Updates
+
+After a subagent returns successfully, Harness may update the same telemetry file and set:
+
+```json
+"status": "done"
+```
+
+If Harness is waiting for user approval after Planning, set:
+
+```json
+"status": "paused"
+```
+
+If Harness stops with a blocker, set:
+
+```json
+"status": "blocked"
+```
+
+If Harness escalates to Architect, set:
+
+```json
+"status": "escalating"
+```
+
+### Important
+
+Telemetry is only for visibility in statusline.
+
+Telemetry does not decide routing.
+
+Actual routing is still controlled by the delegated subagent name and that agent's `.claude/agents/*.md` frontmatter.
+
+---
+
+## Phase Dispatch Procedure
+
+Every phase transition that delegates to a subagent must follow this exact procedure:
+
+```txt
+1. Write runtime telemetry for the target subagent.
+2. Delegate to the target subagent using the Task tool.
+3. Wait for the subagent result.
+4. Update status.md and artifacts as needed.
+5. Continue automatically unless a real blocker appears.
+```
+
+Harness must not call the Task tool before the telemetry write.
+
+This applies to:
+
+- Planning.
+- Contracting.
+- Implementing.
+- Fixing.
+- Evaluating.
+- Reviewing.
+- Architect escalation.
+- Closing.
+
+---
+
+
 ## Pipeline
 
 ```txt
@@ -731,18 +934,25 @@ Use this control flow:
 ```txt
 IF no task folder exists for input:
   create task folder
+  write telemetry for harness-planner
   delegate Planning to harness-planner
+  set telemetry status to paused after plan is ready
   stop for plan approval
 
 ELSE IF task is Waiting for Plan Approval:
   IF user approved:
     update status
+    write telemetry for harness-contractor
     delegate Contracting to harness-contractor
+    write telemetry for harness-implementer
     delegate Implementing to harness-implementer
+    write telemetry for harness-evaluator
     delegate Evaluating to harness-evaluator
-    loop Fixing/Re-evaluating if needed
+    loop Fixing/Re-evaluating if needed, writing telemetry before each delegation
+    write telemetry for harness-reviewer
     delegate Reviewing to harness-reviewer
-    loop Fixing/Evaluating/Reviewing if needed
+    loop Fixing/Evaluating/Reviewing if needed, writing telemetry before each delegation
+    write telemetry for harness-closer
     delegate Closing to harness-closer
     mark Done
   ELSE IF user requested plan changes:
@@ -775,11 +985,9 @@ Recommended:
 Unset CLAUDE_CODE_SUBAGENT_MODEL
 ```
 
-or:
+Do not set it to a fixed model.
 
-```txt
-CLAUDE_CODE_SUBAGENT_MODEL=inherit
-```
+For older Claude Code versions, prefer removing the variable entirely instead of relying on `CLAUDE_CODE_SUBAGENT_MODEL=inherit`.
 
 Per-agent model routing should be defined in `.claude/agents/*.md` frontmatter.
 

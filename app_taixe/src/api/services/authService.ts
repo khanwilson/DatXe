@@ -7,6 +7,7 @@ export interface AuthUser {
   phone: string;
   name?: string;
   email?: string;
+  role?: string;
 }
 
 export interface RequestOtpRequest {
@@ -57,7 +58,8 @@ const mockVerifyOtp = async (data: VerifyOtpRequest): Promise<VerifyOtpResponse>
     user: {
       id: 'dev-user',
       phone: data.phone,
-      name: 'Khách Mai Linh',
+      name: 'Tài xế Mai Linh',
+      role: 'DRIVER',
     },
   };
 };

@@ -46,6 +46,20 @@ Write/update:
 
 Update global project state only if the review/architecture artifacts explicitly require it.
 
+## TASKS.md Final Update
+
+After closing completes successfully:
+
+1. Read `.harness/TASKS.md`
+2. Find the row for `<TASK_ID>` in the task index table
+3. Update the row:
+   - `Status`: `Done`
+   - `Phase`: `Done`
+4. Update the header counts:
+   - Increment **Completed**
+   - Decrement **In Progress** (if the task was counted there)
+   - Update **Last Updated** date to today
+
 ## Required Handoff Template
 
 ```md

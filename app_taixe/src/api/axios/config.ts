@@ -24,4 +24,11 @@ export const ENDPOINTS = {
     PLACE_DETAIL: '/routes/places',
     DIRECTIONS: '/routes/directions',
   },
+  // Driver
+  DRIVER: {
+    UPDATE_LOCATION: '/drivers/location',
+    GO_ONLINE: '/drivers/online',
+    GO_OFFLINE: '/drivers/offline',
+    GET_STATS: '/drivers/stats',
+  },
 };

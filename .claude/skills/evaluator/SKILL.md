@@ -50,6 +50,17 @@ Write:
 - `.harness/tasks/<TASK_ID>/evaluation.md`
 - update `.harness/tasks/<TASK_ID>/status.md` if present
 
+## TASKS.md Status Update
+
+After evaluation completes:
+
+1. Read `.harness/TASKS.md`
+2. Find the row for `<TASK_ID>` in the task index table
+3. Update the row based on evaluation result:
+   - If `PASS`: `Phase` → `Evaluating`
+   - If `FAIL_FIXABLE`: `Phase` → `Fixing`
+   - If `BLOCKER`: `Status` → `Blocked`, `Phase` → `Evaluating`
+
 ## Result Rules
 
 - `PASS` only when required checks and acceptance criteria pass or are explicitly marked not applicable with rationale.
