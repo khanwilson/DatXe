@@ -29,7 +29,7 @@ export const handleApiError = (error: AxiosError<any>): ApiError => {
     message: error.message || 'An unexpected error occurred',
   }
   if (error.response) {
-    apiError.message = error.response.data?.message || error.message || 'An error occurred';
+    apiError.message = error.response.data?.error?.message || error.message || 'An error occurred';
     apiError.config = error.response.config;
     apiError.statusCode = error.response.status;
     apiError.data = error.response.data;

@@ -4,11 +4,11 @@
     "skill": "harness"
   },
   "active_agent": {
-    "name": "harness-planner",
-    "phase": "Planning",
-    "model": "sonnet",
-    "skills": ["planner"],
+    "name": "harness-closer",
+    "phase": "Closing",
+    "model": "haiku",
+    "skills": [],
     "task": "T-0074",
-    "status": "paused"
+    "status": "running"
   }
 }

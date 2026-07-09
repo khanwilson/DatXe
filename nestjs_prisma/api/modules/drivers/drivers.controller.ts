@@ -13,13 +13,13 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../../auth/types/jwt-payload.type';
-import { DispatchService } from './dispatch.service';
+import { DriversService } from './drivers.service';
 import { UpdateDriverLocationDto } from './dto/update-driver-location.dto';
 
 @ApiTags('Drivers')
 @Controller('drivers')
-export class DispatchController {
-  constructor(private readonly dispatchService: DispatchService) {}
+export class DriversController {
+  constructor(private readonly driversService: DriversService) {}
 
   @Patch('location')
   @UseGuards(JwtAuthGuard)
@@ -30,7 +30,7 @@ export class DispatchController {
     @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateDriverLocationDto,
   ) {
-    await this.dispatchService.updateDriverLocation(user.sub, dto);
+    await this.driversService.updateDriverLocation(user.sub, dto);
     return { success: true };
   }
 
@@ -40,7 +40,7 @@ export class DispatchController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'Driver is now online' })
   async goOnline(@CurrentUser() user: JwtPayload) {
-    const data = await this.dispatchService.goOnline(user.sub);
+    const data = await this.driversService.goOnline(user.sub);
     return { success: true, data };
   }
 
@@ -50,7 +50,7 @@ export class DispatchController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'Driver is now offline' })
   async goOffline(@CurrentUser() user: JwtPayload) {
-    const data = await this.dispatchService.goOffline(user.sub);
+    const data = await this.driversService.goOffline(user.sub);
     return { success: true, data };
   }
 
@@ -59,7 +59,7 @@ export class DispatchController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Driver stats for today' })
   async getStats(@CurrentUser() user: JwtPayload) {
-    const data = await this.dispatchService.getDriverStats(user.sub);
+    const data = await this.driversService.getDriverStats(user.sub);
     return { success: true, data };
   }
 
@@ -68,7 +68,7 @@ export class DispatchController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Driver location' })
   async getDriverLocation(@Param('id') id: string) {
-    const location = await this.dispatchService.getDriverLocation(id);
+    const location = await this.driversService.getDriverLocation(id);
     return {
       success: true,
       data: location,

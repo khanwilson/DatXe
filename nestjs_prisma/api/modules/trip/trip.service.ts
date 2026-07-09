@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { BookingStatus, TripStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { WebSocketGateway } from '../../common/websocket/websocket.gateway';
 
@@ -25,7 +26,7 @@ export class TripService {
       throw new ForbiddenException('Not authorized to cancel this trip');
     }
 
-    if (trip.status !== 'DRIVER_EN_ROUTE') {
+    if (trip.status !== TripStatus.DRIVER_EN_ROUTE) {
       throw new BadRequestException(
         `Cannot cancel trip in status ${trip.status}`,
       );
@@ -34,7 +35,7 @@ export class TripService {
     await this.prisma.trip.update({
       where: { id: tripId },
       data: {
-        status: 'CANCELLED',
+        status: TripStatus.CANCELLED,
         cancelled_at: new Date(),
         cancel_reason: 'DRIVER_CANCELLED',
       },
@@ -43,7 +44,7 @@ export class TripService {
     await this.prisma.booking.update({
       where: { id: trip.booking_id },
       data: {
-        status: 'CANCELLED_BY_DRIVER',
+        status: BookingStatus.CANCELLED_BY_DRIVER,
         driver_id: null,
       },
     });
@@ -55,8 +56,8 @@ export class TripService {
 
     return {
       tripId,
-      status: 'CANCELLED',
-      bookingStatus: 'CANCELLED_BY_DRIVER',
+      status: TripStatus.CANCELLED,
+      bookingStatus: BookingStatus.CANCELLED_BY_DRIVER,
     };
   }
 
@@ -76,14 +77,14 @@ export class TripService {
     const updatedTrip = await this.prisma.trip.update({
       where: { id: tripId },
       data: {
-        status: 'DRIVER_ARRIVED',
+        status: TripStatus.DRIVER_ARRIVED,
       },
     });
 
     await this.prisma.booking.update({
       where: { id: trip.booking_id },
       data: {
-        status: 'DRIVER_ARRIVED',
+        status: BookingStatus.DRIVER_ARRIVED,
       },
     });
 
@@ -91,7 +92,7 @@ export class TripService {
       tripId,
       trip.booking_id,
       driverId,
-      'DRIVER_ARRIVED',
+      TripStatus.DRIVER_ARRIVED,
     );
 
     return updatedTrip;
@@ -113,7 +114,7 @@ export class TripService {
     const updatedTrip = await this.prisma.trip.update({
       where: { id: tripId },
       data: {
-        status: 'IN_PROGRESS',
+        status: TripStatus.IN_PROGRESS,
         started_at: new Date(),
       },
     });
@@ -121,7 +122,7 @@ export class TripService {
     await this.prisma.booking.update({
       where: { id: trip.booking_id },
       data: {
-        status: 'IN_PROGRESS',
+        status: BookingStatus.IN_PROGRESS,
       },
     });
 
@@ -129,7 +130,7 @@ export class TripService {
       tripId,
       trip.booking_id,
       driverId,
-      'IN_PROGRESS',
+      TripStatus.IN_PROGRESS,
     );
 
     return updatedTrip;
@@ -151,7 +152,7 @@ export class TripService {
     const updatedTrip = await this.prisma.trip.update({
       where: { id: tripId },
       data: {
-        status: 'COMPLETED',
+        status: TripStatus.COMPLETED,
         completed_at: new Date(),
       },
     });
@@ -159,7 +160,7 @@ export class TripService {
     await this.prisma.booking.update({
       where: { id: trip.booking_id },
       data: {
-        status: 'COMPLETED',
+        status: BookingStatus.COMPLETED,
       },
     });
 
@@ -167,7 +168,7 @@ export class TripService {
       tripId,
       trip.booking_id,
       driverId,
-      'COMPLETED',
+      TripStatus.COMPLETED,
     );
 
     return updatedTrip;

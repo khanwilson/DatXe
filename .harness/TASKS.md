@@ -2,8 +2,8 @@
 
 **Last Updated**: 2026-07-08  
 **Total Tasks**: 65  
-**Completed**: 19  
-**In Progress**: 1  
+**Completed**: 20  
+**In Progress**: 0  
 **Blocked**: 0  
 **Cancelled**: 5
 
@@ -80,7 +80,7 @@
 | T-0071 | FE app_user: Trip Flow (Looking → Pickup → Dropoff → Complete) | Planned | Created | P0 | T-0064, T-0068 | app_user | [T-0071](tasks/T-0071/) |
 | T-0072 | Integration & Realtime Wiring | Planned | Created | P0 | T-0068, T-0070, T-0071 | all | [T-0072](tasks/T-0072/) |
 | T-0073 | BE: Driver Online/Offline & Stats API | Done | Done | P0 | T-0068 | nestjs_prisma | [T-0073](tasks/T-0073/) |
-| T-0074 | Hoàn thiện flow đăng nhập Phone + OTP (app_user + app_taixe) | In Progress | Planning | P0 | T-0003 | nestjs_prisma, app_user, app_taixe | [T-0074](tasks/T-0074/) |
+| T-0074 | Hoàn thiện flow đăng nhập Phone + OTP (app_user + app_taixe) | Done | Done | P0 | T-0003 | nestjs_prisma, app_user, app_taixe | [T-0074](tasks/T-0074/) |
 
 ### Wave 2: Core Backend APIs
 

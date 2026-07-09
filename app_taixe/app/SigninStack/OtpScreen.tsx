@@ -24,7 +24,7 @@ const normalizeCode = (raw: string) => raw.replace(/[^0-9]/g, '').slice(0, OTP_L
 // 3. COMPONENT FUNCTION
 export default function OtpScreen() {
   const theme = useAppTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => stylesSheet(theme), [theme]);
   const { phone } = useLocalSearchParams<{ phone: string }>();
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -124,7 +124,8 @@ export default function OtpScreen() {
       <AppButton
         text={getString('authOtpVerify')}
         onPress={handleVerify}
-        disabled={code.length < OTP_LENGTH || verifyOtp.isPending}
+        disabled={code.length < OTP_LENGTH}
+        loading={verifyOtp.isPending}
         style={styles.button}
       />
 
@@ -144,7 +145,7 @@ export default function OtpScreen() {
 }
 
 // 4. STYLESHEET
-const createStyles = (theme: ITheme) => StyleSheet.create({
+const stylesSheet = (theme: ITheme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.color.background.app,

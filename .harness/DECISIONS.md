@@ -90,6 +90,19 @@
 
 ---
 
+### D-0009: nestjs_prisma — Import Enum/Type từ @prisma/client
+
+| Field | Value |
+|-------|-------|
+| **Status** | Accepted |
+| **Source Task** | Convention (2026-07-09) |
+| **Context** | Prisma generate ra các enum (UserRole, UserStatus, BookingStatus, v.v.) trong `@prisma/client`. Hardcode string gây runtime lỗi khi enum value đổi tên và mất type safety. |
+| **Decision** | Tất cả code trong `nestjs_prisma` (service, seed, controller, test) **phải import enum và type từ `@prisma/client`**. Không dùng string literal cho enum value. |
+| **Impacted Projects** | nestjs_prisma |
+| **Consequences** | <ul><li>`import { UserRole, UserStatus, BookingStatus, ... } from '@prisma/client'`</li><li>Dùng `UserRole.ADMIN`, `BookingStatus.CONFIRMED`, v.v. — không hardcode `'ADMIN'`, `'CONFIRMED'`</li><li>Áp dụng cho seed, service, controller, guard, test</li><li>Prisma re-generate sau schema change → enum tự đồng bộ</li></ul> |
+
+---
+
 ### P-D-0001: Authentication Strategy
 
 | Field | Value |

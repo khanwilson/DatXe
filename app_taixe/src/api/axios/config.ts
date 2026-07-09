@@ -9,7 +9,7 @@ export const ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/phone',
     REQUEST_OTP: '/auth/otp/request',
-    VERIFY_OTP: '/auth/otp/verify',
+    VERIFY_OTP: '/auth/otp/driver-verify',
     LOGOUT: '/auth/logout',
     REFRESH_TOKEN: '/auth/refresh',
   },

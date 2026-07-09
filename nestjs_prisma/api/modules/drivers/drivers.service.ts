@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { BookingStatus, DriverStatus, OfferStatus, Prisma } from '@prisma/client';
+import { BookingStatus, DriverStatus, OfferStatus, TripStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { WebSocketGateway } from '../../common/websocket/websocket.gateway';
 import { UpdateDriverLocationDto } from './dto/update-driver-location.dto';
@@ -12,7 +12,7 @@ interface DriverLocation {
   updated_at: string;
 }
 
-const DISPATCH_ROUNDS = [
+const Drivers_ROUNDS = [
   { radius: 5, roundTimeoutMs: 30_000 },
   { radius: 10, roundTimeoutMs: 30_000 },
   { radius: 15, roundTimeoutMs: 30_000 },
@@ -32,8 +32,8 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 @Injectable()
-export class DispatchService implements OnModuleInit {
-  private readonly logger = new Logger(DispatchService.name);
+export class DriversService implements OnModuleInit {
+  private readonly logger = new Logger(DriversService.name);
   private readonly resolverMap = new Map<string, (accepted: boolean) => void>();
 
   constructor(
@@ -64,7 +64,7 @@ export class DispatchService implements OnModuleInit {
     };
 
     await this.prisma.driver.update({
-      where: { id: driverId },
+      where: { user_id: driverId },
       data: { current_location: location },
     });
 
@@ -73,7 +73,7 @@ export class DispatchService implements OnModuleInit {
       where: {
         driver_id: driverId,
         status: {
-          in: ['DRIVER_EN_ROUTE', 'DRIVER_ARRIVED', 'IN_PROGRESS'],
+          in: [TripStatus.DRIVER_EN_ROUTE, TripStatus.DRIVER_ARRIVED, TripStatus.IN_PROGRESS],
         },
       },
       select: { booking_id: true },
@@ -110,12 +110,12 @@ export class DispatchService implements OnModuleInit {
     };
   }
 
-  async runDispatchLoop(bookingId: string): Promise<void> {
-    this.logger.log(`Dispatch loop started for booking ${bookingId}`);
+  async runDriversLoop(bookingId: string): Promise<void> {
+    this.logger.log(`Driver dispatch loop started for booking ${bookingId}`);
 
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) {
-      this.logger.warn(`Booking ${bookingId} not found — aborting dispatch`);
+      this.logger.warn(`Booking ${bookingId} not found — aborting Driver dispatch`);
       return;
     }
 
@@ -126,8 +126,8 @@ export class DispatchService implements OnModuleInit {
 
     const skipSet = new Set<string>();
 
-    for (const round of DISPATCH_ROUNDS) {
-      this.logger.log(`Dispatch round radius=${round.radius}km for booking ${bookingId}`);
+    for (const round of Drivers_ROUNDS) {
+      this.logger.log(`Driver dispatch round radius=${round.radius}km for booking ${bookingId}`);
 
       const drivers = await this.prisma.driver.findMany({
         where: { status: DriverStatus.ONLINE },
@@ -253,7 +253,7 @@ export class DispatchService implements OnModuleInit {
     );
 
     // Emit event so BookingCancelService can schedule 30s auto-cancel timeout
-    this.eventEmitter.emit('dispatch.exhausted', { bookingId });
+    this.eventEmitter.emit('Drivers.exhausted', { bookingId });
 
     this.logger.log(`No driver found for booking ${bookingId}, awaiting user decision`);
   }

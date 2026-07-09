@@ -1,6 +1,6 @@
 # Project State
 
-**Last Updated**: 2026-07-02  
+**Last Updated**: 2026-07-08  
 **Harness Version**: 1.0
 
 ---
@@ -20,7 +20,7 @@
 - **Frontend**: React Native apps (iOS/Android via Expo)
 - **Backend**: NestJS REST API
 - **Database**: Managed via Prisma ORM
-- **Authentication**: [To be documented when implemented]
+- **Authentication**: Phone + OTP with JWT (1d) + refresh token (30d, Redis-backed, rotation)
 - **Deployment**: [To be documented when implemented]
 
 ---
@@ -28,8 +28,8 @@
 ## Completed Capabilities
 
 - [x] User registration (driver & customer) - T-0002 schema ready
-- [x] User authentication - T-0001 + T-0002 JWT with role
-- [x] Customer login/registration UI (phone + OTP) - T-0033 (app_user, mock DEV)
+- [x] User authentication - T-0001 + T-0002 + T-0074 JWT with phone+role, Redis-backed refresh tokens
+- [x] Phone + OTP auth flow end-to-end - T-0074 (backend 4 endpoints + auth guard + refresh interceptor in both apps)
 - [x] Customer home + map screen (current location, search UI) - T-0034 (app_user)
 - [x] WebSocket gateway (Socket.IO with JWT auth) - T-0004
 - [x] Goong Places Autocomplete integration - T-0053 (app_user)
@@ -46,13 +46,20 @@
 
 ## Active API Contracts
 
-### Authentication API
-- **Endpoint**: `POST /auth/otp/request` | `POST /auth/otp/verify` (phone + OTP)
-- **Status**: Client contract defined (T-0033); backend mock cho tới T-0006
-- **Last Updated**: 2026-06-26
-- **Projects**: app_user (app_taixe sẽ tái dùng ở T-0040), nestjs_prisma
-- **Flow**: nhập SĐT (VN `0xxxxxxxxx`) → `requestOtp` → nhập OTP 6 số → `verifyOtp` → token + user
-- **DEV mock**: `__DEV__` + code `000000` auto-pass (gỡ khi backend live)
+### Authentication API (T-0074)
+- **POST /api/v1/auth/otp/request** — Request OTP (DEV: logs `000000`, no SMS sent)
+  - Body: `{ "phone": "+84912345678" }` (E.164 VN)
+  - Response: `{ "success": true, "expiresIn": 300 }`
+- **POST /api/v1/auth/otp/verify** — Verify OTP, find-or-create User, issue token pair
+  - Body: `{ "phone": "+84912345678", "code": "000000" }`
+  - Response: `{ "accessToken": "eyJ...", "refreshToken": "uuid", "user": { "id", "phone", "name", "email", "role" } }`
+- **POST /api/v1/auth/refresh** — Rotate refresh token, issue new pair
+  - Body: `{ "refreshToken": "uuid" }`
+  - Response: `{ "accessToken": "eyJ...", "refreshToken": "new-uuid" }`
+- **POST /api/v1/auth/logout** — Invalidate refresh token
+  - Body: `{ "refreshToken": "uuid" }`
+  - Response: `{ "success": true }`
+- **Status**: Implemented (T-0074). JWT payload `{ sub, phone, role }`, 1d expiry. Refresh tokens in Redis with 30d TTL, key `refresh_token:<uuid>`, rotation on refresh. DEV bypass code `000000`; production rejects all codes (SMS provider TBD).
 
 ### Booking API (T-0062)
 - **POST /api/v1/bookings** — tạo booking mới (JWT required)

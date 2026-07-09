@@ -8,8 +8,8 @@ import { WebSocketModule } from './common/websocket/websocket.module';
 import { RoutesModule } from './modules/routes/routes.module';
 import { BookingModule } from './modules/booking/booking.module';
 import { PaymentModule } from './modules/payment/payment.module';
-import { DispatchModule } from './modules/dispatch/dispatch.module';
 import { TripModule } from './modules/trip/trip.module';
+import { DriversModule } from './modules/drivers/drivers.module';
 
 @Module({
   imports: [
@@ -24,7 +24,7 @@ import { TripModule } from './modules/trip/trip.module';
     RoutesModule,
     BookingModule,
     PaymentModule,
-    DispatchModule,
+    DriversModule,
     TripModule,
   ],
 })

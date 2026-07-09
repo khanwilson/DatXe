@@ -29,8 +29,8 @@ export const useVerifyOtp = () => {
     mutationFn: (data: VerifyOtpRequest) => authService.verifyOtp(data),
     onSuccess: (response) => {
       // Save tokens + user to zustand
-      ZustandPersist.getState().setTokens(response.accessToken, response.refreshToken);
-      ZustandPersist.getState().setUser(response.user);
+      ZustandPersist.getState().setTokens(response?.data?.accessToken, response?.data?.refreshToken);
+      ZustandPersist.getState().setUser(response?.data?.user);
       // Invalidate user queries
       queryClient.invalidateQueries({ queryKey: AUTH_KEYS.user });
     },

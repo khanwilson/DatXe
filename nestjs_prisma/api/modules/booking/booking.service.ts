@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BookingStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
@@ -19,7 +20,7 @@ export class BookingService {
         vehicle_type: dto.vehicle_type,
         estimated_price: dto.estimated_price,
         note: dto.note,
-        status: 'PENDING',
+        status: BookingStatus.PENDING,
       },
     });
 

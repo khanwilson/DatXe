@@ -1,4 +1,4 @@
-import { Customer, Driver, PrismaClient } from '@prisma/client';
+import { Customer, Driver, DriverStatus, OfferStatus, PaymentMethod, PaymentStatus, BookingStatus, TripStatus, VehicleType, PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -15,9 +15,9 @@ async function main() {
     create: {
       user_name: 'admin',
       password_hash: passwordHash,
-      role: 'ADMIN',
+      role: UserRole.ADMIN,
       phone: '0900000000',
-      status: 'ACTIVE',
+      status: UserStatus.ACTIVE,
     },
   });
   console.log(`Created admin: ${admin.user_name}`);
@@ -37,9 +37,9 @@ async function main() {
       create: {
         user_name: data.userName,
         password_hash: passwordHash,
-        role: 'CUSTOMER',
+        role: UserRole.CUSTOMER,
         phone: data.phone,
-        status: 'ACTIVE',
+        status: UserStatus.ACTIVE,
       },
     });
 
@@ -68,7 +68,7 @@ async function main() {
         brand: 'Toyota',
         model: 'Vios',
         color: 'White',
-        type: 'CAR' as const,
+        type: VehicleType.CAR,
         capacity: 4,
       },
     },
@@ -82,7 +82,7 @@ async function main() {
         brand: 'Honda',
         model: 'Wave Alpha',
         color: 'Red',
-        type: 'MOTORBIKE' as const,
+        type: VehicleType.MOTORBIKE,
         capacity: 1,
       },
     },
@@ -96,9 +96,9 @@ async function main() {
       create: {
         user_name: data.userName,
         password_hash: passwordHash,
-        role: 'DRIVER',
+        role: UserRole.DRIVER,
         phone: data.phone,
-        status: 'ACTIVE',
+        status: UserStatus.ACTIVE,
       },
     });
 
@@ -111,7 +111,7 @@ async function main() {
         phone: data.phone,
         license_number: data.licenseNumber,
         is_online: false,
-        status: 'OFFLINE',
+        status: DriverStatus.OFFLINE,
       },
     });
 
@@ -142,7 +142,7 @@ async function main() {
     data: {
       customer_id: customers[0].id,
       driver_id: driver1!.id,
-      status: 'COMPLETED',
+      status: BookingStatus.COMPLETED,
       pickup_lat: 10.7769,
       pickup_lng: 106.7009,
       pickup_address: '1 Nguyen Hue, District 1, HCMC',
@@ -161,7 +161,7 @@ async function main() {
     data: {
       customer_id: customers[1].id,
       driver_id: driver2!.id,
-      status: 'IN_PROGRESS',
+      status: BookingStatus.IN_PROGRESS,
       pickup_lat: 10.7802,
       pickup_lng: 106.6988,
       pickup_address: '100 Le Loi, District 1, HCMC',
@@ -177,7 +177,7 @@ async function main() {
   const booking3 = await prisma.booking.create({
     data: {
       customer_id: customers[2].id,
-      status: 'PENDING',
+      status: BookingStatus.PENDING,
       pickup_lat: 10.7688,
       pickup_lng: 106.7075,
       pickup_address: '500 Dien Bien Phu, Binh Thanh, HCMC',
@@ -197,7 +197,7 @@ async function main() {
       booking_id: booking1.id,
       driver_id: driver1!.id,
       customer_id: customers[0].id,
-      status: 'COMPLETED',
+      status: TripStatus.COMPLETED,
       pickup_lat: 10.7769,
       pickup_lng: 106.7009,
       dropoff_lat: 10.7623,
@@ -215,7 +215,7 @@ async function main() {
       booking_id: booking2.id,
       driver_id: driver2!.id,
       customer_id: customers[1].id,
-      status: 'IN_PROGRESS',
+      status: TripStatus.IN_PROGRESS,
       pickup_lat: 10.7802,
       pickup_lng: 106.6988,
       dropoff_lat: 10.7544,
@@ -231,8 +231,8 @@ async function main() {
     data: {
       booking_id: booking1.id,
       amount: 55000,
-      method: 'CASH',
-      status: 'SUCCESSFUL',
+      method: PaymentMethod.CASH,
+      status: PaymentStatus.SUCCESSFUL,
       paid_at: new Date(Date.now() - 42 * 60 * 1000),
     },
   });
@@ -241,8 +241,8 @@ async function main() {
     data: {
       booking_id: booking2.id,
       amount: 35000,
-      method: 'CARD',
-      status: 'PENDING',
+      method: PaymentMethod.CARD,
+      status: PaymentStatus.PENDING,
     },
   });
   console.log(`Created 2 payments`);
@@ -252,7 +252,7 @@ async function main() {
     data: {
       booking_id: booking2.id,
       driver_id: driver1!.id,
-      status: 'REJECTED',
+      status: OfferStatus.REJECTED,
       expired_at: new Date(Date.now() - 20 * 60 * 1000),
       responded_at: new Date(Date.now() - 19 * 60 * 1000),
     },
@@ -262,7 +262,7 @@ async function main() {
     data: {
       booking_id: booking2.id,
       driver_id: driver2!.id,
-      status: 'ACCEPTED',
+      status: OfferStatus.ACCEPTED,
       expired_at: new Date(Date.now() + 10 * 60 * 1000),
       responded_at: new Date(Date.now() - 15 * 60 * 1000),
     },
@@ -272,20 +272,20 @@ async function main() {
     data: {
       booking_id: booking3.id,
       driver_id: driver1!.id,
-      status: 'PENDING',
+      status: OfferStatus.PENDING,
       expired_at: new Date(Date.now() + 5 * 60 * 1000),
     },
   });
   console.log(`Created 3 dispatch offers`);
 
-  // Audit logs
+  // Audit logs — old_values/new_values are Json fields, string values are correct here
   await prisma.auditLog.create({
     data: {
       entity_type: 'Booking',
       entity_id: booking1.id,
       action: 'STATUS_CHANGED',
-      old_values: { status: 'PENDING' },
-      new_values: { status: 'COMPLETED' },
+      old_values: { status: BookingStatus.PENDING },
+      new_values: { status: BookingStatus.COMPLETED },
       changed_by_id: driver1!.user_id,
     },
   });
@@ -295,8 +295,8 @@ async function main() {
       entity_type: 'Booking',
       entity_id: booking2.id,
       action: 'STATUS_CHANGED',
-      old_values: { status: 'PENDING' },
-      new_values: { status: 'IN_PROGRESS' },
+      old_values: { status: BookingStatus.PENDING },
+      new_values: { status: BookingStatus.IN_PROGRESS },
       changed_by_id: driver2!.user_id,
     },
   });

@@ -44,30 +44,14 @@ export interface VerifyOtpResponse {
 const DEV_OTP_CODE = '000000';
 const DEV_OTP_EXPIRES_IN = 60;
 
-const mockRequestOtp = async (): Promise<RequestOtpResponse> => {
-  return { success: true, expiresIn: DEV_OTP_EXPIRES_IN };
-};
-
-const mockVerifyOtp = async (data: VerifyOtpRequest): Promise<VerifyOtpResponse> => {
-  if (data.code !== DEV_OTP_CODE) {
-    throw new Error('Mã OTP không đúng');
-  }
-  return {
-    accessToken: 'dev-access-token',
-    refreshToken: 'dev-refresh-token',
-    user: {
-      id: 'dev-user',
-      phone: data.phone,
-      name: 'Tài xế Mai Linh',
-      role: 'DRIVER',
-    },
-  };
+const mockRequestOtp = async (): Promise<{ data: RequestOtpResponse }> => {
+  return { data: { success: true, expiresIn: DEV_OTP_EXPIRES_IN } };
 };
 
 // API Functions
 export const authService = {
   // Request an OTP code to be sent to the given phone number.
-  requestOtp: (data: RequestOtpRequest): Promise<RequestOtpResponse> => {
+  requestOtp: (data: RequestOtpRequest): Promise<{ data: RequestOtpResponse }> => {
     if (__DEV__) {
       return mockRequestOtp();
     }
@@ -75,10 +59,8 @@ export const authService = {
   },
 
   // Verify an OTP code and exchange it for auth tokens + user profile.
-  verifyOtp: (data: VerifyOtpRequest): Promise<VerifyOtpResponse> => {
-    if (__DEV__) {
-      return mockVerifyOtp(data);
-    }
+  verifyOtp: async (data: VerifyOtpRequest): Promise<{ data: VerifyOtpResponse }> => {
+    await new Promise((resolve) => setTimeout(resolve, 500)); // fake waiting API
     return apiClient.post(ENDPOINTS.AUTH.VERIFY_OTP, data);
   },
 

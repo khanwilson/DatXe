@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 import { clearAllCache } from 'utils/clearCache';
+import ZustandPersist from 'zustand/persist';
 
 const SPLASH_DELAY = 2500;
 
@@ -36,9 +37,13 @@ export default function SplashScreen() {
 
         setTimeout(() => {
           if (hasSeenOnboarding === 'true') {
-            // User has seen onboarding, go to signin
-            // router.replace('/SigninStack/SigninScreen');
-            router.replace('/(tabs)/HomeScreen');
+            // User has seen onboarding, check for access token
+            const accessToken = ZustandPersist.getState().accessToken;
+            if (accessToken) {
+              router.replace('/(tabs)/HomeScreen');
+            } else {
+              router.replace('/SigninStack/SigninScreen');
+            }
           } else {
             // User hasn't seen onboarding, start the onboarding flow
             router.replace('/onboarding/welcome');
