@@ -26,10 +26,13 @@
 - **POST /api/v1/bookings** — tạo booking mới (JWT required)
 - **GET /api/v1/bookings/:id** — lấy booking theo id (JWT required)
 
-### Payment API (T-0062)
+### Payment API (T-0062, T-0075)
 - **POST /api/v1/payments/vnpay** — tạo VNPay payment URL
-- **GET /api/v1/payments/vnpay/callback** — VNPay callback (no auth)
-- **GET /api/v1/payments/:bookingId** — lấy payment status
+  - Body: `{ "booking_id": "uuid", "amount": 45000, "order_info": "DatXe Booking ...", "client_ip": "127.0.0.1" }` (all required)
+  - Response: `{ "payment_id": "uuid", "transaction_id": "txn_...", "payment_url": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?..." }`
+  - Signing: deterministic RFC3986 encoding (`encodeURIComponent`), `%20` for spaces, sorted param keys. Signed string is byte-identical to URL query for callback verification (T-0075 D-0012).
+- **GET /api/v1/payments/vnpay/callback** — VNPay callback (no auth). Query: `vnp_TxnRef`, `vnp_SecureHash`, etc. Backend re-signs and verifies hash, updates `Payment.status → SUCCESSFUL/FAILED`, `Booking.status → PAYMENT_COMPLETED/CANCELLED`, emits WS `booking.payment_success`.
+- **GET /api/v1/payments/:bookingId** — lấy payment status (JWT required). Response: `{ "status": "SUCCESSFUL|FAILED|PENDING" }` (used by app_user poll during PAYMENT state).
 
 ### Dispatch API (T-0063)
 - **PATCH /api/v1/drivers/location** — cập nhật vị trí tài xế (JWT driver required). Body: `{ lat, lng, heading? }`

@@ -19,17 +19,6 @@
    • TASKS.md                        Task status & tracking
    • CURRENT_TASK.md                 Active task reference
 
-✅ Templates (9 files in docs/harness/templates/)
-   • task.template.md
-   • plan.template.md
-   • contract.template.md
-   • implementation.template.md
-   • evaluation.template.md
-   • files-changed.template.md
-   • decisions.template.md
-   • handoff.template.md
-   • status.template.md
-
 ✅ Scripts (5 files in scripts/harness/)
    • create-task.sh                  Create new tasks
    • run-checks.sh                   Run quality checks

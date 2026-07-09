@@ -62,6 +62,11 @@ Không viết Consequences, Notes, Status. Nếu cần chi tiết implementation
 - **Decision**: Xin quyền theo ngữ cảnh. Onboarding chỉ xin Location foreground + Notifications, non-blocking (allow/deny đều đi tiếp). Contacts/Camera/Photo Library xin tại màn dùng thật. Location background chỉ cho `app_taixe`.
 - **Impacted Projects**: app_user, app_taixe
 
+### D-0012: VNPay Payment Flow — FE aligns to BE, state machine gated (T-0075, 2026-07-09)
+- **Context**: VNPay signing must be deterministic (signed string == URL query); app state must transition only on confirmed payment, not browser close.
+- **Decision**: (1) FE DTO aligns to BE `CreateVnpayUrlParams { booking_id, amount, order_info, client_ip }` — FE shapes data to match BE, never vice versa. (2) `app_user` gates `LOOKING` transition on confirmed payment via WS `booking.payment_success` OR `GET /payments/:bookingId` poll returning `SUCCESSFUL`. (3) Backend signing uses single RFC3986 encoder (`encodeURIComponent`), `%20` for spaces, sorted keys — ensures signed bytes are byte-identical to URL query for VNPay callback re-verification.
+- **Impacted Projects**: app_user, nestjs_prisma
+
 ---
 
 ## Superseded

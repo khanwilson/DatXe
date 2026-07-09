@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { bookingService, CreateBookingDto } from 'api/services/bookingService';
-import { paymentService } from 'api/services/paymentService';
+import { paymentService, CreateVnpayUrlParams } from 'api/services/paymentService';
 
 export const useCreateBooking = () => {
   return useMutation({
@@ -13,7 +13,7 @@ export const useCreateBooking = () => {
 
 export const useCreateVnpayUrl = () => {
   return useMutation({
-    mutationFn: (bookingId: string) => paymentService.createVnpayUrl(bookingId),
+    mutationFn: (params: CreateVnpayUrlParams) => paymentService.createVnpayUrl(params),
     onError: (error) => {
       console.error('[useCreateVnpayUrl] failed:', error);
     },

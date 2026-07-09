@@ -7,7 +7,6 @@ set -e
 
 HARNESS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TASKS_DIR="$HARNESS_ROOT/.harness/tasks"
-TEMPLATES_DIR="$HARNESS_ROOT/.harness/templates"
 
 if [ $# -lt 1 ]; then
   echo "Usage: $0 \"Task title\""

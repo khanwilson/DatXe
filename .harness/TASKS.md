@@ -1,9 +1,9 @@
 # Task Registry
 
-**Last Updated**: 2026-07-09 (T-0075 created)  
+**Last Updated**: 2026-07-09  
 **Total Tasks**: 66  
-**Completed**: 22  
-**In Progress**: 1  
+**Completed**: 23  
+**In Progress**: 0  
 **Blocked**: 0  
 **Cancelled**: 5
 
@@ -67,7 +67,7 @@
 | T-0063 | BE: Dispatch Module (find nearest driver) | Done | Done | P0 | T-0062 | nestjs_prisma | [T-0063](tasks/T-0063/) |
 | T-0064 | FE app_user: Booking submit + VNPay payment flow | Done | Done | P0 | T-0062 | app_user | [T-0064](tasks/T-0064/) |
 | T-0065 | FE app_user: ActiveTripScreen sau payment | Cancelled | Created | P0 | T-0064 | app_user | [T-0065](tasks/T-0065/) — superseded by T-0071 |
-| T-0075 | VNPay Sandbox End-to-End Wiring (bỏ mock hardcode) | In Progress | Planning | P0 | T-0062, T-0064 | nestjs_prisma, app_user | [T-0075](tasks/T-0075/) |
+| T-0075 | VNPay Sandbox End-to-End Wiring (bỏ mock hardcode) | Done | Done | P0 | T-0062, T-0064 | nestjs_prisma, app_user | [T-0075](tasks/T-0075/) |
 
 ### Wave Trip Flow: Payment → Driver → Hoàn Thành
 

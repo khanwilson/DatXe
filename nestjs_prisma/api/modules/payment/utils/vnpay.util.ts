@@ -1,5 +1,37 @@
 import * as crypto from 'crypto';
-import * as querystring from 'querystring';
+
+/**
+ * RFC3986-style component encoding. Spaces become %20 (not `+`). The exact same
+ * encoding is applied to both the signed data and the final query string, so the
+ * HMAC always covers the identical bytes that appear in the returned URL.
+ *
+ * ponytail: VNPay's official 2.1.0 sample uses `+` for spaces
+ * (encodeURIComponent(v).replace(/%20/g,'+')). We deliberately keep %20 and require
+ * callers to send a space-free vnp_OrderInfo, so the two conventions are equivalent.
+ * If any signed value ever contains spaces, switch encodeVnp to the `+` convention
+ * to stay VNPay-compatible.
+ */
+const encodeVnp = (value: string): string => encodeURIComponent(value);
+
+/**
+ * Build the canonical `key=value&...` query string from already-sorted params.
+ * Keys are all `vnp_*` (ASCII, no encoding needed); values are RFC3986-encoded.
+ * This single string is used for both signing and the returned URL.
+ */
+function buildSignData(sorted: Record<string, string>): string {
+  return Object.keys(sorted)
+    .map((key) => `${key}=${encodeVnp(sorted[key])}`)
+    .join('&');
+}
+
+function sortParams(params: Record<string, string>): Record<string, string> {
+  return Object.keys(params)
+    .sort()
+    .reduce<Record<string, string>>((acc, key) => {
+      acc[key] = params[key];
+      return acc;
+    }, {});
+}
 
 export function buildVnpayUrl(
   baseUrl: string,
@@ -29,21 +61,14 @@ export function buildVnpayUrl(
     vnp_CreateDate: params.createDate,
   };
 
-  const sorted = Object.keys(vnpParams)
-    .sort()
-    .reduce<Record<string, string>>((acc, key) => {
-      acc[key] = vnpParams[key];
-      return acc;
-    }, {});
+  const sorted = sortParams(vnpParams);
 
-  const signData = querystring.stringify(sorted, undefined, undefined, {
-    encodeURIComponent: (s) => s,
-  });
+  // Sign the exact same encoded string that goes into the URL.
+  const signData = buildSignData(sorted);
   const hmac = crypto.createHmac('sha512', hashSecret);
   const signed = hmac.update(signData, 'utf-8').digest('hex');
 
-  sorted['vnp_SecureHash'] = signed;
-  return `${baseUrl}?${querystring.stringify(sorted)}`;
+  return `${baseUrl}?${signData}&vnp_SecureHash=${signed}`;
 }
 
 export function verifyVnpayCallback(
@@ -57,16 +82,10 @@ export function verifyVnpayCallback(
   delete params['vnp_SecureHash'];
   delete params['vnp_SecureHashType'];
 
-  const sorted = Object.keys(params)
-    .sort()
-    .reduce<Record<string, string>>((acc, key) => {
-      acc[key] = params[key];
-      return acc;
-    }, {});
+  const sorted = sortParams(params);
 
-  const signData = querystring.stringify(sorted, undefined, undefined, {
-    encodeURIComponent: (s) => s,
-  });
+  // Re-encode with the same scheme used when building the URL.
+  const signData = buildSignData(sorted);
   const hmac = crypto.createHmac('sha512', hashSecret);
   const signed = hmac.update(signData, 'utf-8').digest('hex');
 

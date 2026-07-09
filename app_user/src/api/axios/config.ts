@@ -31,7 +31,7 @@ export const ENDPOINTS = {
   },
   // Payment
   PAYMENT: {
-    VNPAY_CREATE_URL: '/payments/vnpay/create-payment-url',
+    VNPAY_CREATE_URL: '/payments/vnpay',
     GET_STATUS: '/payments',
   },
 };

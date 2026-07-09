@@ -239,9 +239,6 @@ Each task goes through 8 phases:
 - `.harness/TASKS.md` - Task status & tracking
 - `.harness/CURRENT_TASK.md` - Current active task
 
-### Templates
-- `.harness/templates/` - 9 task document templates
-
 ### Task Folders
 - `.harness/tasks/T-XXXX-*/` - Individual task folders
 

@@ -51,6 +51,37 @@ const MOCK_VEHICLES: VehicleType[] = [
 
 const DRIVER_WAIT_TIMEOUT_MS = 90_000;
 
+// Dev-safe client IP: a mobile app cannot know its public IP, and VNPay only uses
+// vnp_IpAddr for auditing. Backend accepts any non-empty string.
+const CLIENT_IP_FALLBACK = '127.0.0.1';
+
+// Payment status polling fallback after the browser closes.
+// ponytail: ~60s poll ceiling; WS booking.payment_success is the fast path.
+// Bump attempts/interval if sandbox settlement is consistently slower.
+const POLL_INTERVAL_MS = 3000;
+const POLL_MAX_ATTEMPTS = 20;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// Poll GET /payments/:bookingId until the payment is confirmed. Returns true only
+// when VNPay actually reported success (status SUCCESSFUL) or WS already confirmed
+// it (isConfirmed). Never assumes success just because the browser closed.
+const pollPaymentSuccess = async (bookingId: string, isConfirmed: () => boolean): Promise<boolean> => {
+  for (let i = 0; i < POLL_MAX_ATTEMPTS; i++) {
+    if (isConfirmed()) return true;
+    try {
+      const res = await paymentService.getPaymentStatus(bookingId);
+      const status = res.data.status;
+      if (status === 'SUCCESSFUL') return true;
+      if (status === 'FAILED') return false;
+    } catch {
+      // Payment record may not exist yet or a transient error occurred — keep polling.
+    }
+    await wait(POLL_INTERVAL_MS);
+  }
+  return isConfirmed();
+};
+
 // 3. COMPONENT FUNCTION
 export default function BookingRouteScreen() {
   const theme = useAppTheme();
@@ -147,8 +178,12 @@ export default function BookingRouteScreen() {
     return () => clearTimeout(timer);
   }, [screenState]);
 
+  // Ref so the in-flight poll sees WS confirmation without a stale closure.
+  const wsConfirmedPaidRef = useRef(false);
+
   const handlePaymentSuccess = useCallback(() => {
-    // Payment confirmed via WS — stay in LOOKING state, waiting for driver
+    // Payment confirmed via WS — switch to LOOKING and mark ready.
+    wsConfirmedPaidRef.current = true;
     setScreenState('LOOKING');
   }, []);
 
@@ -188,7 +223,12 @@ export default function BookingRouteScreen() {
   }, []);
 
   useBookingSocket({
-    bookingId: screenState === 'LOOKING' || screenState === 'DRIVER_FOUND' ? (activeBookingId ?? null) : null,
+    bookingId:
+      screenState === 'LOOKING' ||
+      screenState === 'DRIVER_FOUND' ||
+      screenState === 'PAYMENT'
+        ? activeBookingId ?? null
+        : null,
     onPaymentSuccess: handlePaymentSuccess,
     onDriverAssigned: handleDriverAssigned,
     onNoDriverFound: handleNoDriverFound,
@@ -203,6 +243,8 @@ export default function BookingRouteScreen() {
     const selected = MOCK_VEHICLES.find((v) => v.id === selectedVehicleId);
     if (!selected) return;
 
+    const bookingAmount = selected.discountPrice ?? selected.realPrice;
+    wsConfirmedPaidRef.current = false;
     setScreenState('BOOKING');
 
     try {
@@ -217,7 +259,7 @@ export default function BookingRouteScreen() {
         dropoff_lng: savedDestination.lng,
         dropoff_address: savedDestination.address ?? savedDestination.name,
         vehicle_type: selected.id,
-        estimated_price: selected.discountPrice ?? selected.realPrice,
+        estimated_price: bookingAmount,
         distance: totalDistance / 1000,
         estimated_duration: Math.round(totalDuration / 60),
       };
@@ -225,20 +267,41 @@ export default function BookingRouteScreen() {
       const booking = await bookingService.createBooking(bookingDto);
       ZustandSession.getState().save('activeBookingId', booking.data.id);
 
-      const vnpayResult = await paymentService.createVnpayUrl(booking.data.id);
-      const paymentUrl = vnpayResult.data.paymentUrl;
+      // Safe booking reference (no spaces, URL-safe) with price for auditing.
+      // Ponytail: ASCII/URL limit; avoid unicode/diacritics.
+      const orderInfo = `DatXe Booking ${booking.data.id.slice(0, 8)}, ${Math.round(bookingAmount / 1000)}k VND`;
+
+      const vnpayParams = {
+        bookingId: booking.data.id,
+        amount: bookingAmount,
+        orderInfo,
+        clientIp: CLIENT_IP_FALLBACK,
+      };
+
+      const vnpayResult = await paymentService.createVnpayUrl(vnpayParams);
+      const paymentUrl = vnpayResult.data.payment_url; // field renamed
 
       setScreenState('PAYMENT');
       bookingModalRef.current?.dismiss();
 
       await WebBrowser.openBrowserAsync(paymentUrl, { dismissButtonStyle: 'close' });
 
-      // Browser closed — switch to LOOKING state (WS will confirm payment)
-      setScreenState('LOOKING');
-    } catch {
+      // Browser closed — do NOT assume payment succeeded. Verify real status.
+      const confirmed = wsConfirmedPaidRef.current || (await pollPaymentSuccess(booking.data.id, () => wsConfirmedPaidRef.current));
+
+      if (confirmed) {
+        setScreenState('LOOKING');
+      } else {
+        setScreenState('IDLE');
+        ZustandSession.getState().save('activeBookingId', null);
+        bookingModalRef.current?.present();
+        Alert.alert('Thanh toán thất bại', 'Không thể xác nhận thanh toán. Vui lòng thử lại.');
+      }
+    } catch (rawError) {
       setScreenState('IDLE');
       ZustandSession.getState().save('activeBookingId', null);
       bookingModalRef.current?.present();
+      console.error('[BookingRouteScreen] booking/payment failed:', rawError);
       Alert.alert('Đặt xe thất bại', 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.');
     }
   }, [effectiveOrigin, savedDestination, savedPickup, routeData, selectedVehicleId, directionsData]);
