@@ -11,6 +11,7 @@ import { useDirections } from 'api/hooks/useGoongPlace';
 import { bookingService, CreateBookingDto } from 'api/services/bookingService';
 import { paymentService } from 'api/services/paymentService';
 import { useBookingSocket } from 'api/socket/useBookingSocket';
+import { DRIVER_AVATAR_PLACEHOLDER } from 'constants/trip';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -151,8 +152,17 @@ export default function BookingRouteScreen() {
     setScreenState('LOOKING');
   }, []);
 
-  const handleDriverAssigned = useCallback(() => {
+  const handleDriverAssigned = useCallback((payload: import('api/socket/useBookingSocket').DriverAssignedPayload) => {
     setScreenState('DRIVER_FOUND');
+    ZustandSession.getState().save('activeTripId', payload.tripId ?? null);
+    ZustandSession.getState().save('driverInfo', {
+      driverId: payload.driverId,
+      name: payload.driverName,
+      avatar: payload.driverAvatar ?? DRIVER_AVATAR_PLACEHOLDER,
+      rating: payload.driverRating ?? 5.0,
+      vehicleModel: payload.vehicleModel,
+      plate: payload.vehiclePlate,
+    });
     const selected = MOCK_VEHICLES.find((v) => v.id === selectedVehicleId);
     router.push({
       pathname: '/ActiveTripScreen',
@@ -160,6 +170,12 @@ export default function BookingRouteScreen() {
         vehicleName: selected?.name ?? '',
         fare: String(selected?.discountPrice ?? selected?.realPrice ?? 0),
         bookingId: activeBookingId ?? '',
+        driverName: payload.driverName,
+        vehiclePlate: payload.vehiclePlate,
+        vehicleModel: payload.vehicleModel,
+        driverLat: String(payload.driverLat),
+        driverLng: String(payload.driverLng),
+        driverId: payload.driverId,
       },
     });
   }, [router, selectedVehicleId, activeBookingId]);

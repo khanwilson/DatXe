@@ -1,13 +1,13 @@
 // 1. IMPORTS
 import { useDirections } from 'api/hooks/useGoongPlace';
+import { useTripActions } from 'api/hooks/useTripActions';
 import { AppMap, AppMapHandle, MapBounds } from 'components/map/AppMap';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import { BackButton } from 'components/navigation/BackButton';
 import { TripStatusSheet } from 'components/trip/TripStatusSheet';
-import { useTripSimulation } from 'components/trip/useTripSimulation';
-import { MOCK_DRIVER } from 'constants/trip';
+import { MOCK_DRIVER, TripStatus } from 'constants/trip';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 import { decodePolyline, getBounds } from 'utils/functions/decodePolyline';
@@ -29,8 +29,8 @@ export default function ActiveTripScreen() {
   const mapRef = useRef<AppMapHandle>(null);
   const { camera, coordinate } = useCurrentLocation();
 
-  // Vehicle + fare carried over from the booking modal.
-  const params = useLocalSearchParams<{ vehicleName?: string; fare?: string }>();
+  const params = useLocalSearchParams<{ tripId?: string; vehicleName?: string; fare?: string; pickupLat?: string; pickupLng?: string; destLat?: string; destLng?: string }>();
+  const tripId = params.tripId ?? '';
   const vehicleName = params.vehicleName ?? '';
   const fare = params.fare ? Number(params.fare) : 0;
 
@@ -38,8 +38,10 @@ export default function ActiveTripScreen() {
   const savedDestination = ZustandSession((s) => s.selectedDestination);
 
   const [routeData, setRouteData] = useState<RouteData | null>(null);
+  const [status, setStatus] = useState<TripStatus>('IN_PROGRESS');
 
-  // Effective origin: saved pickup if present, else current device location.
+  const { startTrip, completeTrip, loading } = useTripActions();
+
   const effectiveOrigin = savedPickup
     ? { lat: savedPickup.lat, lng: savedPickup.lng }
     : coordinate
@@ -60,8 +62,6 @@ export default function ActiveTripScreen() {
   const destLat = savedDestination?.lat;
   const destLng = savedDestination?.lng;
 
-  // Build the route geometry once coordinates and directions resolve. Mirrors
-  // BookingRouteScreen so the trip screen shows the same polyline + markers.
   useEffect(() => {
     if (originLat == null || originLng == null || destLat == null || destLng == null) {
       return;
@@ -97,21 +97,6 @@ export default function ActiveTripScreen() {
     });
   }, [originLat, originLng, destLat, destLng, directionsData]);
 
-  const { status, driverCoord, cancel } = useTripSimulation({
-    route: routeData?.route ?? [],
-    origin: routeData?.origin ?? null,
-    destination: routeData?.destination ?? null,
-  });
-
-  // Follow the driver marker during the active legs; entry fit is handled by
-  // the bounds prop until the driver starts moving.
-  useEffect(() => {
-    if (!driverCoord) return;
-    if (status === 'EN_ROUTE' || status === 'IN_PROGRESS') {
-      mapRef.current?.moveCamera({ centerCoordinate: driverCoord, zoomLevel: 15 }, 800);
-    }
-  }, [driverCoord, status]);
-
   const summary = useMemo(
     () => ({
       fare,
@@ -121,15 +106,32 @@ export default function ActiveTripScreen() {
     [fare, directionsData],
   );
 
-  const leaveTrip = () => {
-    cancel();
+  const handleStartTrip = useCallback(async () => {
+    if (!tripId || loading) return;
+    await startTrip(tripId);
+    setStatus('IN_PROGRESS');
+  }, [tripId, loading, startTrip]);
+
+  const handleCompleteTrip = useCallback(async () => {
+    if (!tripId || loading) return;
+    await completeTrip(tripId);
+    ZustandSession.getState().save('selectedDestination', null);
+    ZustandSession.getState().save('selectedPickup', null);
+    router.replace({
+      pathname: '/TripCompleteScreen',
+      params: {
+        fare: String(fare),
+        distanceText: directionsData?.summary?.totalDistance?.text ?? '',
+        durationText: directionsData?.summary?.totalDuration?.text ?? '',
+      },
+    });
+  }, [tripId, loading, completeTrip, router, fare, directionsData]);
+
+  const handleCancel = useCallback(() => {
     ZustandSession.getState().save('selectedDestination', null);
     ZustandSession.getState().save('selectedPickup', null);
     router.replace('/(tabs)/HomeScreen');
-  };
-
-  // Only fit bounds before the driver starts moving to avoid fighting the follow camera.
-  const showBounds = status === 'FINDING';
+  }, [router]);
 
   return (
     <View style={styles.container}>
@@ -139,8 +141,7 @@ export default function ActiveTripScreen() {
         route={routeData?.route}
         origin={routeData?.origin}
         destination={routeData?.destination}
-        driver={driverCoord ?? undefined}
-        bounds={showBounds ? routeData?.bounds : undefined}
+        bounds={routeData?.bounds}
       />
       <View style={styles.backButtonContainer}>
         <BackButton />
@@ -151,8 +152,9 @@ export default function ActiveTripScreen() {
         vehicleName={vehicleName}
         fare={fare}
         summary={summary}
-        onCancel={leaveTrip}
-        onDone={leaveTrip}
+        onCancel={handleCancel}
+        onDone={handleCompleteTrip}
+        onStartTrip={handleStartTrip}
       />
     </View>
   );

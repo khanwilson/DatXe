@@ -1,6 +1,7 @@
 // 1. IMPORTS
 import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppMap } from 'components/map/AppMap';
 import { AppText } from 'components/text/AppText';
@@ -22,18 +23,29 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
+  const router = useRouter();
 
   const [isOnline, setIsOnline] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({ tripsToday: 0 });
 
   const { location, error: locationError, startBroadcasting, stopBroadcasting } = useDriverLocation();
 
-  // Handle new offer from WebSocket
   const handleNewOffer = useCallback((payload: NewOfferPayload) => {
     console.debug('[Dashboard] New offer received:', payload.offerId);
-    // TODO: Navigate to offer screen (T-0070)
-    // router.push(`/OfferScreen?offerId=${payload.offerId}`);
-  }, []);
+    router.push({
+      pathname: '/OfferScreen',
+      params: {
+        offerId: payload.offerId,
+        bookingId: payload.bookingId,
+        pickupAddress: payload.pickup.address,
+        pickupLat: String(payload.pickup.lat),
+        pickupLng: String(payload.pickup.lng),
+        destinationAddress: payload.destination.address,
+        fare: String(payload.fare),
+        expiresAt: payload.expiresAt,
+      },
+    });
+  }, [router]);
 
   // Wire up WebSocket listener
   useDriverSocket({

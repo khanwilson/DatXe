@@ -92,4 +92,23 @@ export interface iLocalization {
   dashboardGoOffline: string;
   dashboardTripsToday: string;
   dashboardWaitingForOffer: string;
+  // Offer screen
+  offerTitle: string;
+  offerPickup: string;
+  offerDestination: string;
+  offerFare: string;
+  offerAccept: string;
+  offerReject: string;
+  offerExpires: string;
+  // Pickup navigation
+  pickupNavigationTitle: string;
+  pickupAddress: string;
+  driverArrivedButton: string;
+  // Active trip (driver)
+  tripStartButton: string;
+  // Trip complete
+  tripCompleteTitle: string;
+  tripCompleteSubtitle: string;
+  tripFareLabel: string;
+  backToHome: string;
 }

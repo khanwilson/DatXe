@@ -94,5 +94,24 @@ const vi: iLocalization = {
   dashboardGoOffline: 'Dừng nhận cuốc',
   dashboardTripsToday: 'Cuốc hôm nay',
   dashboardWaitingForOffer: 'Đang chờ cuốc mới...',
+  // Offer screen
+  offerTitle: 'Cuốc xe mới',
+  offerPickup: 'Điểm đón',
+  offerDestination: 'Điểm đến',
+  offerFare: 'Cước phí',
+  offerAccept: 'Nhận cuốc',
+  offerReject: 'Bỏ qua',
+  offerExpires: 'Hết hạn sau',
+  // Pickup navigation
+  pickupNavigationTitle: 'Đến điểm đón',
+  pickupAddress: 'Địa điểm đón khách',
+  driverArrivedButton: 'Tôi đã đến',
+  // Active trip (driver)
+  tripStartButton: 'Bắt đầu chuyến',
+  // Trip complete
+  tripCompleteTitle: 'Chuyến đi hoàn tất',
+  tripCompleteSubtitle: 'Cảm ơn bạn đã phục vụ',
+  tripFareLabel: 'Tổng cước phí',
+  backToHome: 'Về trang chủ',
 }
 export default vi;

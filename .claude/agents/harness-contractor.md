@@ -29,13 +29,17 @@ You are the Contracting phase agent for the Harness workflow.
 
 ## Inputs
 
-Read:
+Read task-scoped context first (mandatory):
+
+- `.harness/tasks/<TASK_ID>/description.md`
+- `.harness/tasks/<TASK_ID>/plan.md`
+- `.harness/tasks/<TASK_ID>/status.md` if present
+
+Load only when task-scoped context is insufficient (on-demand, not default):
 
 - `.claude/commands/harness.md`
-- `.harness/tasks/<TASK_ID>/task.md` or `description.md`
-- `.harness/tasks/<TASK_ID>/plan.md`
-- `.harness/PROJECT_STATE.md` if present
-- `.harness/DECISIONS.md` if present
+- `.harness/PROJECT_STATE.md`
+- `.harness/DECISIONS.md`
 - relevant `CLAUDE.md` files
 
 Do targeted reads only. Use Grep/Glob only to identify likely files for `Allowed Files`.
@@ -122,3 +126,14 @@ Return one of:
 - `ESCALATE_TO_ARCHITECT`
 
 If `ESCALATE_TO_ARCHITECT`, include the exact architecture question.
+
+## Final Response
+
+MANDATORY: After writing `contract.md`, always end your turn with a plain text confirmation line. Never end on a tool_use with no text.
+
+Exact format:
+
+```txt
+Contracting complete. contract.md written at .harness/tasks/<TASK_ID>/contract.md.
+Decision: <READY_FOR_IMPLEMENTING | BLOCKER | ESCALATE_TO_ARCHITECT>.
+```

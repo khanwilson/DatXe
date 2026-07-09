@@ -1,9 +1,9 @@
 # Task Registry
 
-**Last Updated**: 2026-07-08  
-**Total Tasks**: 65  
-**Completed**: 20  
-**In Progress**: 0  
+**Last Updated**: 2026-07-09 (T-0075 created)  
+**Total Tasks**: 66  
+**Completed**: 22  
+**In Progress**: 1  
 **Blocked**: 0  
 **Cancelled**: 5
 
@@ -67,17 +67,18 @@
 | T-0063 | BE: Dispatch Module (find nearest driver) | Done | Done | P0 | T-0062 | nestjs_prisma | [T-0063](tasks/T-0063/) |
 | T-0064 | FE app_user: Booking submit + VNPay payment flow | Done | Done | P0 | T-0062 | app_user | [T-0064](tasks/T-0064/) |
 | T-0065 | FE app_user: ActiveTripScreen sau payment | Cancelled | Created | P0 | T-0064 | app_user | [T-0065](tasks/T-0065/) — superseded by T-0071 |
+| T-0075 | VNPay Sandbox End-to-End Wiring (bỏ mock hardcode) | In Progress | Planning | P0 | T-0062, T-0064 | nestjs_prisma, app_user | [T-0075](tasks/T-0075/) |
 
 ### Wave Trip Flow: Payment → Driver → Hoàn Thành
 
 | ID | Title | Status | Phase | Priority | Depends On | Projects | Folder |
 |----|-------|--------|-------|----------|-----------|----------|--------|
-| T-0067 | Wave Trip Flow Master Plan | In Progress | Planning | P0 | - | all | [T-0067](tasks/T-0067/) |
+| T-0067 | Wave Trip Flow Master Plan | Done | Done | P0 | - | all | [T-0067](tasks/T-0067/) |
 | T-0068 | BE: Driver Location & Dispatch Enhancement | Done | Done | P0 | T-0062, T-0063 | nestjs_prisma | [T-0068](tasks/T-0068/) |
 | T-0068.1 | BE: Trip Cancellation, Retry & Cashback | Done | Done | P0 | T-0062, T-0063, T-0068 | nestjs_prisma | [T-0068.1](tasks/T-0068.1/) |
-| T-0069 | FE app_taixe: Foundation (Mapbox + Auth + Dashboard) | Planned | Created | P0 | T-0055, T-0058 | app_taixe | [T-0069](tasks/T-0069/) |
-| T-0070 | FE app_taixe: Trip Flow (Offer → Pickup → Dropoff → Complete) | Planned | Created | P0 | T-0068, T-0069 | app_taixe | [T-0070](tasks/T-0070/) |
-| T-0071 | FE app_user: Trip Flow (Looking → Pickup → Dropoff → Complete) | Planned | Created | P0 | T-0064, T-0068 | app_user | [T-0071](tasks/T-0071/) |
+| T-0069 | FE app_taixe: Foundation (Mapbox + Auth + Dashboard) | Done | Done | P0 | T-0055, T-0058 | app_taixe | [T-0069](tasks/T-0069/) |
+| T-0070 | FE app_taixe: Trip Flow (Offer → Pickup → Dropoff → Complete) | Done | Done | P0 | T-0068, T-0069 | app_taixe | [T-0070](tasks/T-0070/) |
+| T-0071 | FE app_user: Trip Flow (Looking → Pickup → Dropoff → Complete) | Done | Done | P0 | T-0064, T-0068 | app_user | [T-0071](tasks/T-0071/) |
 | T-0072 | Integration & Realtime Wiring | Planned | Created | P0 | T-0068, T-0070, T-0071 | all | [T-0072](tasks/T-0072/) |
 | T-0073 | BE: Driver Online/Offline & Stats API | Done | Done | P0 | T-0068 | nestjs_prisma | [T-0073](tasks/T-0073/) |
 | T-0074 | Hoàn thiện flow đăng nhập Phone + OTP (app_user + app_taixe) | Done | Done | P0 | T-0003 | nestjs_prisma, app_user, app_taixe | [T-0074](tasks/T-0074/) |

@@ -50,7 +50,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Mai Linh cần vị trí của bạn để tìm xe ở gần và đón bạn chính xác."
+          "locationWhenInUsePermission": "Mai Linh cần vị trí của bạn để tìm cuốc xe ở gần bạn."
         }
       ],
       "expo-notifications"

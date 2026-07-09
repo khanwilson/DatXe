@@ -32,16 +32,21 @@ Use this agent instead of `harness-planner` when planning itself is complex.
 
 ## Inputs
 
-Read targeted context first:
+Read task-scoped context first (mandatory):
+
+- `.harness/tasks/<TASK_ID>/description.md`
+- `.harness/tasks/<TASK_ID>/status.md` if present
+- `.harness/tasks/<TASK_ID>/handoff.md` if present
+
+Load only when task-scoped context is insufficient (on-demand, not default):
 
 - `.claude/commands/harness.md`
-- `.harness/tasks/<TASK_ID>/task.md` or `description.md`
-- `.harness/PROJECT_STATE.md` if present
-- `.harness/DECISIONS.md` if present
+- `.harness/PROJECT_STATE.md`
+- `.harness/DECISIONS.md`
 - relevant `CLAUDE.md` files
 - explicitly referenced files
 
-Use broader exploration only when needed, and record why.
+Use broader exploration only when needed, and record why in the plan.
 
 ## Use For
 
@@ -99,4 +104,13 @@ Waiting for user approval before Contracting.
 
 ## Final Response
 
-After writing the plan, stop for user approval.
+MANDATORY: After writing `plan.md`, always end your turn with a plain text confirmation line. Never end on a tool_use with no text.
+
+Exact format:
+
+```txt
+Planning complete. plan.md is ready for review at .harness/tasks/<TASK_ID>/plan.md.
+Please approve the plan to continue to Contracting.
+```
+
+Stop for user approval. Do not ask to continue any later phase.

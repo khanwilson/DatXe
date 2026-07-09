@@ -1,11 +1,11 @@
 // 1. IMPORTS
 import { useDirections } from 'api/hooks/useGoongPlace';
+import { useTripSocket } from 'api/hooks/useTripSocket';
 import { AppMap, AppMapHandle, MapBounds } from 'components/map/AppMap';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import { BackButton } from 'components/navigation/BackButton';
 import { TripStatusSheet } from 'components/trip/TripStatusSheet';
-import { useTripSimulation } from 'components/trip/useTripSimulation';
-import { MOCK_DRIVER } from 'constants/trip';
+import { DriverInfo } from 'constants/trip';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -29,10 +29,41 @@ export default function ActiveTripScreen() {
   const mapRef = useRef<AppMapHandle>(null);
   const { camera, coordinate } = useCurrentLocation();
 
-  // Vehicle + fare carried over from the booking modal.
-  const params = useLocalSearchParams<{ vehicleName?: string; fare?: string }>();
+  // Vehicle + fare + driver info carried over from BookingRouteScreen.
+  const params = useLocalSearchParams<{
+    vehicleName?: string;
+    fare?: string;
+    bookingId?: string;
+    driverId?: string;
+    driverName?: string;
+    driverPhone?: string;
+    vehiclePlate?: string;
+    vehicleModel?: string;
+    driverLat?: string;
+    driverLng?: string;
+  }>();
   const vehicleName = params.vehicleName ?? '';
   const fare = params.fare ? Number(params.fare) : 0;
+  const bookingId = params.bookingId ?? null;
+
+  // Rehydrate driver info from nav params; fall back to Zustand if screen was remounted.
+  const sessionDriverInfo = ZustandSession((s) => s.driverInfo);
+  const initialDriverInfo: DriverInfo | null = useMemo(() => {
+    if (params.driverId && params.driverName) {
+      return {
+        driverId: params.driverId,
+        name: params.driverName,
+        phone: params.driverPhone,
+        rating: 5.0,
+        vehicleModel: params.vehicleModel ?? vehicleName,
+        plate: params.vehiclePlate ?? '',
+        lat: params.driverLat ? Number(params.driverLat) : undefined,
+        lng: params.driverLng ? Number(params.driverLng) : undefined,
+      };
+    }
+    return sessionDriverInfo ?? null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const savedPickup = ZustandSession((s) => s.selectedPickup);
   const savedDestination = ZustandSession((s) => s.selectedDestination);
@@ -97,10 +128,9 @@ export default function ActiveTripScreen() {
     });
   }, [originLat, originLng, destLat, destLng, directionsData]);
 
-  const { status, driverCoord, cancel } = useTripSimulation({
-    route: routeData?.route ?? [],
-    origin: routeData?.origin ?? null,
-    destination: routeData?.destination ?? null,
+  const { status, driverCoord, driverInfo, cancel } = useTripSocket({
+    bookingId,
+    initialDriverInfo,
   });
 
   // Follow the driver marker during the active legs; entry fit is handled by
@@ -147,7 +177,7 @@ export default function ActiveTripScreen() {
       </View>
       <TripStatusSheet
         status={status}
-        driver={MOCK_DRIVER}
+        driver={driverInfo}
         vehicleName={vehicleName}
         fare={fare}
         summary={summary}

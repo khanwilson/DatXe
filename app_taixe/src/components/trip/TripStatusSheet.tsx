@@ -24,6 +24,7 @@ interface IProps {
   summary: TripSummary;
   onCancel: () => void;
   onDone: () => void;
+  onStartTrip?: () => void;
 }
 
 const formatPrice = (price: number): string => price.toLocaleString('vi-VN') + 'đ';
@@ -45,6 +46,7 @@ export const TripStatusSheet: React.FC<IProps> = ({
   summary,
   onCancel,
   onDone,
+  onStartTrip,
 }) => {
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
@@ -107,6 +109,24 @@ export const TripStatusSheet: React.FC<IProps> = ({
             <AppText style={styles.summaryValueFare}>{formatPrice(summary.fare)}</AppText>
           </View>
         </View>
+      )}
+
+      {status === 'ARRIVED' && onStartTrip && (
+        <AppButton
+          style={styles.startButton}
+          textStyle={styles.startText}
+          text={getString('tripStartButton')}
+          onPress={onStartTrip}
+        />
+      )}
+
+      {status === 'IN_PROGRESS' && (
+        <AppButton
+          style={styles.doneButton}
+          textStyle={styles.doneText}
+          text={getString('tripDone')}
+          onPress={onDone}
+        />
       )}
 
       {canCancel && (
@@ -262,8 +282,20 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     fontWeight: '700',
     color: theme.color.primary.actionGreen,
   },
-  cancelButton: {
+  startButton: {
     marginTop: theme.dimensions.p16,
+    paddingVertical: theme.dimensions.p16,
+    borderRadius: theme.dimensions.p12,
+    backgroundColor: theme.color.primary.actionGreen,
+    alignItems: 'center',
+  },
+  startText: {
+    fontSize: theme.fontSize.p16,
+    fontWeight: '700',
+    color: theme.color.white,
+  },
+  cancelButton: {
+    marginTop: theme.dimensions.p12,
     paddingVertical: theme.dimensions.p16,
     borderRadius: theme.dimensions.p12,
     borderWidth: 1,

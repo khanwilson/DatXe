@@ -28,19 +28,24 @@ You are the Architect phase/escalation agent for the Harness workflow.
 
 ## Inputs
 
-Read relevant files only:
+Read task-scoped context first (mandatory):
 
-- `.claude/commands/harness.md`
-- `.harness/PROJECT_STATE.md` if present
-- `.harness/DECISIONS.md` if present
-- `.harness/tasks/<TASK_ID>/task.md` or `description.md`
+- `.harness/tasks/<TASK_ID>/description.md`
 - `.harness/tasks/<TASK_ID>/plan.md` if present
 - `.harness/tasks/<TASK_ID>/contract.md` if present
 - `.harness/tasks/<TASK_ID>/decisions.md` if present
+- `.harness/tasks/<TASK_ID>/evaluation.md` if the escalation came from Evaluating
+- `.harness/tasks/<TASK_ID>/review.md` if the escalation came from Reviewing
+
+Load only when task-scoped context is insufficient (on-demand, not default):
+
+- `.claude/commands/harness.md`
+- `.harness/PROJECT_STATE.md`
+- `.harness/DECISIONS.md`
 - relevant `CLAUDE.md` files
 - code/config files necessary to understand the boundary
 
-Avoid broad exploration unless the architecture question cannot be answered with targeted reads.
+Avoid broad exploration unless the architecture question cannot be answered with targeted reads. Record which global files were needed in `## Context Read`.
 
 ## Use This Agent When
 
@@ -113,4 +118,15 @@ Architect
 
 ### After User Answers
 Harness should continue automatically from <phase>.
+```
+
+## Final Response
+
+MANDATORY: After writing `architecture.md` (or the BLOCKER block), always end your turn with a plain text confirmation line. Never end on a tool_use with no text.
+
+Exact format:
+
+```txt
+Architect complete. architecture.md written at .harness/tasks/<TASK_ID>/architecture.md.
+Recommendation: <one-line summary>.
 ```

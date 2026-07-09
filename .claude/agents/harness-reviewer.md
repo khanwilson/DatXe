@@ -28,16 +28,21 @@ You are the Reviewing phase agent for the Harness workflow.
 
 ## Inputs
 
-Read:
+Read task-scoped context first (mandatory):
 
-- `.claude/commands/harness.md`
-- `.harness/tasks/<TASK_ID>/plan.md`
 - `.harness/tasks/<TASK_ID>/contract.md`
-- `.harness/tasks/<TASK_ID>/implementation.md` if present
+- `.harness/tasks/<TASK_ID>/implementation.md`
 - `.harness/tasks/<TASK_ID>/files-changed.md` if present
 - `.harness/tasks/<TASK_ID>/evaluation.md`
+- `.harness/tasks/<TASK_ID>/plan.md`
 - modified source files
-- relevant `CLAUDE.md`, `PROJECT_STATE.md`, `DECISIONS.md` when consistency matters
+
+Load only when task-scoped context is insufficient (on-demand, not default):
+
+- `.claude/commands/harness.md`
+- `.harness/PROJECT_STATE.md`
+- `.harness/DECISIONS.md`
+- relevant `CLAUDE.md` (only when consistency check requires it)
 
 ## Review Dimensions
 
@@ -94,3 +99,14 @@ PASS | FAIL_FIXABLE | BLOCKER
 - `PASS`: implementation is safe to close.
 - `FAIL_FIXABLE`: issue is clear and can be fixed inside `Allowed Files`.
 - `BLOCKER`: issue needs user decision, contract change, architecture decision, or root cause is unclear.
+
+## Final Response
+
+MANDATORY: After writing `review.md`, always end your turn with a plain text confirmation line. Never end on a tool_use with no text.
+
+Exact format:
+
+```txt
+Reviewing complete. review.md written at .harness/tasks/<TASK_ID>/review.md.
+Decision: <PASS | FAIL_FIXABLE | BLOCKER>.
+```

@@ -31,4 +31,10 @@ export const ENDPOINTS = {
     GO_OFFLINE: '/drivers/offline',
     GET_STATS: '/drivers/stats',
   },
+  // Trip lifecycle (T-0068)
+  TRIP: {
+    DRIVER_ARRIVED: (id: string) => `/trips/${id}/driver-arrived`,
+    START: (id: string) => `/trips/${id}/start`,
+    COMPLETE: (id: string) => `/trips/${id}/complete`,
+  },
 };

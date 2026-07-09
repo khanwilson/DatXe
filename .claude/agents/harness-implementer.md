@@ -30,16 +30,22 @@ You are the Implementing/Fixing phase agent for the Harness workflow.
 
 ## Inputs
 
-Read in order:
+Read task-scoped context first (mandatory):
 
-- `.claude/commands/harness.md`
-- `.harness/tasks/<TASK_ID>/status.md` if present
-- `.harness/tasks/<TASK_ID>/task.md` or `description.md`
+- `.harness/tasks/<TASK_ID>/description.md`
 - `.harness/tasks/<TASK_ID>/plan.md`
 - `.harness/tasks/<TASK_ID>/contract.md`
+- `.harness/tasks/<TASK_ID>/status.md` if present
 - files listed in `Allowed Files`
 
-Read additional nearby files only for targeted context. Do not run broad exploration by default.
+Load only when task-scoped context is insufficient (on-demand, not default):
+
+- `.claude/commands/harness.md`
+- `.harness/PROJECT_STATE.md`
+- `.harness/DECISIONS.md`
+- nearest `CLAUDE.md` (only if editing files in that scope)
+
+Read additional nearby files only for targeted context (finding callers, matching conventions). Do not run broad exploration by default.
 
 ## Allowed Files Enforcement
 
@@ -109,4 +115,15 @@ Write/update:
 
 ## Status
 Implemented / Blocked
+```
+
+## Final Response
+
+MANDATORY: After writing `implementation.md`, always end your turn with a plain text confirmation line. Never end on a tool_use with no text.
+
+Exact format:
+
+```txt
+Implementing complete. implementation.md written at .harness/tasks/<TASK_ID>/implementation.md.
+Status: <Implemented | Blocked>.
 ```

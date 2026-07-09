@@ -94,5 +94,24 @@ const en: iLocalization = {
   dashboardGoOffline: 'Stop accepting rides',
   dashboardTripsToday: 'Trips today',
   dashboardWaitingForOffer: 'Waiting for new offers...',
+  // Offer screen
+  offerTitle: 'New ride offer',
+  offerPickup: 'Pickup',
+  offerDestination: 'Destination',
+  offerFare: 'Fare',
+  offerAccept: 'Accept',
+  offerReject: 'Decline',
+  offerExpires: 'Expires in',
+  // Pickup navigation
+  pickupNavigationTitle: 'Navigate to pickup',
+  pickupAddress: 'Pickup location',
+  driverArrivedButton: 'I have arrived',
+  // Active trip (driver)
+  tripStartButton: 'Start trip',
+  // Trip complete
+  tripCompleteTitle: 'Trip completed',
+  tripCompleteSubtitle: 'Thank you for your service',
+  tripFareLabel: 'Total fare',
+  backToHome: 'Back to home',
 }
 export default en;

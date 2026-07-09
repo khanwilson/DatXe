@@ -302,6 +302,64 @@ This applies to:
 
 ---
 
+## Empty Subagent Response Recovery
+
+Subagents sometimes end their turn with a tool_use (e.g. Write plan.md) and emit no final text block, or their stream is cut mid-response by upstream timeouts (524). In both cases the SDK returns an empty string to Harness even though the artifact on disk may be complete.
+
+Harness MUST NOT treat an empty subagent response as failure by default.
+
+Instead, when a subagent returns empty or whitespace-only text, run this recovery procedure:
+
+1. Compute the expected artifact path(s) for that phase (see Expected Artifacts table below).
+2. Check each expected artifact:
+   - If the file exists AND has meaningful content (non-empty, contains at least one required template heading), treat the phase as **succeeded**. Read the file and continue.
+   - If the file is missing OR clearly incomplete (empty, only frontmatter, no required heading), treat as a real failure.
+3. On real failure, retry the subagent delegation exactly ONCE with the same input.
+4. If retry still fails (empty + no artifact), stop with a Blocker Format entry describing the empty response.
+
+Do NOT silently re-do the phase inline in the main Harness context. Delegation is mandatory; the inline fallback is a last resort only after retry has failed and only for Planning (the one phase whose output is a document, not code).
+
+### Expected Artifacts per Phase
+
+| Phase | Required artifact | Minimum content check |
+|---|---|---|
+| Planning | `.harness/tasks/T-XXXX/plan.md` | Contains `## Goal` and `## Proposed Approach` |
+| Contracting | `.harness/tasks/T-XXXX/contract.md` | Contains `## Scope` and `## Allowed Files` |
+| Implementing | `.harness/tasks/T-XXXX/implementation.md` | Contains `## Summary` and `## Files Changed` |
+| Evaluating | `.harness/tasks/T-XXXX/evaluation.md` | Contains `## Decision` with PASS/FAIL_FIXABLE/BLOCKER |
+| Reviewing | `.harness/tasks/T-XXXX/review.md` | Contains `## Decision` with PASS/FAIL_FIXABLE/BLOCKER |
+| Closing | `.harness/tasks/T-XXXX/handoff.md` | Contains `## Final Status` |
+| Architect | `.harness/tasks/T-XXXX/architecture.md` | Contains `## Decision / Recommendation` |
+
+Preferred check command:
+
+```bash
+test -s .harness/tasks/T-XXXX/plan.md && grep -q '^## Goal' .harness/tasks/T-XXXX/plan.md
+```
+
+---
+
+## Lazy Context Loading
+
+Harness and every delegated subagent MUST load context lazily. The goal is to keep prompt size small so subagents complete faster and are less likely to hit 524 mid-stream.
+
+Rules:
+
+1. **Task-scoped files first, always.** Read only:
+   - `.harness/tasks/T-XXXX/description.md`
+   - `.harness/tasks/T-XXXX/decisions.md` (if exists)
+   - `.harness/tasks/T-XXXX/status.md` (if exists)
+   - Previous-phase artifacts inside the same task folder (e.g. Contractor reads `plan.md`; Implementer reads `plan.md` + `contract.md`)
+2. **Global state files are on-demand only.** Do NOT preload `.harness/PROJECT_STATE.md`, `.harness/TASKS.md`, or root `CLAUDE.md` at phase start.
+   Load a global file only when the task-scoped context makes it clear the file is needed (e.g. task touches auth → read the auth section of `PROJECT_STATE.md`;).
+3. **Nearest CLAUDE.md is on-demand.** Only read the nearest `CLAUDE.md` if the task edits files in that scope AND the phase is Contracting/Implementing/Reviewing.
+4. **No broad Explore by default.** Grep/Glob only for targeted lookups (finding the file to edit, finding callers of a function). Never `find` the whole repo.
+5. **TASKS.md is written, not read.** Planners/Closers append/update rows in `TASKS.md` but must not load the full file into context if a targeted edit is sufficient.
+
+If a subagent finds it truly cannot complete without a global file, it may read that specific file, but must record in its output artifact which global file it needed and why. This lets us tune the defaults later.
+
+---
+
 
 ## Pipeline
 
@@ -363,14 +421,13 @@ Planning must be delegated to:
 subagent_type: harness-planner
 ```
 
-Planner reads targeted context only:
+Planner reads task-scoped context first:
 
-- `.harness/tasks/T-XXXX/description.md`
-- Existing `.harness/tasks/T-XXXX/handoff.md` if present
-- Relevant `PROJECT_STATE.md`
-- Relevant `DECISIONS.md`
-- Nearest `CLAUDE.md`
-- Files explicitly referenced by the task
+- `.harness/tasks/T-XXXX/description.md` (mandatory)
+- `.harness/tasks/T-XXXX/status.md` if present
+- `.harness/tasks/T-XXXX/handoff.md` if present
+
+Expand to global/nearest context only when the task-scoped read is not enough (see `## Lazy Context Loading`). Load `PROJECT_STATE.md` / `DECISIONS.md` / nearest `CLAUDE.md` on-demand, not by default.
 
 Planner must not run broad Explore by default.
 

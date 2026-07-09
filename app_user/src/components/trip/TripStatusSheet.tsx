@@ -2,7 +2,7 @@
 import { AppButton } from 'components/button/AppButton';
 import { RenderImage } from 'components/image/RenderImage';
 import { AppText } from 'components/text/AppText';
-import { MockDriver, TripStatus } from 'constants/trip';
+import { DriverInfo, TripStatus } from 'constants/trip';
 import { iLocalization } from 'localization/iLocalization';
 import { getString } from 'localization/index';
 import React, { useMemo } from 'react';
@@ -18,7 +18,7 @@ interface TripSummary {
 
 interface IProps {
   status: TripStatus;
-  driver: MockDriver;
+  driver: DriverInfo | null;
   vehicleName: string;
   fare: number;
   summary: TripSummary;
@@ -64,13 +64,13 @@ export const TripStatusSheet: React.FC<IProps> = ({
         </View>
       )}
 
-      {showDriverCard && (
+      {showDriverCard && driver && (
         <View style={styles.driverCard}>
           <RenderImage source={driver.avatar} style={styles.avatar} />
           <View style={styles.driverInfo}>
             <AppText style={styles.driverName}>{driver.name}</AppText>
             <AppText style={styles.driverMeta}>
-              ⭐ {driver.rating.toFixed(1)} · {driver.vehicleModel}
+              ⭐ {(driver.rating ?? 0).toFixed(1)} · {driver.vehicleModel}
             </AppText>
             <AppText style={styles.driverPlate}>{driver.plate}</AppText>
           </View>
@@ -85,7 +85,7 @@ export const TripStatusSheet: React.FC<IProps> = ({
         </View>
       )}
 
-      {showDriverCard && (
+      {showDriverCard && driver && (
         <View style={styles.tripMetaRow}>
           <AppText style={styles.tripMetaLabel}>{vehicleName}</AppText>
           <AppText style={styles.tripMetaValue}>{formatPrice(fare)}</AppText>

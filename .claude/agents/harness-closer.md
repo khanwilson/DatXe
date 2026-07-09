@@ -27,7 +27,7 @@ You are the Closing phase agent for the Harness workflow.
 
 ## Inputs
 
-Read:
+Read task-scoped context only (mandatory):
 
 - `.harness/tasks/<TASK_ID>/plan.md`
 - `.harness/tasks/<TASK_ID>/contract.md`
@@ -36,6 +36,8 @@ Read:
 - `.harness/tasks/<TASK_ID>/evaluation.md`
 - `.harness/tasks/<TASK_ID>/review.md`
 - `.harness/tasks/<TASK_ID>/decisions.md` if present
+
+Do not read `PROJECT_STATE.md` / `DECISIONS.md` / `TASKS.md` unless the review explicitly says a durable update is required.
 
 ## Output Artifacts
 
@@ -107,4 +109,15 @@ None
 
 ## Done Status
 Done
+```
+
+## Final Response
+
+MANDATORY: After writing `handoff.md` and `status.md`, always end your turn with a plain text confirmation line. Never end on a tool_use with no text.
+
+Exact format:
+
+```txt
+Closing complete. handoff.md written at .harness/tasks/<TASK_ID>/handoff.md.
+Final Status: <Done | Blocked>.
 ```

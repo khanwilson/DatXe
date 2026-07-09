@@ -30,14 +30,21 @@ You are the Planning phase agent for the Harness workflow.
 
 ## Inputs
 
-Read first:
+Read task-scoped context first (mandatory):
+
+- `.harness/tasks/<TASK_ID>/description.md`
+- `.harness/tasks/<TASK_ID>/status.md` if present
+- `.harness/tasks/<TASK_ID>/handoff.md` if present
+
+Load only when task-scoped context is insufficient (on-demand, not default):
 
 - `.claude/commands/harness.md`
-- `.harness/tasks/<TASK_ID>/task.md` or `description.md`
-- `.harness/PROJECT_STATE.md` if present
-- `.harness/DECISIONS.md` if present
+- `.harness/PROJECT_STATE.md`
+- `.harness/DECISIONS.md`
 - nearest `CLAUDE.md`
 - files explicitly referenced by the task
+
+Never preload the global state files. If a global file is opened, record which one and why in the plan's `## Current Context Read` section.
 
 ## Escalate Instead of Planning Inline When
 
@@ -90,10 +97,12 @@ Waiting for user approval before Contracting.
 
 ## Final Response
 
-After writing `plan.md`, respond:
+MANDATORY: After writing `plan.md`, always end your turn with a plain text confirmation line. Never end on a tool_use with no text. This tells Harness the phase succeeded even if the stream is cut.
+
+Exact format:
 
 ```txt
-Planning complete. plan.md is ready for review.
+Planning complete. plan.md is ready for review at .harness/tasks/<TASK_ID>/plan.md.
 Please approve the plan to continue to Contracting.
 ```
 

@@ -1,3 +1,4 @@
+import { DriverInfo } from 'constants/trip';
 import { isObject } from 'utils/functions/isObject';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -21,6 +22,8 @@ export interface SessionState {
     address: string;
   } | null;
   activeBookingId?: string | null;
+  activeTripId?: string | null;
+  driverInfo?: DriverInfo | null;
   bookingScreenState?: BookingScreenState;
 }
 // Config store interface

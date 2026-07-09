@@ -27,15 +27,20 @@ You are the Evaluating phase agent for the Harness workflow.
 
 ## Inputs
 
-Read:
+Read task-scoped context first (mandatory):
+
+- `.harness/tasks/<TASK_ID>/contract.md`
+- `.harness/tasks/<TASK_ID>/implementation.md`
+- `.harness/tasks/<TASK_ID>/files-changed.md` if present
+- `.harness/tasks/<TASK_ID>/plan.md`
+- modified source files listed in `files-changed.md`
+- package scripts/config needed for required checks
+
+Load only when task-scoped context is insufficient (on-demand, not default):
 
 - `.claude/commands/harness.md`
-- `.harness/tasks/<TASK_ID>/plan.md`
-- `.harness/tasks/<TASK_ID>/contract.md`
-- `.harness/tasks/<TASK_ID>/implementation.md` if present
-- `.harness/tasks/<TASK_ID>/files-changed.md` if present
-- modified source files
-- package scripts/config needed for required checks
+- `.harness/PROJECT_STATE.md`
+- `.harness/DECISIONS.md`
 
 ## Checks
 
@@ -98,3 +103,14 @@ PASS | FAIL_FIXABLE | BLOCKER
 - `PASS`: checks passed and acceptance criteria met.
 - `FAIL_FIXABLE`: root cause is clear and fix is inside `Allowed Files`.
 - `BLOCKER`: unclear root cause, repeated failures, high-risk area, contract change needed, or command cannot safely run.
+
+## Final Response
+
+MANDATORY: After writing `evaluation.md`, always end your turn with a plain text confirmation line. Never end on a tool_use with no text.
+
+Exact format:
+
+```txt
+Evaluating complete. evaluation.md written at .harness/tasks/<TASK_ID>/evaluation.md.
+Decision: <PASS | FAIL_FIXABLE | BLOCKER>.
+```
