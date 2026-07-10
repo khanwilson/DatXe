@@ -78,7 +78,7 @@ export default function OtpScreen() {
       <View style={styles.header}>
         <AppText style={styles.title}>{getString('authOtpTitle')}</AppText>
         <AppText style={styles.subtitle}>
-          {getString('authOtpSubtitle', { phone: `+84 ${phone ?? ''}` })}
+          {getString('authOtpSubtitle', { phone: `${phone ?? ''}` })}
         </AppText>
         {__DEV__ && <AppText style={styles.devHint}>{getString('authOtpDevHint')}</AppText>}
       </View>

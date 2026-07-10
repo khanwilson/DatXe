@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { getSocket, disconnectSocket } from 'api/socket/socketClient';
 
 // 2. VARIABLES & TYPES
+// Nested shape consumed by the dashboard/OfferScreen.
 export interface NewOfferPayload {
   offerId: string;
   bookingId: string;
@@ -13,10 +14,45 @@ export interface NewOfferPayload {
   };
   destination: {
     address: string;
+    lat: number;
+    lng: number;
   };
   fare: number;
   expiresAt: string;
 }
+
+// Flat shape emitted by the backend (`driver.new_offer`).
+interface NewOfferWirePayload {
+  offerId: string;
+  bookingId: string;
+  pickupAddress: string;
+  pickupLat: number;
+  pickupLng: number;
+  dropoffAddress: string;
+  dropoffLat: number;
+  dropoffLng: number;
+  estimatedPrice: number;
+  vehicleType: string;
+  distanceKm: number;
+  expiresAt: string;
+}
+
+const mapWireOffer = (wire: NewOfferWirePayload): NewOfferPayload => ({
+  offerId: wire.offerId,
+  bookingId: wire.bookingId,
+  pickup: {
+    address: wire.pickupAddress,
+    lat: wire.pickupLat,
+    lng: wire.pickupLng,
+  },
+  destination: {
+    address: wire.dropoffAddress,
+    lat: wire.dropoffLat,
+    lng: wire.dropoffLng,
+  },
+  fare: wire.estimatedPrice,
+  expiresAt: wire.expiresAt,
+});
 
 interface UseDriverSocketOptions {
   enabled: boolean;
@@ -24,21 +60,21 @@ interface UseDriverSocketOptions {
 }
 
 // DEV mock: simulates a new_offer event when real socket is not available
-const runDevMock = (onNewOffer?: (p: NewOfferPayload) => void) => {
+const runDevMock = (onNewOffer?: (p: NewOfferWirePayload) => void) => {
   const timer = setTimeout(() => {
     console.debug('[DriverSocket] DEV mock: simulating new_offer event');
     onNewOffer?.({
       offerId: 'dev-offer-001',
       bookingId: 'dev-booking-001',
-      pickup: {
-        address: '120 Hai Ba Trung, Hanoi',
-        lat: 21.0285,
-        lng: 105.8542,
-      },
-      destination: {
-        address: 'San bay Noi Bai, Hanoi',
-      },
-      fare: 150000,
+      pickupAddress: '120 Hai Ba Trung, Hanoi',
+      pickupLat: 21.0285,
+      pickupLng: 105.8542,
+      dropoffAddress: 'San bay Noi Bai, Hanoi',
+      dropoffLat: 21.2187,
+      dropoffLng: 105.8021,
+      estimatedPrice: 150000,
+      vehicleType: 'xe4cho',
+      distanceKm: 3.2,
       expiresAt: new Date(Date.now() + 30000).toISOString(),
     });
   }, 5000);
@@ -61,9 +97,9 @@ export const useDriverSocket = ({ enabled, onNewOffer }: UseDriverSocketOptions)
     let useMock = false;
     const socket = getSocket();
 
-    const handleNewOffer = (payload: NewOfferPayload) => {
-      console.debug('[DriverSocket] Received new_offer:', payload.offerId);
-      onNewOfferRef.current?.(payload);
+    const handleNewOffer = (wire: NewOfferWirePayload) => {
+      console.debug('[DriverSocket] Received new_offer:', wire.offerId);
+      onNewOfferRef.current?.(mapWireOffer(wire));
     };
 
     // If socket doesn't connect within 3s, use mock in dev mode

@@ -15,9 +15,44 @@ export interface DriverAssignedPayload {
   tripId?: string;
 }
 
+// Nested shape emitted by the backend (`booking.driver_assigned`).
+interface DriverAssignedWirePayload {
+  bookingId: string;
+  tripId: string;
+  driver: {
+    id: string;
+    name: string;
+    phone: string;
+    vehicleType: string;
+    vehiclePlate: string;
+    rating: number;
+    lat: number;
+    lng: number;
+  };
+}
+
+const mapWireDriverAssigned = (wire: DriverAssignedWirePayload): DriverAssignedPayload => ({
+  bookingId: wire.bookingId,
+  tripId: wire.tripId,
+  driverId: wire.driver.id,
+  driverName: wire.driver.name,
+  driverPhone: wire.driver.phone,
+  vehiclePlate: wire.driver.vehiclePlate,
+  vehicleModel: wire.driver.vehicleType,
+  driverLat: wire.driver.lat,
+  driverLng: wire.driver.lng,
+  driverRating: wire.driver.rating,
+});
+
 export interface PaymentSuccessPayload {
   bookingId: string;
   bookingStatus: string;
+  paymentStatus: string;
+}
+
+export interface PaymentFailedPayload {
+  bookingId: string;
+  responseCode: string;
   paymentStatus: string;
 }
 
@@ -38,6 +73,7 @@ interface UseBookingSocketOptions {
   bookingId: string | null;
   driverId?: string | null;
   onPaymentSuccess?: (payload: PaymentSuccessPayload) => void;
+  onPaymentFailed?: (payload: PaymentFailedPayload) => void;
   onDriverAssigned?: (payload: DriverAssignedPayload) => void;
   onNoDriverFound?: (bookingId: string) => void;
   onTripStatusChanged?: (payload: TripStatusChangedPayload) => void;
@@ -108,6 +144,7 @@ export const useBookingSocket = ({
   bookingId,
   driverId,
   onPaymentSuccess,
+  onPaymentFailed,
   onDriverAssigned,
   onNoDriverFound,
   onTripStatusChanged,
@@ -122,7 +159,7 @@ export const useBookingSocket = ({
     const socket = getSocket();
 
     const connectTimeout = setTimeout(() => {
-      if (!socket.connected) {
+      if (!socket.connected && __DEV__) {
         useMock = true;
         mockCleanupRef.current = runDevMock(bookingId, onPaymentSuccess, onDriverAssigned, onTripStatusChanged, onDriverLocationUpdated);
       }
@@ -137,8 +174,12 @@ export const useBookingSocket = ({
       if (payload.bookingId === bookingId) onPaymentSuccess?.(payload);
     };
 
-    const handleDriverAssigned = (payload: DriverAssignedPayload) => {
-      if (payload.bookingId === bookingId) onDriverAssigned?.(payload);
+    const handlePaymentFailed = (payload: PaymentFailedPayload) => {
+      if (payload.bookingId === bookingId) onPaymentFailed?.(payload);
+    };
+
+    const handleDriverAssigned = (wire: DriverAssignedWirePayload) => {
+      if (wire.bookingId === bookingId) onDriverAssigned?.(mapWireDriverAssigned(wire));
     };
 
     const handleNoDriverFound = (payload: { bookingId: string }) => {
@@ -163,6 +204,7 @@ export const useBookingSocket = ({
     }
 
     socket.on('booking.payment_success', handlePaymentSuccess);
+    socket.on('booking.payment_failed', handlePaymentFailed);
     socket.on('booking.driver_assigned', handleDriverAssigned);
     socket.on('booking.no_driver_found', handleNoDriverFound);
     socket.on('trip.status_changed', handleTripStatusChanged);
@@ -172,6 +214,7 @@ export const useBookingSocket = ({
       clearTimeout(connectTimeout);
       socket.off('connect', handleConnect);
       socket.off('booking.payment_success', handlePaymentSuccess);
+      socket.off('booking.payment_failed', handlePaymentFailed);
       socket.off('booking.driver_assigned', handleDriverAssigned);
       socket.off('booking.no_driver_found', handleNoDriverFound);
       socket.off('trip.status_changed', handleTripStatusChanged);
@@ -179,5 +222,5 @@ export const useBookingSocket = ({
       if (socket.connected) socket.emit('leave', `booking:${bookingId}`);
       if (useMock && mockCleanupRef.current) mockCleanupRef.current();
     };
-  }, [bookingId, driverId, onPaymentSuccess, onDriverAssigned, onNoDriverFound, onTripStatusChanged, onDriverLocationUpdated]);
+  }, [bookingId, driverId, onPaymentSuccess, onPaymentFailed, onDriverAssigned, onNoDriverFound, onTripStatusChanged, onDriverLocationUpdated]);
 };

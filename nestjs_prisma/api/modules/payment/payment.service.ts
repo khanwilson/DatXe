@@ -22,7 +22,7 @@ export class PaymentService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async createVnpayPayment(dto: CreateVnpayPaymentDto, customerId: string) {
+  async createVnpayPayment(dto: CreateVnpayPaymentDto, userId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: dto.booking_id },
     });
@@ -31,7 +31,11 @@ export class PaymentService {
       throw new BadRequestException('Booking not found');
     }
 
-    if (booking.customer_id !== customerId) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!customer || booking.customer_id !== customer.id) {
       throw new BadRequestException('Booking does not belong to this user');
     }
 
@@ -159,10 +163,29 @@ export class PaymentService {
       return { RspCode: '97', Message: 'Invalid Signature' };
     }
 
-    // Check response code
+    // Any non-'00' code means the user cancelled or the bank declined. Mark the
+    // payment FAILED and notify the app so it can stop waiting immediately
+    // instead of relying on a client-side timeout.
     if (responseCode !== '00') {
       this.logger.warn(`VNPay payment failed with code: ${responseCode}`);
-      return { RspCode: '97', Message: 'Payment Failed' };
+      const txnRef = query['vnp_TxnRef'];
+      if (txnRef) {
+        const payment = await this.prisma.payment.findFirst({
+          where: { transaction_id: txnRef },
+        });
+        if (payment && payment.status === PaymentStatus.PENDING) {
+          await this.prisma.payment.update({
+            where: { id: payment.id },
+            data: { status: PaymentStatus.FAILED },
+          });
+          this.webSocketGateway.emitPaymentFailed(
+            payment.booking_id,
+            responseCode,
+            PaymentStatus.FAILED,
+          );
+        }
+      }
+      return { RspCode: '00', Message: 'Confirm Success' };
     }
 
     try {

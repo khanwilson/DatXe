@@ -132,9 +132,8 @@ export const AppMap = forwardRef<AppMapHandle, IAppMapProps>((props, ref) => {
 
         {driver && (
           <MapboxGL.PointAnnotation id="driverMarker" coordinate={driver}>
-            <View style={styles.markerDriver}>
-              <View style={styles.markerDriverDot} />
-            </View>
+            {/* Single subview: PointAnnotation renders at most one child. */}
+            <View style={styles.markerDriver} />
           </MapboxGL.PointAnnotation>
         )}
       </MapboxGL.MapView>
@@ -167,20 +166,12 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     borderColor: '#fff',
   },
   markerDriver: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    borderWidth: 3,
-    borderColor: theme.color.map.route,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markerDriverDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: theme.color.map.route,
+    borderWidth: 3,
+    borderColor: '#fff',
   },
 });
 

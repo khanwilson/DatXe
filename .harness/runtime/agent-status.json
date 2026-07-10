@@ -1,14 +1,11 @@
 {
-  "main": {
-    "command": "harness",
-    "skill": "harness"
-  },
+  "main": { "command": "harness", "skill": "harness" },
   "active_agent": {
     "name": "harness-closer",
-    "phase": "Closing",
+    "phase": "Done",
     "model": "haiku",
     "skills": [],
-    "task": "T-0075",
+    "task": "T-0072",
     "status": "done"
   }
 }

@@ -41,6 +41,8 @@ export default function HomeScreen() {
         pickupLat: String(payload.pickup.lat),
         pickupLng: String(payload.pickup.lng),
         destinationAddress: payload.destination.address,
+        destinationLat: String(payload.destination.lat),
+        destinationLng: String(payload.destination.lng),
         fare: String(payload.fare),
         expiresAt: payload.expiresAt,
       },

@@ -55,32 +55,9 @@ const DRIVER_WAIT_TIMEOUT_MS = 90_000;
 // vnp_IpAddr for auditing. Backend accepts any non-empty string.
 const CLIENT_IP_FALLBACK = '127.0.0.1';
 
-// Payment status polling fallback after the browser closes.
-// ponytail: ~60s poll ceiling; WS booking.payment_success is the fast path.
-// Bump attempts/interval if sandbox settlement is consistently slower.
-const POLL_INTERVAL_MS = 3000;
-const POLL_MAX_ATTEMPTS = 20;
-
-const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-// Poll GET /payments/:bookingId until the payment is confirmed. Returns true only
-// when VNPay actually reported success (status SUCCESSFUL) or WS already confirmed
-// it (isConfirmed). Never assumes success just because the browser closed.
-const pollPaymentSuccess = async (bookingId: string, isConfirmed: () => boolean): Promise<boolean> => {
-  for (let i = 0; i < POLL_MAX_ATTEMPTS; i++) {
-    if (isConfirmed()) return true;
-    try {
-      const res = await paymentService.getPaymentStatus(bookingId);
-      const status = res.data.status;
-      if (status === 'SUCCESSFUL') return true;
-      if (status === 'FAILED') return false;
-    } catch {
-      // Payment record may not exist yet or a transient error occurred — keep polling.
-    }
-    await wait(POLL_INTERVAL_MS);
-  }
-  return isConfirmed();
-};
+// Max time the user may stay on the VNPay page before we give up, close the
+// browser, and report a timeout. ponytail: 10 min; tune to VNPay order expiry.
+const PAYMENT_TIMEOUT_MS = 10 * 60_000;
 
 // 3. COMPONENT FUNCTION
 export default function BookingRouteScreen() {
@@ -178,13 +155,29 @@ export default function BookingRouteScreen() {
     return () => clearTimeout(timer);
   }, [screenState]);
 
-  // Ref so the in-flight poll sees WS confirmation without a stale closure.
+  // Refs so async continuations see the latest outcome without stale closures.
   const wsConfirmedPaidRef = useRef(false);
+  const wsFailedRef = useRef(false);
+  // Each handleBook call bumps this. Stale polls/timeouts from a previous attempt
+  // compare against it and stay silent, so they can't alert over a newer attempt.
+  const paymentAttemptRef = useRef(0);
 
   const handlePaymentSuccess = useCallback(() => {
-    // Payment confirmed via WS — switch to LOOKING and mark ready.
+    // Payment confirmed via WS — close the in-app browser (it only shows the raw
+    // callback JSON) and switch to LOOKING.
     wsConfirmedPaidRef.current = true;
+    WebBrowser.dismissBrowser();
     setScreenState('LOOKING');
+  }, []);
+
+  const handlePaymentFailed = useCallback(() => {
+    // VNPay reported cancel/decline via WS — close the browser and re-enable
+    // the book button immediately instead of waiting for a client-side timeout.
+    wsFailedRef.current = true;
+    WebBrowser.dismissBrowser();
+    setScreenState('IDLE');
+    ZustandSession.getState().save('activeBookingId', null);
+    Alert.alert('Thanh toán thất bại', 'Giao dịch bị hủy hoặc không thành công. Vui lòng thử lại.');
   }, []);
 
   const handleDriverAssigned = useCallback((payload: import('api/socket/useBookingSocket').DriverAssignedPayload) => {
@@ -230,6 +223,7 @@ export default function BookingRouteScreen() {
         ? activeBookingId ?? null
         : null,
     onPaymentSuccess: handlePaymentSuccess,
+    onPaymentFailed: handlePaymentFailed,
     onDriverAssigned: handleDriverAssigned,
     onNoDriverFound: handleNoDriverFound,
   });
@@ -244,13 +238,15 @@ export default function BookingRouteScreen() {
     if (!selected) return;
 
     const bookingAmount = selected.discountPrice ?? selected.realPrice;
+    const attempt = ++paymentAttemptRef.current;
     wsConfirmedPaidRef.current = false;
+    wsFailedRef.current = false;
     setScreenState('BOOKING');
 
-    try {
-      const totalDistance = directionsData?.summary?.totalDistance?.value ?? 0;
-      const totalDuration = directionsData?.summary?.totalDuration?.value ?? 0;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let handledByTimeout = false;
 
+    try {
       const bookingDto: CreateBookingDto = {
         pickup_lat: effectiveOrigin.lat,
         pickup_lng: effectiveOrigin.lng,
@@ -260,8 +256,6 @@ export default function BookingRouteScreen() {
         dropoff_address: savedDestination.address ?? savedDestination.name,
         vehicle_type: selected.id,
         estimated_price: bookingAmount,
-        distance: totalDistance / 1000,
-        estimated_duration: Math.round(totalDuration / 60),
       };
 
       const booking = await bookingService.createBooking(bookingDto);
@@ -281,32 +275,47 @@ export default function BookingRouteScreen() {
       const vnpayResult = await paymentService.createVnpayUrl(vnpayParams);
       const paymentUrl = vnpayResult.data.payment_url; // field renamed
 
+      // Keep the modal open with the book button in its loading state.
       setScreenState('PAYMENT');
-      bookingModalRef.current?.dismiss();
 
-      await WebBrowser.openBrowserAsync(paymentUrl, { dismissButtonStyle: 'close' });
-
-      // Browser closed — do NOT assume payment succeeded. Verify real status.
-      const confirmed = wsConfirmedPaidRef.current || (await pollPaymentSuccess(booking.data.id, () => wsConfirmedPaidRef.current));
-
-      if (confirmed) {
-        setScreenState('LOOKING');
-      } else {
+      // Give up after PAYMENT_TIMEOUT_MS: close the browser and report a timeout
+      // rather than leaving the user stranded on the VNPay page.
+      timeoutId = setTimeout(() => {
+        if (paymentAttemptRef.current !== attempt) return;
+        if (wsConfirmedPaidRef.current || wsFailedRef.current) return;
+        handledByTimeout = true;
+        WebBrowser.dismissBrowser();
         setScreenState('IDLE');
         ZustandSession.getState().save('activeBookingId', null);
-        bookingModalRef.current?.present();
-        Alert.alert('Thanh toán thất bại', 'Không thể xác nhận thanh toán. Vui lòng thử lại.');
-      }
-    } catch (rawError) {
+        Alert.alert('Hết thời gian thanh toán', 'Bạn chưa hoàn tất thanh toán trong thời gian cho phép. Vui lòng thử lại.');
+      }, PAYMENT_TIMEOUT_MS);
+
+      await WebBrowser.openBrowserAsync(paymentUrl, { dismissButtonStyle: 'close' });
+      if (timeoutId) clearTimeout(timeoutId);
+
+      // A newer booking attempt superseded this one — stay silent.
+      if (paymentAttemptRef.current !== attempt) return;
+
+      // WS or the timeout already resolved this attempt (success handler set
+      // LOOKING; failure/timeout handler reset to IDLE + alerted). Don't re-handle.
+      if (handledByTimeout || wsFailedRef.current || wsConfirmedPaidRef.current) return;
+
+      // Browser closed manually with no WS signal — user abandoned payment.
+      // Reset to IDLE so the book button is usable again. Success/failure that
+      // arrives later still comes through the WS handlers.
       setScreenState('IDLE');
       ZustandSession.getState().save('activeBookingId', null);
-      bookingModalRef.current?.present();
+    } catch (rawError) {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (paymentAttemptRef.current !== attempt) return;
+      setScreenState('IDLE');
+      ZustandSession.getState().save('activeBookingId', null);
       console.error('[BookingRouteScreen] booking/payment failed:', rawError);
       Alert.alert('Đặt xe thất bại', 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.');
     }
   }, [effectiveOrigin, savedDestination, savedPickup, routeData, selectedVehicleId, directionsData]);
 
-  const isModalVisible = screenState === 'IDLE' || screenState === 'BOOKING';
+  const isModalVisible = screenState === 'IDLE' || screenState === 'BOOKING' || screenState === 'PAYMENT';
   const isLooking = screenState === 'LOOKING';
   const mapPaddingBottom = isModalVisible ? 520 : 0;
 
@@ -334,7 +343,7 @@ export default function BookingRouteScreen() {
           vehicles={MOCK_VEHICLES}
           selectedVehicleId={selectedVehicleId}
           onSelectVehicle={setSelectedVehicleId}
-          loading={screenState === 'BOOKING'}
+          loading={screenState === 'BOOKING' || screenState === 'PAYMENT'}
           onBook={handleBook}
         />
       )}

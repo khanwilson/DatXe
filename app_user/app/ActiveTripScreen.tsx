@@ -133,14 +133,40 @@ export default function ActiveTripScreen() {
     initialDriverInfo,
   });
 
+  // Dev-only mock: step a marker to the destination once IN_PROGRESS, since the
+  // emulator emits no real GPS. Takes precedence over the static socket coord.
+  // ponytail: __DEV__-gated; real device uses live driver.location_updated.
+  const [mockCoord, setMockCoord] = useState<[number, number] | null>(null);
+  useEffect(() => {
+    if (!__DEV__ || status !== 'IN_PROGRESS') return;
+    const path = routeData?.route;
+    if (!path || path.length < 2) return;
+
+    let step = 0;
+    setMockCoord(path[0]);
+    const iv = setInterval(() => {
+      step += 1;
+      if (step >= path.length - 1) {
+        setMockCoord(path[path.length - 1]);
+        clearInterval(iv);
+        return;
+      }
+      setMockCoord(path[step]);
+    }, 1000);
+
+    return () => clearInterval(iv);
+  }, [status, routeData?.route]);
+
+  const effectiveDriverCoord = mockCoord ?? driverCoord;
+
   // Follow the driver marker during the active legs; entry fit is handled by
   // the bounds prop until the driver starts moving.
   useEffect(() => {
-    if (!driverCoord) return;
+    if (!effectiveDriverCoord) return;
     if (status === 'EN_ROUTE' || status === 'IN_PROGRESS') {
-      mapRef.current?.moveCamera({ centerCoordinate: driverCoord, zoomLevel: 15 }, 800);
+      mapRef.current?.moveCamera({ centerCoordinate: effectiveDriverCoord, zoomLevel: 15 }, 800);
     }
-  }, [driverCoord, status]);
+  }, [effectiveDriverCoord, status]);
 
   const summary = useMemo(
     () => ({
@@ -169,7 +195,7 @@ export default function ActiveTripScreen() {
         route={routeData?.route}
         origin={routeData?.origin}
         destination={routeData?.destination}
-        driver={driverCoord ?? undefined}
+        driver={effectiveDriverCoord ?? undefined}
         bounds={showBounds ? routeData?.bounds : undefined}
       />
       <View style={styles.backButtonContainer}>

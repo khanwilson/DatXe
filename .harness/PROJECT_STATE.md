@@ -40,14 +40,19 @@
 ### Routes API (T-0050, Goong-backed)
 - `/api/v1/routes/*` — routing/places/geocode qua `GoongService`. `driving→car`, `walking→bike`; `transit` bị reject.
 
-### WebSocket Events
-| Event | Direction | Room | Trigger |
-|-------|-----------|------|---------|
-| `booking.payment_success` | Server → app_user | `booking:{id}` | VNPay callback success |
-| `driver.new_offer` | Server → app_taixe | `driver:{id}` | Dispatch chọn driver |
-| `driver.offer_response` | app_taixe → Server | — | Driver accept/reject |
-| `booking.driver_assigned` | Server → both | `booking:{id}`, `driver:{id}` | Driver accepted |
-| `booking.no_driver_found` | Server → app_user | `booking:{id}` | Hết 3 vòng |
+### WebSocket Events (T-0072: FE↔BE aligned)
+| Event | Direction | Room | Payload | Trigger |
+|-------|-----------|------|---------|---------|
+| `booking.payment_success` | Server → app_user | `booking:{id}` | `{ transactionId, bookingId }` | VNPay callback success |
+| `driver.new_offer` | Server → app_taixe | `driver:{driverPk}` | flat: `{ offerId, bookingId, pickupAddress, dropoffAddress, estimatedPrice, vehicleType, distanceKm, expiresAt, pickupLat, pickupLng }` (FE maps to nested) | Dispatch chọn driver |
+| `driver.offer_response` | app_taixe → Server | — | `{ offerId, accepted }` | Driver accept/reject |
+| `booking.driver_assigned` | Server → both | `booking:{id}`, `driver:{driverPk}` | nested BE: `{ bookingId, tripId, driver: { id, name, phone, vehicleType, vehiclePlate, rating, lat, lng } }` (FE flattens to `{ driverName, driverPhone, vehicleModel, driverLat, driverLng, ... }`) | Driver accepted |
+| `trip.status_changed` | Server → both | `booking:{id}`, `driver:{driverPk}` | `{ tripId, bookingId, status }` | Trip lifecycle (DRIVER_ARRIVED, IN_PROGRESS, COMPLETED, CANCELLED) |
+| `driver.location_updated` | Server → app_user | `booking:{id}` | `{ driverId, lat, lng, heading \| null }` (driverId = Driver PK, resolved root-cause at emit) | Driver moves during active trip |
+| `booking.no_driver_found` | Server → app_user | `booking:{id}` | `{ bookingId }` | Hết 3 vòng retry |
+| `join` | app_user → Server | `booking:{id}` | room name (FE emits after connect handshake) | Passenger joins booking room |
+| `leave` | app_user → Server | any room | room name | Passenger leaves room (cleanup) |
+| `(auto-join on connect)` | — | `user:{id}`, `driver:{driverPk}` | — | Driver auto-joins `driver:` room; all users join `user:` room |
 
 ---
 

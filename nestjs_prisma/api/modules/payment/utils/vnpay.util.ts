@@ -1,17 +1,12 @@
 import * as crypto from 'crypto';
 
 /**
- * RFC3986-style component encoding. Spaces become %20 (not `+`). The exact same
- * encoding is applied to both the signed data and the final query string, so the
- * HMAC always covers the identical bytes that appear in the returned URL.
- *
- * ponytail: VNPay's official 2.1.0 sample uses `+` for spaces
- * (encodeURIComponent(v).replace(/%20/g,'+')). We deliberately keep %20 and require
- * callers to send a space-free vnp_OrderInfo, so the two conventions are equivalent.
- * If any signed value ever contains spaces, switch encodeVnp to the `+` convention
- * to stay VNPay-compatible.
+ * VNPay's official 2.1.0 encoding: encodeURIComponent then spaces as `+`. VNPay's
+ * server re-encodes this way when recomputing the signature, so signData and the
+ * final URL must both use it or the HMAC won't match ("sai chữ ký").
  */
-const encodeVnp = (value: string): string => encodeURIComponent(value);
+const encodeVnp = (value: string): string =>
+  encodeURIComponent(value).replace(/%20/g, '+');
 
 /**
  * Build the canonical `key=value&...` query string from already-sorted params.

@@ -34,33 +34,32 @@ export default function ActiveTripScreen() {
   const vehicleName = params.vehicleName ?? '';
   const fare = params.fare ? Number(params.fare) : 0;
 
-  const savedPickup = ZustandSession((s) => s.selectedPickup);
-  const savedDestination = ZustandSession((s) => s.selectedDestination);
+  // Trip coords come from the offer/pickup nav params — the driver app never
+  // populates the Zustand pickup/destination the passenger app uses.
+  const pickupLat = params.pickupLat ? Number(params.pickupLat) : null;
+  const pickupLng = params.pickupLng ? Number(params.pickupLng) : null;
+  const paramDestLat = params.destLat ? Number(params.destLat) : null;
+  const paramDestLng = params.destLng ? Number(params.destLng) : null;
 
   const [routeData, setRouteData] = useState<RouteData | null>(null);
-  const [status, setStatus] = useState<TripStatus>('IN_PROGRESS');
+  const [driverCoord, setDriverCoord] = useState<[number, number] | null>(null);
+  // Driver lands here right after tapping "Arrived": trip is DRIVER_ARRIVED and
+  // waits at the pickup until the driver taps Start.
+  const [status, setStatus] = useState<TripStatus>('ARRIVED');
 
   const { startTrip, completeTrip, loading } = useTripActions();
 
-  const effectiveOrigin = savedPickup
-    ? { lat: savedPickup.lat, lng: savedPickup.lng }
-    : coordinate
-      ? { lat: coordinate.latitude, lng: coordinate.longitude }
-      : null;
-
-  const originParam = effectiveOrigin
-    ? `${effectiveOrigin.lat},${effectiveOrigin.lng}`
-    : null;
-  const destinationParam = savedDestination
-    ? `${savedDestination.lat},${savedDestination.lng}`
-    : null;
+  const originParam =
+    pickupLat != null && pickupLng != null ? `${pickupLat},${pickupLng}` : null;
+  const destinationParam =
+    paramDestLat != null && paramDestLng != null ? `${paramDestLat},${paramDestLng}` : null;
 
   const { data: directionsData } = useDirections(originParam, destinationParam);
 
-  const originLat = effectiveOrigin?.lat;
-  const originLng = effectiveOrigin?.lng;
-  const destLat = savedDestination?.lat;
-  const destLng = savedDestination?.lng;
+  const originLat = pickupLat;
+  const originLng = pickupLng;
+  const destLat = paramDestLat;
+  const destLng = paramDestLng;
 
   useEffect(() => {
     if (originLat == null || originLng == null || destLat == null || destLng == null) {
@@ -112,6 +111,29 @@ export default function ActiveTripScreen() {
     setStatus('IN_PROGRESS');
   }, [tripId, loading, startTrip]);
 
+  // Once moving, step the driver marker along the route to the destination so
+  // the map shows progress in the emulator where GPS never changes.
+  // ponytail: pure client animation; swap for real GPS ticks when live.
+  useEffect(() => {
+    if (status !== 'IN_PROGRESS') return;
+    const path = routeData?.route;
+    if (!path || path.length < 2) return;
+
+    let step = 0;
+    setDriverCoord(path[0]);
+    const iv = setInterval(() => {
+      step += 1;
+      if (step >= path.length - 1) {
+        setDriverCoord(path[path.length - 1]);
+        clearInterval(iv);
+        return;
+      }
+      setDriverCoord(path[step]);
+    }, 1000);
+
+    return () => clearInterval(iv);
+  }, [status, routeData?.route]);
+
   const handleCompleteTrip = useCallback(async () => {
     if (!tripId || loading) return;
     await completeTrip(tripId);
@@ -141,6 +163,7 @@ export default function ActiveTripScreen() {
         route={routeData?.route}
         origin={routeData?.origin}
         destination={routeData?.destination}
+        driver={driverCoord ?? undefined}
         bounds={routeData?.bounds}
       />
       <View style={styles.backButtonContainer}>

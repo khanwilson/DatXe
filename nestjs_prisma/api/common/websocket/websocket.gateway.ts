@@ -10,7 +10,11 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { UserRole } from '@prisma/client';
 import { Server, Socket } from 'socket.io';
+import { PrismaService } from '../../../prisma/prisma.service';
+
+const ROOM_PREFIX = /^(booking|driver|user):/;
 
 @NestWebSocketGateway({
   cors: {
@@ -28,7 +32,10 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     resolveOffer(offerId: string, accepted: boolean): void;
   };
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @WebSocketServer()
   server!: Server;
@@ -59,6 +66,10 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
         ...payload,
       };
       this.logger.log(`Client connected: ${socket.id} (user: ${socket.data.user.id})`);
+
+      // Auto-join role-scoped rooms. Drivers are addressed by their Driver PK
+      // (not user id), so resolve it here; offers are emitted to `driver:${driverPk}`.
+      await this.autoJoinRooms(socket);
     } catch {
       this.logger.warn(`Connection rejected (invalid token): ${socket.id}`);
       socket.disconnect(true);
@@ -67,6 +78,25 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
   handleDisconnect(socket: Socket) {
     this.logger.log(`Client disconnected: ${socket.id}`);
+  }
+
+  /** Join the socket to its role-scoped room so targeted emits reach it. */
+  private async autoJoinRooms(socket: Socket) {
+    const user = socket.data.user;
+    if (!user?.id) return;
+
+    socket.join(`user:${user.id}`);
+
+    if (user.role === UserRole.DRIVER) {
+      const driver = await this.prisma.driver.findUnique({
+        where: { user_id: user.id },
+        select: { id: true },
+      });
+      if (driver) {
+        socket.join(`driver:${driver.id}`);
+        socket.data.driverId = driver.id;
+      }
+    }
   }
 
   private extractToken(socket: Socket): string | undefined {
@@ -181,6 +211,14 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     });
   }
 
+  emitPaymentFailed(bookingId: string, responseCode: string, paymentStatus: string) {
+    this.server.to(`booking:${bookingId}`).emit('booking.payment_failed', {
+      bookingId,
+      responseCode,
+      paymentStatus,
+    });
+  }
+
   /** Emit offer to specific driver */
   emitDriverNewOffer(
     driverId: string,
@@ -188,7 +226,11 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
       offerId: string;
       bookingId: string;
       pickupAddress: string;
+      pickupLat: number;
+      pickupLng: number;
       dropoffAddress: string;
+      dropoffLat: number;
+      dropoffLng: number;
       estimatedPrice: number;
       vehicleType: string;
       distanceKm: number;
@@ -275,5 +317,51 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
   ) {
     if (!data?.offerId) return;
     this.dispatchService?.resolveOffer(data.offerId, data.accepted === true);
+  }
+
+  @SubscribeMessage('join')
+  async handleJoin(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() room: string,
+  ) {
+    if (await this.canAccessRoom(socket, room)) {
+      socket.join(room);
+    }
+  }
+
+  @SubscribeMessage('leave')
+  handleLeave(@ConnectedSocket() socket: Socket, @MessageBody() room: string) {
+    if (typeof room === 'string' && ROOM_PREFIX.test(room)) {
+      socket.leave(room);
+    }
+  }
+
+  /** Validate the socket's user is allowed into the requested room. */
+  private async canAccessRoom(socket: Socket, room: string): Promise<boolean> {
+    const user = socket.data.user;
+    if (!user?.id || typeof room !== 'string' || !ROOM_PREFIX.test(room)) {
+      return false;
+    }
+
+    const [prefix, id] = room.split(':');
+
+    if (prefix === 'user') {
+      return id === user.id;
+    }
+
+    if (prefix === 'driver') {
+      return id === socket.data.driverId;
+    }
+
+    if (prefix === 'booking') {
+      const booking = await this.prisma.booking.findUnique({
+        where: { id },
+        select: { customer: { select: { user_id: true } }, driver: { select: { user_id: true } } },
+      });
+      if (!booking) return false;
+      return booking.customer?.user_id === user.id || booking.driver?.user_id === user.id;
+    }
+
+    return false;
   }
 }

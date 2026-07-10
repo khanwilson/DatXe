@@ -34,6 +34,10 @@ export default function PickupNavigationScreen() {
     pickupLat: string;
     pickupLng: string;
     pickupAddress: string;
+    destinationLat: string;
+    destinationLng: string;
+    destinationAddress: string;
+    fare: string;
   }>();
 
   const tripId = params.tripId ?? '';
@@ -42,6 +46,7 @@ export default function PickupNavigationScreen() {
   const pickupAddress = params.pickupAddress ?? '';
 
   const [routeData, setRouteData] = useState<RouteData | null>(null);
+  const [driverCoord, setDriverCoord] = useState<[number, number] | null>(null);
 
   const originParam = coordinate
     ? `${coordinate.latitude},${coordinate.longitude}`
@@ -88,18 +93,48 @@ export default function PickupNavigationScreen() {
     });
   }, [coordinate, pickupLat, pickupLng, directionsData]);
 
+  // Fake the driver's approach: step a marker along the pickup route so the map
+  // shows movement in the emulator where real GPS never changes.
+  // ponytail: pure client animation, no camera follow; swap for real GPS ticks when live.
+  useEffect(() => {
+    const path = routeData?.route;
+    if (!path || path.length < 2) return;
+
+    let step = 0;
+    setDriverCoord(path[0]);
+    const iv = setInterval(() => {
+      step += 1;
+      if (step >= path.length - 1) {
+        setDriverCoord(path[path.length - 1]);
+        clearInterval(iv);
+        return;
+      }
+      setDriverCoord(path[step]);
+    }, 1000);
+
+    return () => clearInterval(iv);
+  }, [routeData?.route]);
+
   const handleArrived = useCallback(async () => {
     if (!tripId) return;
     try {
       await arrivedAtPickup(tripId);
       router.replace({
         pathname: '/ActiveTripScreen',
-        params: { tripId },
+        params: {
+          tripId,
+          pickupLat: params.pickupLat ?? '',
+          pickupLng: params.pickupLng ?? '',
+          destLat: params.destinationLat ?? '',
+          destLng: params.destinationLng ?? '',
+          destinationAddress: params.destinationAddress ?? '',
+          fare: params.fare ?? '0',
+        },
       });
     } catch {
       // Error is tracked in useTripActions; stay on screen so driver can retry
     }
-  }, [tripId, arrivedAtPickup, router]);
+  }, [tripId, arrivedAtPickup, router, params.pickupLat, params.pickupLng, params.destinationLat, params.destinationLng, params.destinationAddress, params.fare]);
 
   return (
     <View style={styles.container}>
@@ -109,6 +144,7 @@ export default function PickupNavigationScreen() {
         route={routeData?.route}
         origin={routeData?.origin}
         destination={routeData?.destination}
+        driver={driverCoord ?? undefined}
         bounds={routeData?.bounds}
       />
       <View style={styles.backButtonContainer}>

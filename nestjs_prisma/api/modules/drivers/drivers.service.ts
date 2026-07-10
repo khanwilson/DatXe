@@ -55,7 +55,7 @@ export class DriversService implements OnModuleInit {
     }
   }
 
-  async updateDriverLocation(driverId: string, dto: UpdateDriverLocationDto): Promise<void> {
+  async updateDriverLocation(driverUserId: string, dto: UpdateDriverLocationDto): Promise<void> {
     const location: Prisma.InputJsonValue = {
       lat: dto.lat,
       lng: dto.lng,
@@ -63,15 +63,18 @@ export class DriversService implements OnModuleInit {
       updated_at: new Date().toISOString(),
     };
 
-    await this.prisma.driver.update({
-      where: { user_id: driverId },
+    // Resolve the Driver PK — trips reference it, and the passenger filters
+    // location events by the Driver PK sent in `booking.driver_assigned`.
+    const driver = await this.prisma.driver.update({
+      where: { user_id: driverUserId },
       data: { current_location: location },
+      select: { id: true },
     });
 
     // Broadcast to booking room if driver has active trip
     const activeTrip = await this.prisma.trip.findFirst({
       where: {
-        driver_id: driverId,
+        driver_id: driver.id,
         status: {
           in: [TripStatus.DRIVER_EN_ROUTE, TripStatus.DRIVER_ARRIVED, TripStatus.IN_PROGRESS],
         },
@@ -82,7 +85,7 @@ export class DriversService implements OnModuleInit {
     if (activeTrip) {
       this.gateway.emitDriverLocationToBooking(
         activeTrip.booking_id,
-        driverId,
+        driver.id,
         dto.lat,
         dto.lng,
         dto.heading,
@@ -162,7 +165,11 @@ export class DriversService implements OnModuleInit {
           offerId: offer.id,
           bookingId,
           pickupAddress: booking.pickup_address,
+          pickupLat: booking.pickup_lat,
+          pickupLng: booking.pickup_lng,
           dropoffAddress: booking.dropoff_address,
+          dropoffLat: booking.dropoff_lat,
+          dropoffLng: booking.dropoff_lng,
           estimatedPrice: Number(booking.estimated_price),
           vehicleType: booking.vehicle_type ?? 'xe4cho',
           distanceKm: Math.round(dist * 10) / 10,
@@ -209,6 +216,15 @@ export class DriversService implements OnModuleInit {
               lng: loc.lng,
             },
           });
+
+          // Move the passenger out of FINDING: driver_assigned carries who, but the
+          // trip status feed is what the passenger's UI transitions on.
+          this.gateway.emitTripStatusChanged(
+            trip.id,
+            bookingId,
+            driver.id,
+            TripStatus.DRIVER_EN_ROUTE,
+          );
 
           this.logger.log(`Driver ${driver.id} accepted booking ${bookingId}`);
           return;

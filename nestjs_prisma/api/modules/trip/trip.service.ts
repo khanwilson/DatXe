@@ -12,7 +12,22 @@ export class TripService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async cancelByDriver(tripId: string, driverId: string) {
+  // Callers pass the authenticated User id (JWT `sub`), but trips reference the
+  // Driver PK. Resolve it here so ownership checks compare like-for-like.
+  private async resolveDriverId(userId: string): Promise<string> {
+    const driver = await this.prisma.driver.findUnique({
+      where: { user_id: userId },
+      select: { id: true },
+    });
+    if (!driver) {
+      throw new ForbiddenException('Driver profile not found');
+    }
+    return driver.id;
+  }
+
+  async cancelByDriver(tripId: string, userId: string) {
+    const driverId = await this.resolveDriverId(userId);
+
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },
       include: { booking: true },
@@ -61,7 +76,8 @@ export class TripService {
     };
   }
 
-  async driverArrived(tripId: string, driverId: string) {
+  async driverArrived(tripId: string, userId: string) {
+    const driverId = await this.resolveDriverId(userId);
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },
     });
@@ -98,7 +114,8 @@ export class TripService {
     return updatedTrip;
   }
 
-  async startTrip(tripId: string, driverId: string) {
+  async startTrip(tripId: string, userId: string) {
+    const driverId = await this.resolveDriverId(userId);
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },
     });
@@ -136,7 +153,8 @@ export class TripService {
     return updatedTrip;
   }
 
-  async completeTrip(tripId: string, driverId: string) {
+  async completeTrip(tripId: string, userId: string) {
+    const driverId = await this.resolveDriverId(userId);
     const trip = await this.prisma.trip.findUnique({
       where: { id: tripId },
     });

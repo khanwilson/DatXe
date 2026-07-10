@@ -10,10 +10,11 @@ import { getString } from 'localization/index';
 import { getSocket } from 'api/socket/socketClient';
 
 // 2. VARIABLES & TYPES
+// Matches the backend `booking.driver_assigned` payload (nested driver omitted —
+// this screen only needs the top-level ids to route to navigation).
 interface DriverAssignedPayload {
   tripId: string;
   bookingId: string;
-  driverId: string;
 }
 
 const formatPrice = (price: number): string => price.toLocaleString('vi-VN') + 'đ';
@@ -32,6 +33,8 @@ export default function OfferScreen() {
     pickupLat: string;
     pickupLng: string;
     destinationAddress: string;
+    destinationLat: string;
+    destinationLng: string;
     fare: string;
     expiresAt: string;
   }>();
@@ -42,6 +45,8 @@ export default function OfferScreen() {
   const pickupLat = params.pickupLat ?? '0';
   const pickupLng = params.pickupLng ?? '0';
   const destinationAddress = params.destinationAddress ?? '';
+  const destinationLat = params.destinationLat ?? '0';
+  const destinationLng = params.destinationLng ?? '0';
   const fare = params.fare ? Number(params.fare) : 0;
   const expiresAt = params.expiresAt ?? '';
 
@@ -98,6 +103,10 @@ export default function OfferScreen() {
           pickupLat,
           pickupLng,
           pickupAddress,
+          destinationLat,
+          destinationLng,
+          destinationAddress,
+          fare: params.fare ?? '0',
         },
       });
     };
@@ -111,7 +120,7 @@ export default function OfferScreen() {
         router.replace('/(tabs)/HomeScreen');
       }
     }, 10000);
-  }, [offerId, bookingId, pickupLat, pickupLng, pickupAddress, responding, router]);
+  }, [offerId, bookingId, pickupLat, pickupLng, pickupAddress, destinationLat, destinationLng, destinationAddress, params.fare, responding, router]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}>

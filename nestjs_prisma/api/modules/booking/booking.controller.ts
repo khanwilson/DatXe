@@ -35,11 +35,7 @@ export class BookingController {
     @Body() dto: CreateBookingDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    const booking = await this.bookingService.create(user.sub, dto);
-    return {
-      success: true,
-      data: booking,
-    };
+    return this.bookingService.create(user.sub, dto);
   }
 
   @Get(':id')
@@ -50,10 +46,6 @@ export class BookingController {
     @Param('id') id: string,
     @CurrentUser() user: JwtPayload,
   ) {
-    const booking = await this.bookingService.findById(id, user.sub);
-    return {
-      success: true,
-      data: booking,
-    };
+    return this.bookingService.findById(id, user.sub);
   }
 }

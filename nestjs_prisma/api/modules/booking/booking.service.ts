@@ -7,10 +7,18 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 export class BookingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(customerId: string, dto: CreateBookingDto) {
+  async create(userId: string, dto: CreateBookingDto) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!customer) {
+      throw new NotFoundException('Customer profile not found');
+    }
+
     const booking = await this.prisma.booking.create({
       data: {
-        customer_id: customerId,
+        customer_id: customer.id,
         pickup_lat: dto.pickup_lat,
         pickup_lng: dto.pickup_lng,
         pickup_address: dto.pickup_address,
@@ -27,7 +35,7 @@ export class BookingService {
     return booking;
   }
 
-  async findById(id: string, customerId: string) {
+  async findById(id: string, userId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
       include: { payment: true },
@@ -37,7 +45,18 @@ export class BookingService {
       throw new NotFoundException('Booking not found');
     }
 
-    if (booking.customer_id !== customerId && booking.driver_id !== customerId) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { user_id: userId },
+    });
+    const driver = await this.prisma.driver.findUnique({
+      where: { user_id: userId },
+    });
+
+    const isOwner =
+      (customer && booking.customer_id === customer.id) ||
+      (driver && booking.driver_id === driver.id);
+
+    if (!isOwner) {
       throw new NotFoundException('Booking not found');
     }
 

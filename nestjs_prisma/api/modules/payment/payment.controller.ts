@@ -45,11 +45,7 @@ export class PaymentController {
     @Body() dto: CreateVnpayPaymentDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    const result = await this.paymentService.createVnpayPayment(dto, user.sub);
-    return {
-      success: true,
-      data: result,
-    };
+    return this.paymentService.createVnpayPayment(dto, user.sub);
   }
 
   @Get('vnpay/callback')
@@ -68,7 +64,6 @@ export class PaymentController {
   @ApiBearerAuth()
   @ApiOkResponse()
   async getPaymentStatus(@Param('bookingId') bookingId: string) {
-    const payment = await this.paymentService.getPaymentStatus(bookingId);
-    return { success: true, data: payment };
+    return this.paymentService.getPaymentStatus(bookingId);
   }
 }
