@@ -22,8 +22,56 @@ export class BookingCancelService {
 
   @OnEvent('dispatch.exhausted')
   async handleDispatchExhausted(payload: { bookingId: string }) {
-    this.logger.log(`Dispatch exhausted for booking ${payload.bookingId}, starting 30s timeout`);
-    await this.scheduleAutoCancel(payload.bookingId);
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: payload.bookingId },
+    });
+    if (!booking) {
+      this.logger.warn(`Booking ${payload.bookingId} not found on dispatch exhausted`);
+      return;
+    }
+
+    // Retries used up: no point asking the user again. Cancel + refund and tell
+    // them every driver is busy.
+    if (booking.retry_count >= MAX_RETRIES) {
+      this.logger.log(`Dispatch exhausted for ${payload.bookingId}, retries used up — cancelling + refunding`);
+      const refundStatus = await this.cancelAndRefund(payload.bookingId, 'ALL_DRIVERS_BUSY');
+      this.wsGateway.emitBookingCancelled(payload.bookingId, 'ALL_DRIVERS_BUSY', refundStatus);
+      this.logger.log(
+        `Emitted booking.cancelled for ${payload.bookingId} (reason=ALL_DRIVERS_BUSY, refund=${refundStatus})`,
+      );
+      this.clearTimeout(payload.bookingId);
+      return;
+    }
+
+    // Retries left: offer the user continue/cancel and arm the 30s auto-cancel.
+    this.logger.log(`Dispatch exhausted for ${payload.bookingId}, awaiting user decision`);
+    await this.transitionToAwaitingDecision(payload.bookingId);
+  }
+
+  /**
+   * Cancel a booking and refund it if a successful payment exists. Returns the
+   * refund status string for the WS payload. Shared by user-cancel, auto-cancel,
+   * and all-drivers-busy paths.
+   */
+  private async cancelAndRefund(bookingId: string, reason: string): Promise<string> {
+    await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: BookingStatus.CANCELLED_BY_USER,
+        cancelled_at: new Date(),
+        cancel_reason: reason,
+      },
+    });
+
+    const payment = await this.prisma.payment.findUnique({
+      where: { booking_id: bookingId },
+    });
+
+    if (payment?.status === PaymentStatus.SUCCESSFUL) {
+      await this.paymentService.refundPayment(bookingId);
+      return 'REFUNDED';
+    }
+    return 'NO_REFUND_NEEDED';
   }
 
   @OnEvent('trip.driver_cancelled')
@@ -32,7 +80,7 @@ export class BookingCancelService {
     await this.transitionToAwaitingDecision(payload.bookingId);
   }
 
-  async cancelByUser(bookingId: string, customerId: string) {
+  async cancelByUser(bookingId: string, userId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
     });
@@ -41,7 +89,12 @@ export class BookingCancelService {
       throw new NotFoundException('Booking not found');
     }
 
-    if (booking.customer_id !== customerId) {
+    // customer_id references Customer.id, but the JWT subject is User.id — resolve.
+    const customer = await this.prisma.customer.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!customer || booking.customer_id !== customer.id) {
       throw new BadRequestException('Not authorized to cancel this booking');
     }
 
@@ -57,26 +110,12 @@ export class BookingCancelService {
       );
     }
 
-    await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: BookingStatus.CANCELLED_BY_USER,
-        cancelled_at: new Date(),
-        cancel_reason: 'USER_CANCELLED',
-      },
-    });
-
-    const payment = await this.prisma.payment.findUnique({
-      where: { booking_id: bookingId },
-    });
-
-    let refundStatus = 'NO_REFUND_NEEDED';
-    if (payment?.status === PaymentStatus.SUCCESSFUL) {
-      await this.paymentService.refundPayment(bookingId);
-      refundStatus = 'REFUNDED';
-    }
+    const refundStatus = await this.cancelAndRefund(bookingId, 'USER_CANCELLED');
 
     this.wsGateway.emitBookingCancelled(bookingId, 'USER_CANCELLED', refundStatus);
+    this.logger.log(
+      `Emitted booking.cancelled for ${bookingId} (reason=USER_CANCELLED, refund=${refundStatus})`,
+    );
 
     this.clearTimeout(bookingId);
 
@@ -87,7 +126,7 @@ export class BookingCancelService {
     };
   }
 
-  async retryBooking(bookingId: string, customerId: string) {
+  async retryBooking(bookingId: string, userId: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: bookingId },
     });
@@ -96,7 +135,12 @@ export class BookingCancelService {
       throw new NotFoundException('Booking not found');
     }
 
-    if (booking.customer_id !== customerId) {
+    // customer_id references Customer.id, but the JWT subject is User.id — resolve.
+    const customer = await this.prisma.customer.findUnique({
+      where: { user_id: userId },
+    });
+
+    if (!customer || booking.customer_id !== customer.id) {
       throw new BadRequestException('Not authorized to retry this booking');
     }
 
@@ -176,27 +220,11 @@ export class BookingCancelService {
 
         if (booking?.status === BookingStatus.AWAITING_USER_DECISION) {
           this.logger.log(`Auto-cancelling booking ${bookingId} after 30s timeout`);
-
-          await this.prisma.booking.update({
-            where: { id: bookingId },
-            data: {
-              status: BookingStatus.CANCELLED_BY_USER,
-              cancelled_at: new Date(),
-              cancel_reason: 'AUTO_TIMEOUT',
-            },
-          });
-
-          const payment = await this.prisma.payment.findUnique({
-            where: { booking_id: bookingId },
-          });
-
-          let refundStatus = 'NO_REFUND_NEEDED';
-          if (payment?.status === PaymentStatus.SUCCESSFUL) {
-            await this.paymentService.refundPayment(bookingId);
-            refundStatus = 'REFUNDED';
-          }
-
+          const refundStatus = await this.cancelAndRefund(bookingId, 'AUTO_TIMEOUT');
           this.wsGateway.emitBookingCancelled(bookingId, 'AUTO_TIMEOUT', refundStatus);
+          this.logger.log(
+            `Emitted booking.cancelled for ${bookingId} (reason=AUTO_TIMEOUT, refund=${refundStatus})`,
+          );
         }
       } catch (error) {
         this.logger.error(`Auto-cancel failed for ${bookingId}: ${error}`, error);

@@ -30,4 +30,12 @@ export const bookingService = {
   getBooking: (id: string): Promise<{ success: boolean; data: BookingResponse }> => {
     return apiClient.get(`${ENDPOINTS.BOOKING.GET}/${id}`);
   },
+
+  cancelBooking: (id: string): Promise<{ success: boolean; data: unknown }> => {
+    return apiClient.post(`${ENDPOINTS.BOOKING.CANCEL}/${id}/cancel`, {});
+  },
+
+  retryBooking: (id: string): Promise<{ success: boolean; data: unknown }> => {
+    return apiClient.post(`${ENDPOINTS.BOOKING.RETRY}/${id}/retry`, {});
+  },
 };

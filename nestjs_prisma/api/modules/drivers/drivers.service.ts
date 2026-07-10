@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BookingStatus, DriverStatus, OfferStatus, TripStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -18,6 +18,20 @@ const Drivers_ROUNDS = [
   { radius: 15, roundTimeoutMs: 30_000 },
 ];
 const OFFER_TIMEOUT_MS = 15_000;
+// How often a round re-queries ONLINE drivers while waiting out its timeout, so a
+// driver who toggles online mid-round still gets the offer.
+const POLL_INTERVAL_MS = 3_000;
+// Widest dispatch radius (km) — used to skip far-away bookings on re-dispatch.
+const MAX_DISPATCH_RADIUS_KM = 15;
+// A driver is only a live candidate if their last location broadcast is newer
+// than this. app_taixe broadcasts every 15s, so 45s tolerates ~3 missed beats
+// before we treat a driver as stale (e.g. app killed without going offline).
+// The sweep below flips such drivers to OFFLINE; this dispatch-time check is a
+// backup in case the sweep is late between ticks.
+const DRIVER_STALE_MS = 45_000;
+// How often the background sweep flips heartbeat-stale ONLINE drivers to OFFLINE.
+// Runs a bit more often than DRIVER_STALE_MS so a ghost is cleared within ~1 tick.
+const STALE_SWEEP_INTERVAL_MS = 20_000;
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
@@ -32,9 +46,14 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 @Injectable()
-export class DriversService implements OnModuleInit {
+export class DriversService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DriversService.name);
   private readonly resolverMap = new Map<string, (accepted: boolean) => void>();
+  // Bookings with a dispatch loop currently running. Guards against two loops
+  // racing for the same booking (e.g. payment.success and driver.online both
+  // firing), which would double-offer and could double-assign.
+  private readonly activeLoops = new Set<string>();
+  private staleSweepTimer?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -44,6 +63,47 @@ export class DriversService implements OnModuleInit {
 
   onModuleInit() {
     this.gateway.registerDispatchService(this);
+    // Flip heartbeat-stale ONLINE drivers to OFFLINE so BE state reflects reality
+    // (e.g. app killed without calling goOffline). setInterval is enough here —
+    // no cron engine dependency needed for an idempotent sweep.
+    this.staleSweepTimer = setInterval(() => {
+      this.sweepStaleDrivers().catch((err) =>
+        this.logger.error(`Stale driver sweep failed: ${err}`, err),
+      );
+    }, STALE_SWEEP_INTERVAL_MS);
+  }
+
+  onModuleDestroy() {
+    if (this.staleSweepTimer) clearInterval(this.staleSweepTimer);
+  }
+
+  /**
+   * Set ONLINE drivers whose last heartbeat (current_location.updated_at) is
+   * older than DRIVER_STALE_MS to OFFLINE. Idempotent: a live driver keeps their
+   * timestamp fresh, so this only ever catches genuinely-gone drivers.
+   */
+  private async sweepStaleDrivers(): Promise<void> {
+    const onlineDrivers = await this.prisma.driver.findMany({
+      where: { status: DriverStatus.ONLINE },
+      select: { id: true, current_location: true },
+    });
+
+    const staleCutoff = Date.now() - DRIVER_STALE_MS;
+    const staleIds = onlineDrivers
+      .filter((d) => {
+        const loc = d.current_location as unknown as DriverLocation | null;
+        // No location yet, or last heartbeat older than the cutoff → stale.
+        return !loc?.updated_at || new Date(loc.updated_at).getTime() < staleCutoff;
+      })
+      .map((d) => d.id);
+
+    if (staleIds.length === 0) return;
+
+    await this.prisma.driver.updateMany({
+      where: { id: { in: staleIds } },
+      data: { status: DriverStatus.OFFLINE, is_online: false },
+    });
+    this.logger.log(`Stale sweep: marked ${staleIds.length} driver(s) OFFLINE`);
   }
 
   /** Called by WebSocketGateway when driver sends offer_response */
@@ -113,7 +173,26 @@ export class DriversService implements OnModuleInit {
     };
   }
 
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async runDriversLoop(bookingId: string): Promise<void> {
+    // Concurrency guard: payment.success and driver.online can both trigger a
+    // loop for the same booking. Only one may run at a time.
+    if (this.activeLoops.has(bookingId)) {
+      this.logger.log(`Dispatch loop already active for booking ${bookingId}, skipping`);
+      return;
+    }
+    this.activeLoops.add(bookingId);
+    try {
+      await this.runDriversLoopInner(bookingId);
+    } finally {
+      this.activeLoops.delete(bookingId);
+    }
+  }
+
+  private async runDriversLoopInner(bookingId: string): Promise<void> {
     this.logger.log(`Driver dispatch loop started for booking ${bookingId}`);
 
     const booking = await this.prisma.booking.findUnique({ where: { id: bookingId } });
@@ -132,23 +211,55 @@ export class DriversService implements OnModuleInit {
     for (const round of Drivers_ROUNDS) {
       this.logger.log(`Driver dispatch round radius=${round.radius}km for booking ${bookingId}`);
 
-      const drivers = await this.prisma.driver.findMany({
-        where: { status: DriverStatus.ONLINE },
-        include: { vehicle: true },
-      });
+      // Keep this round alive for its whole timeout, re-querying ONLINE drivers
+      // periodically. This is what lets a driver who toggles online mid-round
+      // still receive the offer, instead of the loop finishing in milliseconds.
+      const roundDeadline = Date.now() + round.roundTimeoutMs;
 
-      const driversInRadius = drivers
-        .filter(d => d.current_location !== null)
-        .map((d) => {
-          const loc = d.current_location as unknown as DriverLocation;
-          const dist = haversineKm(booking.pickup_lat, booking.pickup_lng, loc.lat, loc.lng);
-          return { driver: d, loc, dist };
-        })
-        .filter((x) => x.dist <= round.radius)
-        .sort((a, b) => a.dist - b.dist);
+      while (Date.now() < roundDeadline) {
+        // Bail out if the booking is no longer looking for a driver (cancelled
+        // by user, or assigned by another path).
+        const fresh = await this.prisma.booking.findUnique({
+          where: { id: bookingId },
+          select: { status: true },
+        });
+        if (!fresh || fresh.status !== BookingStatus.LOOKING_DRIVER) {
+          this.logger.log(
+            `Booking ${bookingId} no longer LOOKING_DRIVER (${fresh?.status ?? 'gone'}), stopping dispatch`,
+          );
+          return;
+        }
 
-      for (const { driver, loc, dist } of driversInRadius) {
-        if (skipSet.has(driver.id)) continue;
+        const drivers = await this.prisma.driver.findMany({
+          where: { status: DriverStatus.ONLINE },
+          include: { vehicle: true },
+        });
+
+        const staleCutoff = Date.now() - DRIVER_STALE_MS;
+
+        const driversInRadius = drivers
+          .filter((d) => d.current_location !== null)
+          .map((d) => {
+            const loc = d.current_location as unknown as DriverLocation;
+            const dist = haversineKm(booking.pickup_lat, booking.pickup_lng, loc.lat, loc.lng);
+            return { driver: d, loc, dist };
+          })
+          // Skip ghost drivers: ONLINE in DB but no recent heartbeat (app killed
+          // without going offline). Their last location predates the cutoff.
+          .filter((x) => new Date(x.loc.updated_at).getTime() >= staleCutoff)
+          .filter((x) => x.dist <= round.radius && !skipSet.has(x.driver.id))
+          .sort((a, b) => a.dist - b.dist);
+
+        if (driversInRadius.length === 0) {
+          // No candidate right now — wait a beat and re-query until the round
+          // deadline, so a late-online driver still gets picked up.
+          await this.sleep(POLL_INTERVAL_MS);
+          continue;
+        }
+
+        // Offer to the nearest candidate only; on reject/timeout, skip and the
+        // next while-iteration re-queries and picks the next nearest.
+        const { driver, loc, dist } = driversInRadius[0];
 
         const expiresAt = new Date(Date.now() + OFFER_TIMEOUT_MS);
 
@@ -251,27 +362,12 @@ export class DriversService implements OnModuleInit {
       }
     }
 
-    // All rounds exhausted — transition to AWAITING_USER_DECISION instead of NO_DRIVER
-    await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: BookingStatus.AWAITING_USER_DECISION },
-    });
+    // All rounds exhausted. BookingCancelService owns the decision: either
+    // transition to AWAITING_USER_DECISION (offer continue/cancel) or, once
+    // retries are used up, auto-cancel + refund. Keep that logic in one place.
+    this.eventEmitter.emit('dispatch.exhausted', { bookingId });
 
-    const currentBooking = await this.prisma.booking.findUnique({
-      where: { id: bookingId },
-    });
-
-    this.gateway.emitBookingAwaitingDecision(
-      bookingId,
-      currentBooking?.retry_count ?? 0,
-      3,
-      30_000,
-    );
-
-    // Emit event so BookingCancelService can schedule 30s auto-cancel timeout
-    this.eventEmitter.emit('Drivers.exhausted', { bookingId });
-
-    this.logger.log(`No driver found for booking ${bookingId}, awaiting user decision`);
+    this.logger.log(`No driver found for booking ${bookingId}, handing off to decision handler`);
   }
 
   private waitForOffer(offerId: string): Promise<boolean> {
@@ -311,7 +407,47 @@ export class DriversService implements OnModuleInit {
       },
     });
 
+    // A driver just became available — kick any bookings still waiting for one.
+    this.eventEmitter.emit('driver.online', { driverId: updatedDriver.id });
+
     return updatedDriver;
+  }
+
+  // Re-dispatch bookings that are still waiting for a driver when one comes
+  // online. Without this, a booking whose initial dispatch loop already ended
+  // (no drivers were online yet) would never reach a driver who toggles on a
+  // few seconds later.
+  async redispatchWaitingBookings(driverId: string): Promise<void> {
+    const driver = await this.prisma.driver.findUnique({
+      where: { id: driverId },
+      select: { current_location: true },
+    });
+    const loc = driver?.current_location as unknown as DriverLocation | null;
+
+    const waiting = await this.prisma.booking.findMany({
+      where: {
+        status: {
+          in: [BookingStatus.LOOKING_DRIVER, BookingStatus.AWAITING_USER_DECISION],
+        },
+      },
+      select: { id: true, pickup_lat: true, pickup_lng: true },
+    });
+
+    for (const booking of waiting) {
+      // Best-effort distance filter: skip bookings clearly out of range when we
+      // know where the driver is. If location isn't set yet, let the loop's own
+      // radius filter decide once the driver starts broadcasting.
+      if (loc) {
+        const dist = haversineKm(booking.pickup_lat, booking.pickup_lng, loc.lat, loc.lng);
+        if (dist > MAX_DISPATCH_RADIUS_KM) continue;
+      }
+      if (this.activeLoops.has(booking.id)) continue;
+
+      this.logger.log(`Driver ${driverId} online — re-dispatching booking ${booking.id}`);
+      this.runDriversLoop(booking.id).catch((err) => {
+        this.logger.error(`Re-dispatch loop error for booking ${booking.id}: ${err}`, err);
+      });
+    }
   }
 
   async goOffline(driverUserId: string) {

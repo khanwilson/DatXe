@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import { BookingStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
+import { PaymentMethod, PaymentStatus } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -218,16 +218,11 @@ export class PaymentService {
         },
       });
 
-      // Update Booking status to PAYMENT_COMPLETED
-      await this.prisma.booking.update({
-        where: { id: payment.booking_id },
-        data: { status: BookingStatus.PAYMENT_COMPLETED },
-      });
-
-      // Emit WebSocket event
+      // Payment state lives on the Payment row only — booking.status is left
+      // untouched so the dispatch loop owns the booking lifecycle. The app just
+      // needs the "paid" signal to switch into LOOKING.
       this.webSocketGateway.emitPaymentSuccess(
         payment.booking_id,
-        BookingStatus.PAYMENT_COMPLETED,
         PaymentStatus.SUCCESSFUL,
       );
 

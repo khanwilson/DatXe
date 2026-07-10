@@ -23,4 +23,12 @@ export class DriversListener {
       this.logger.error(`Driver dispatch loop error for booking ${payload.bookingId}: ${err}`, err);
     });
   }
+
+  @OnEvent('driver.online')
+  async handleDriverOnline(payload: { driverId: string }) {
+    this.logger.log(`driver.online received for driver ${payload.driverId}`);
+    this.DriversService.redispatchWaitingBookings(payload.driverId).catch((err) => {
+      this.logger.error(`Re-dispatch error for driver ${payload.driverId}: ${err}`, err);
+    });
+  }
 }

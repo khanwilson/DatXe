@@ -67,6 +67,14 @@ Không viết Consequences, Notes, Status. Nếu cần chi tiết implementation
 - **Decision**: (1) FE DTO aligns to BE `CreateVnpayUrlParams { booking_id, amount, order_info, client_ip }` — FE shapes data to match BE, never vice versa. (2) `app_user` gates `LOOKING` transition on confirmed payment via WS `booking.payment_success` OR `GET /payments/:bookingId` poll returning `SUCCESSFUL`. (3) Backend signing uses single RFC3986 encoder (`encodeURIComponent`), `%20` for spaces, sorted keys — ensures signed bytes are byte-identical to URL query for VNPay callback re-verification.
 - **Impacted Projects**: app_user, nestjs_prisma
 
+### D-0013: Dispatch Loop — time-boxed rounds + re-dispatch on driver online (2026-07-10)
+- **Context**: `roundTimeoutMs` khai báo nhưng không dùng → loop query ONLINE một lần rồi kết thúc trong vài ms khi chưa có tài xế online; và `goOnline` không re-trigger dispatch → tài xế bật nhận cuốc sau đó không bao giờ nhận được booking đang chờ.
+- **Decision**: (1) `runDriversLoop` chạy tối đa 3 round, bán kính tăng 5→10→15km, mỗi round sống đủ `roundTimeoutMs` (30s). Trong round, nếu chưa có tài xế trong bán kính → mỗi `POLL_INTERVAL_MS` (3s) re-query lại danh sách ONLINE + điều kiện + bán kính; 
+nếu có → offer cho tài xế gần nhất và chờ `OFFER_TIMEOUT_MS` (15s), reject/timeout thì `skipSet` và vòng kế lấy người gần nhì. Mỗi lần lặp check `booking.status !== LOOKING_DRIVER` để thoát sớm nếu bị hủy/gán đường khác. (2) `goOnline()` emit `driver.online`; 
+`DriversListener` gọi `redispatchWaitingBookings(driverId)` — quét booking `LOOKING_DRIVER`/`AWAITING_USER_DECISION`, lọc ≤15km (nếu biết vị trí tài xế), rồi chạy lại `runDriversLoop`. Chỉ khởi động loop mới khi loop cũ đã kết thúc; 
+tài xế online GIỮA lúc loop đang chạy được chính vòng poll 3s bốc. (3) `activeLoops` Set: `payment.success` và `driver.online` cùng bắn cho một booking chỉ chạy đúng một loop → chống double-offer/double-assign, đảm bảo 1 assign cho đúng 1 tài xế tại một thời điểm.
+- **Impacted Projects**: nestjs_prisma
+
 ---
 
 ## Superseded

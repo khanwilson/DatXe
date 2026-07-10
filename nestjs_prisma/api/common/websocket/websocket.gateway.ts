@@ -203,10 +203,9 @@ export class WebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     });
   }
 
-  emitPaymentSuccess(bookingId: string, bookingStatus: string, paymentStatus: string) {
+  emitPaymentSuccess(bookingId: string, paymentStatus: string) {
     this.server.to(`booking:${bookingId}`).emit('booking.payment_success', {
       bookingId,
-      bookingStatus,
       paymentStatus,
     });
   }

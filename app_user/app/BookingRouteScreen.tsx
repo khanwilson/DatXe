@@ -1,5 +1,6 @@
 // 1. IMPORTS
 import { AppMap, AppMapHandle, MapBounds } from 'components/map/AppMap';
+import { FOCUSED_ZOOM, MapCamera } from 'constants/mapbox';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import { RadarAnimation } from 'components/map/RadarAnimation';
 import { RouteBookingModal } from 'components/route/RouteBookingModal';
@@ -12,6 +13,7 @@ import { bookingService, CreateBookingDto } from 'api/services/bookingService';
 import { paymentService } from 'api/services/paymentService';
 import { useBookingSocket } from 'api/socket/useBookingSocket';
 import { DRIVER_AVATAR_PLACEHOLDER } from 'constants/trip';
+import { getString } from 'localization/index';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -20,7 +22,7 @@ import { ITheme, useAppTheme } from 'theme/index';
 import { decodePolyline, getBounds } from 'utils/functions/decodePolyline';
 
 // 2. VARIABLES & TYPES
-type BookingScreenState = 'IDLE' | 'BOOKING' | 'PAYMENT' | 'LOOKING' | 'DRIVER_FOUND';
+type BookingScreenState = 'IDLE' | 'BOOKING' | 'PAYMENT' | 'LOOKING' | 'AWAITING_DECISION' | 'DRIVER_FOUND';
 
 const MOCK_VEHICLES: VehicleType[] = [
   {
@@ -49,8 +51,6 @@ const MOCK_VEHICLES: VehicleType[] = [
   },
 ];
 
-const DRIVER_WAIT_TIMEOUT_MS = 90_000;
-
 // Dev-safe client IP: a mobile app cannot know its public IP, and VNPay only uses
 // vnp_IpAddr for auditing. Backend accepts any non-empty string.
 const CLIENT_IP_FALLBACK = '127.0.0.1';
@@ -69,6 +69,10 @@ export default function BookingRouteScreen() {
   const { camera, coordinate } = useCurrentLocation();
 
   const [screenState, setScreenState] = useState<BookingScreenState>('IDLE');
+  // Server-driven decision window (ms) from booking.awaiting_decision — kept in
+  // sync with the BE auto-cancel timer so the countdown animation ends when the
+  // booking is actually cancelled server-side.
+  const [decisionTimeoutMs, setDecisionTimeoutMs] = useState<number>(0);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(MOCK_VEHICLES[0].id);
   const [routeData, setRouteData] = useState<{
     route: [number, number][];
@@ -143,18 +147,6 @@ export default function BookingRouteScreen() {
     });
   }, [originLat, originLng, destLat, destLng, directionsData, directionsSuccess, isError, screenState]);
 
-  // Driver wait timeout — if LOOKING for too long
-  useEffect(() => {
-    if (screenState !== 'LOOKING') return;
-    const timer = setTimeout(() => {
-      setScreenState('IDLE');
-      ZustandSession.getState().save('activeBookingId', null);
-      bookingModalRef.current?.present();
-      Alert.alert('Không tìm được tài xế', 'Hệ thống không tìm được tài xế gần bạn. Vui lòng thử lại.');
-    }, DRIVER_WAIT_TIMEOUT_MS);
-    return () => clearTimeout(timer);
-  }, [screenState]);
-
   // Refs so async continuations see the latest outcome without stale closures.
   const wsConfirmedPaidRef = useRef(false);
   const wsFailedRef = useRef(false);
@@ -208,25 +200,83 @@ export default function BookingRouteScreen() {
     });
   }, [router, selectedVehicleId, activeBookingId]);
 
-  const handleNoDriverFound = useCallback(() => {
-    setScreenState('IDLE');
+  // No driver found but the booking is paid. Switch to the continue/cancel
+  // decision row instead of dumping the user back to IDLE (which would let them
+  // re-book and pay twice). The modal is re-presented by the effect below —
+  // during LOOKING it's unmounted, so present() can't run synchronously here.
+  const handleAwaitingDecision = useCallback(
+    (payload: import('api/socket/useBookingSocket').AwaitingDecisionPayload) => {
+      setDecisionTimeoutMs(payload.timeoutMs);
+      setScreenState('AWAITING_DECISION');
+    },
+    [],
+  );
+
+  const goHome = useCallback(() => {
     ZustandSession.getState().save('activeBookingId', null);
-    bookingModalRef.current?.present();
-    Alert.alert('Không tìm được tài xế', 'Hệ thống đã tìm trong khu vực của bạn nhưng không có tài xế khả dụng. Vui lòng thử lại sau.');
-  }, []);
+    router.replace('/(tabs)/HomeScreen');
+  }, [router]);
+
+  // Booking was cancelled server-side (user cancel, auto-timeout, or all drivers
+  // busy after retries exhausted). Refund, if any, is already handled by the BE.
+  const handleBookingCancelled = useCallback(
+    (payload: import('api/socket/useBookingSocket').BookingCancelledPayload) => {
+      if (payload.reason === 'ALL_DRIVERS_BUSY') {
+        Alert.alert('Hủy chuyến', getString('bookingAllDriversBusy'));
+      }
+      goHome();
+    },
+    [goHome],
+  );
+
+  const handleContinueSearch = useCallback(async () => {
+    if (!activeBookingId) return;
+    try {
+      setScreenState('LOOKING');
+      await bookingService.retryBooking(activeBookingId);
+    } catch (err) {
+      console.error('[BookingRouteScreen] retry failed:', err);
+      setScreenState('AWAITING_DECISION');
+      Alert.alert('Lỗi', 'Không thể tiếp tục tìm tài xế. Vui lòng thử lại.');
+    }
+  }, [activeBookingId]);
+
+  const handleCancelTrip = useCallback(async () => {
+    if (!activeBookingId) {
+      goHome();
+      return;
+    }
+    try {
+      await bookingService.cancelBooking(activeBookingId);
+    } catch (err) {
+      console.error('[BookingRouteScreen] cancel failed:', err);
+    }
+    goHome();
+  }, [activeBookingId, goHome]);
 
   useBookingSocket({
     bookingId:
       screenState === 'LOOKING' ||
       screenState === 'DRIVER_FOUND' ||
+      screenState === 'AWAITING_DECISION' ||
       screenState === 'PAYMENT'
         ? activeBookingId ?? null
         : null,
     onPaymentSuccess: handlePaymentSuccess,
     onPaymentFailed: handlePaymentFailed,
     onDriverAssigned: handleDriverAssigned,
-    onNoDriverFound: handleNoDriverFound,
+    onAwaitingDecision: handleAwaitingDecision,
+    onBookingCancelled: handleBookingCancelled,
   });
+
+  // The modal is unmounted during LOOKING (radar takes over), so it can't be
+  // presented synchronously from the WS handler. Present it here once it has
+  // re-mounted for the decision state.
+  useEffect(() => {
+    if (screenState === 'AWAITING_DECISION') {
+      bookingModalRef.current?.present();
+    }
+  }, [screenState]);
 
   const handleBook = useCallback(async () => {
     if (!effectiveOrigin || !savedDestination || !routeData) {
@@ -315,9 +365,20 @@ export default function BookingRouteScreen() {
     }
   }, [effectiveOrigin, savedDestination, savedPickup, routeData, selectedVehicleId, directionsData]);
 
-  const isModalVisible = screenState === 'IDLE' || screenState === 'BOOKING' || screenState === 'PAYMENT';
+  const isModalVisible = screenState === 'IDLE' || screenState === 'BOOKING' || screenState === 'PAYMENT' || screenState === 'AWAITING_DECISION';
   const isLooking = screenState === 'LOOKING';
   const mapPaddingBottom = isModalVisible ? 520 : 0;
+
+  // While the radar is showing, pan the map so the pickup sits at screen center
+  // (under the radar). The route bounds are dropped so nothing offsets it.
+  useEffect(() => {
+    if (!isLooking || originLat == null || originLng == null) return;
+    const target: MapCamera = {
+      centerCoordinate: [originLng, originLat],
+      zoomLevel: FOCUSED_ZOOM,
+    };
+    mapRef.current?.moveCamera(target);
+  }, [isLooking, originLat, originLng]);
 
   return (
     <View style={styles.container}>
@@ -327,7 +388,7 @@ export default function BookingRouteScreen() {
         route={routeData?.route}
         origin={routeData?.origin}
         destination={routeData?.destination}
-        bounds={routeData ? { ...routeData.bounds, paddingBottom: mapPaddingBottom } : undefined}
+        bounds={!isLooking && routeData ? { ...routeData.bounds, paddingBottom: mapPaddingBottom } : undefined}
       />
       <View style={styles.backButtonContainer}>
         <BackButton />
@@ -345,6 +406,10 @@ export default function BookingRouteScreen() {
           onSelectVehicle={setSelectedVehicleId}
           loading={screenState === 'BOOKING' || screenState === 'PAYMENT'}
           onBook={handleBook}
+          awaitingDecision={screenState === 'AWAITING_DECISION'}
+          onContinue={handleContinueSearch}
+          onCancel={handleCancelTrip}
+          decisionTimeoutMs={decisionTimeoutMs}
         />
       )}
     </View>

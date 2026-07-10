@@ -1,7 +1,7 @@
 // 1. IMPORTS
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppMap } from 'components/map/AppMap';
 import { AppText } from 'components/text/AppText';
@@ -30,7 +30,25 @@ export default function HomeScreen() {
 
   const { location, error: locationError, startBroadcasting, stopBroadcasting } = useDriverLocation();
 
+  // A driver may only see one offer at a time. When a driver goes online mid-
+  // search, several waiting bookings can each fire driver.new_offer at once —
+  // without this guard every event pushes an OfferScreen, causing the flicker.
+  const offerShownRef = useRef(false);
+
+  // Reset when the dashboard regains focus (i.e. OfferScreen was closed), so the
+  // next genuine offer can be shown.
+  useFocusEffect(
+    useCallback(() => {
+      offerShownRef.current = false;
+    }, []),
+  );
+
   const handleNewOffer = useCallback((payload: NewOfferPayload) => {
+    if (offerShownRef.current) {
+      console.debug('[Dashboard] Offer already showing, ignoring:', payload.offerId);
+      return;
+    }
+    offerShownRef.current = true;
     console.debug('[Dashboard] New offer received:', payload.offerId);
     router.push({
       pathname: '/OfferScreen',

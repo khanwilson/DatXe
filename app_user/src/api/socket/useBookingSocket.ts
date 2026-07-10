@@ -46,8 +46,20 @@ const mapWireDriverAssigned = (wire: DriverAssignedWirePayload): DriverAssignedP
 
 export interface PaymentSuccessPayload {
   bookingId: string;
-  bookingStatus: string;
   paymentStatus: string;
+}
+
+export interface AwaitingDecisionPayload {
+  bookingId: string;
+  retryCount: number;
+  maxRetries: number;
+  timeoutMs: number;
+}
+
+export interface BookingCancelledPayload {
+  bookingId: string;
+  reason: string;
+  refundStatus: string;
 }
 
 export interface PaymentFailedPayload {
@@ -75,7 +87,8 @@ interface UseBookingSocketOptions {
   onPaymentSuccess?: (payload: PaymentSuccessPayload) => void;
   onPaymentFailed?: (payload: PaymentFailedPayload) => void;
   onDriverAssigned?: (payload: DriverAssignedPayload) => void;
-  onNoDriverFound?: (bookingId: string) => void;
+  onAwaitingDecision?: (payload: AwaitingDecisionPayload) => void;
+  onBookingCancelled?: (payload: BookingCancelledPayload) => void;
   onTripStatusChanged?: (payload: TripStatusChangedPayload) => void;
   onDriverLocationUpdated?: (payload: DriverLocationUpdatedPayload) => void;
 }
@@ -92,7 +105,7 @@ const runDevMock = (
   const intervals: ReturnType<typeof setInterval>[] = [];
 
   timers.push(setTimeout(() => {
-    onPaymentSuccess?.({ bookingId, bookingStatus: 'PAYMENT_COMPLETED', paymentStatus: 'SUCCESSFUL' });
+    onPaymentSuccess?.({ bookingId, paymentStatus: 'SUCCESSFUL' });
   }, 3000));
 
   timers.push(setTimeout(() => {
@@ -146,7 +159,8 @@ export const useBookingSocket = ({
   onPaymentSuccess,
   onPaymentFailed,
   onDriverAssigned,
-  onNoDriverFound,
+  onAwaitingDecision,
+  onBookingCancelled,
   onTripStatusChanged,
   onDriverLocationUpdated,
 }: UseBookingSocketOptions) => {
@@ -182,8 +196,12 @@ export const useBookingSocket = ({
       if (wire.bookingId === bookingId) onDriverAssigned?.(mapWireDriverAssigned(wire));
     };
 
-    const handleNoDriverFound = (payload: { bookingId: string }) => {
-      if (payload.bookingId === bookingId) onNoDriverFound?.(payload.bookingId);
+    const handleAwaitingDecision = (payload: AwaitingDecisionPayload) => {
+      if (payload.bookingId === bookingId) onAwaitingDecision?.(payload);
+    };
+
+    const handleBookingCancelled = (payload: BookingCancelledPayload) => {
+      if (payload.bookingId === bookingId) onBookingCancelled?.(payload);
     };
 
     const handleTripStatusChanged = (payload: TripStatusChangedPayload) => {
@@ -206,7 +224,8 @@ export const useBookingSocket = ({
     socket.on('booking.payment_success', handlePaymentSuccess);
     socket.on('booking.payment_failed', handlePaymentFailed);
     socket.on('booking.driver_assigned', handleDriverAssigned);
-    socket.on('booking.no_driver_found', handleNoDriverFound);
+    socket.on('booking.awaiting_decision', handleAwaitingDecision);
+    socket.on('booking.cancelled', handleBookingCancelled);
     socket.on('trip.status_changed', handleTripStatusChanged);
     socket.on('driver.location_updated', handleDriverLocationUpdated);
 
@@ -216,11 +235,12 @@ export const useBookingSocket = ({
       socket.off('booking.payment_success', handlePaymentSuccess);
       socket.off('booking.payment_failed', handlePaymentFailed);
       socket.off('booking.driver_assigned', handleDriverAssigned);
-      socket.off('booking.no_driver_found', handleNoDriverFound);
+      socket.off('booking.awaiting_decision', handleAwaitingDecision);
+      socket.off('booking.cancelled', handleBookingCancelled);
       socket.off('trip.status_changed', handleTripStatusChanged);
       socket.off('driver.location_updated', handleDriverLocationUpdated);
       if (socket.connected) socket.emit('leave', `booking:${bookingId}`);
       if (useMock && mockCleanupRef.current) mockCleanupRef.current();
     };
-  }, [bookingId, driverId, onPaymentSuccess, onPaymentFailed, onDriverAssigned, onNoDriverFound, onTripStatusChanged, onDriverLocationUpdated]);
+  }, [bookingId, driverId, onPaymentSuccess, onPaymentFailed, onDriverAssigned, onAwaitingDecision, onBookingCancelled, onTripStatusChanged, onDriverLocationUpdated]);
 };

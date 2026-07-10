@@ -44,6 +44,9 @@ const vi: iLocalization = {
   bookingDiscountCode: 'Mã giảm giá',
   bookingPaymentCash: 'Tiền mặt',
   bookingBookButton: 'ĐẶT XE',
+  bookingContinueSearch: 'Tiếp tục tìm',
+  bookingCancelTrip: 'Hủy chuyến',
+  bookingAllDriversBusy: 'Tất cả tài xế đang bận, chúng tôi đã hoàn tiền cho bạn.',
   // Home screen
   homeServicesTitle: 'Dịch vụ',
   homeServiceRide: 'Đặt xe',

@@ -41,8 +41,10 @@ const calculateDistance = (
 // Minimum distance in meters before broadcasting (to save battery)
 const MIN_DISTANCE_METERS = 10;
 
-// Broadcast interval in milliseconds
-const BROADCAST_INTERVAL_MS = 30000;
+// Broadcast interval in milliseconds. Doubles as an online heartbeat: the
+// backend treats a driver as stale/offline if their last location is older than
+// its own stale threshold (currently 45s = ~3 missed beats).
+const BROADCAST_INTERVAL_MS = 15000;
 
 // 3. HOOK
 export const useDriverLocation = (): UseDriverLocationReturn => {
@@ -53,6 +55,11 @@ export const useDriverLocation = (): UseDriverLocationReturn => {
   const locationSubRef = useRef<Location.LocationSubscription | null>(null);
   const broadcastTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastBroadcastLocationRef = useRef<DriverLocation | null>(null);
+  // The watch callback is a long-lived closure; read broadcasting state via a
+  // ref so it never fires stale. Location doubles as an online heartbeat, so we
+  // must NOT broadcast while offline — otherwise a moving-but-offline driver
+  // keeps their timestamp fresh and the backend still treats them as a candidate.
+  const isBroadcastingRef = useRef(false);
 
   const broadcastLocation = useCallback(async (loc: DriverLocation) => {
     try {
@@ -111,7 +118,11 @@ export const useDriverLocation = (): UseDriverLocationReturn => {
             );
             if (moved >= MIN_DISTANCE_METERS) {
               lastBroadcastLocationRef.current = newLoc;
-              broadcastLocation(newLoc);
+              // Only broadcast (= heartbeat) while online; a moving offline driver
+              // must not keep their server timestamp fresh.
+              if (isBroadcastingRef.current) {
+                broadcastLocation(newLoc);
+              }
             }
           },
         );
@@ -139,6 +150,7 @@ export const useDriverLocation = (): UseDriverLocationReturn => {
 
   const startBroadcasting = useCallback(async () => {
     if (isBroadcasting) return;
+    isBroadcastingRef.current = true;
     setIsBroadcasting(true);
 
     if (lastBroadcastLocationRef.current) {
@@ -162,6 +174,7 @@ export const useDriverLocation = (): UseDriverLocationReturn => {
       broadcastTimerRef.current = null;
     }
 
+    isBroadcastingRef.current = false;
     setIsBroadcasting(false);
     console.debug('[DriverLocation] Stopped broadcasting');
   }, [isBroadcasting]);

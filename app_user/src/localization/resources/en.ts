@@ -44,6 +44,9 @@ const en: iLocalization = {
   bookingDiscountCode: 'Discount code',
   bookingPaymentCash: 'Cash',
   bookingBookButton: 'BOOK RIDE',
+  bookingContinueSearch: 'Keep searching',
+  bookingCancelTrip: 'Cancel trip',
+  bookingAllDriversBusy: 'All drivers are busy. We have refunded your payment.',
   // Home screen
   homeServicesTitle: 'Services',
   homeServiceRide: 'Book Ride',

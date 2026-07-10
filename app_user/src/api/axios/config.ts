@@ -28,6 +28,8 @@ export const ENDPOINTS = {
   BOOKING: {
     CREATE: '/bookings',
     GET: '/bookings',
+    CANCEL: '/bookings', // POST /bookings/:id/cancel
+    RETRY: '/bookings', // POST /bookings/:id/retry
   },
   // Payment
   PAYMENT: {

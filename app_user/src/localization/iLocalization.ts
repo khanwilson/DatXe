@@ -42,6 +42,9 @@ export interface iLocalization {
   bookingDiscountCode: string;
   bookingPaymentCash: string;
   bookingBookButton: string;
+  bookingContinueSearch: string;
+  bookingCancelTrip: string;
+  bookingAllDriversBusy: string;
   // Home screen
   homeServicesTitle: string;
   homeServiceRide: string;

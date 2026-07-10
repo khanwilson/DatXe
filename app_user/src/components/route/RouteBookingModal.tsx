@@ -4,8 +4,8 @@ import { AppBottomSheet } from 'components/modal/AppBottomSheet';
 import { VehicleType, VehicleTypeItem } from 'components/route/VehicleTypeItem';
 import { AppText } from 'components/text/AppText';
 import { getString } from 'localization/index';
-import React, { ForwardedRef, forwardRef, useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
+import { ActivityIndicator, Animated, Easing, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 
 // 2. VARIABLES & TYPES
@@ -16,13 +16,45 @@ interface IProps {
   onBook: () => void;
   onDismiss?: () => void;
   loading?: boolean;
+  // When true, no driver was found after a paid booking: replace the book
+  // button with a continue-search / cancel row.
+  awaitingDecision?: boolean;
+  onContinue?: () => void;
+  onCancel?: () => void;
+  // Server-driven decision window (ms). The continue button fills a progress
+  // overlay right-to-left over this duration; when full, the BE auto-cancels.
+  decisionTimeoutMs?: number;
 }
 
 // 3. COMPONENT FUNCTION
 export const RouteBookingModal = forwardRef<BottomSheetModal, IProps>((props: IProps, ref: ForwardedRef<BottomSheetModal>) => {
-  const { vehicles, selectedVehicleId, onSelectVehicle, onBook, onDismiss, loading = false } = props;
+  const { vehicles, selectedVehicleId, onSelectVehicle, onBook, onDismiss, loading = false, awaitingDecision = false, onContinue, onCancel, decisionTimeoutMs } = props;
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
+
+  // Progress overlay on the continue button: a lighter shade anchored to the
+  // right edge that grows right-to-left, filling the whole button exactly when
+  // decisionTimeoutMs elapses (which is when the BE auto-cancel fires).
+  // progress goes 0 -> 1 (width 0% -> 100%).
+  const progress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!awaitingDecision || !decisionTimeoutMs) return;
+    progress.setValue(0);
+    const animation = Animated.timing(progress, {
+      toValue: 1,
+      duration: decisionTimeoutMs,
+      easing: Easing.linear,
+      useNativeDriver: false, // animating width %, not transform
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [awaitingDecision, decisionTimeoutMs, progress]);
+
+  const progressWidth = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
 
   const renderVehicle = useCallback(({ item }: { item: VehicleType }) => (
     <View style={{height: 82}}>
@@ -73,20 +105,49 @@ export const RouteBookingModal = forwardRef<BottomSheetModal, IProps>((props: IP
               <AppText style={styles.paymentSettingsText}>...</AppText>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={[styles.bookButton, loading && styles.bookButtonDisabled]}
-            onPress={onBook}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <AppText style={styles.bookButtonText}>
-                {getString('bookingBookButton')}
-              </AppText>
-            )}
-          </TouchableOpacity>
+          {awaitingDecision ? (
+            <View style={styles.decisionRow}>
+              <TouchableOpacity
+                style={[styles.decisionButton, styles.continueButton]}
+                onPress={onContinue}
+                activeOpacity={0.8}
+              >
+                {decisionTimeoutMs ? (
+                  <Animated.View
+                    pointerEvents="none"
+                    style={[styles.continueProgress, { width: progressWidth }]}
+                  />
+                ) : null}
+                <AppText style={styles.bookButtonText}>
+                  {getString('bookingContinueSearch')}
+                </AppText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.decisionButton, styles.cancelButton]}
+                onPress={onCancel}
+                activeOpacity={0.8}
+              >
+                <AppText style={styles.bookButtonText}>
+                  {getString('bookingCancelTrip')}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.bookButton, loading && styles.bookButtonDisabled]}
+              onPress={onBook}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <AppText style={styles.bookButtonText}>
+                  {getString('bookingBookButton')}
+                </AppText>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </AppBottomSheet>
@@ -182,6 +243,33 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     fontSize: theme.fontSize.p16,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  decisionRow: {
+    flexDirection: 'row',
+  },
+  decisionButton: {
+    flex: 1,
+    borderRadius: theme.dimensions.p12,
+    paddingVertical: theme.dimensions.p16,
+    alignItems: 'center',
+  },
+  continueButton: {
+    backgroundColor: theme.color.primary.actionGreen,
+    marginRight: theme.dimensions.p12,
+    overflow: 'hidden', // clip the progress overlay to the rounded corners
+    justifyContent: 'center',
+  },
+  // Lighter shade anchored to the right edge; width animates 0% -> 100% to sweep
+  // right-to-left over the decision window.
+  continueProgress: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  cancelButton: {
+    backgroundColor: theme.color.state.error,
   },
 });
 
