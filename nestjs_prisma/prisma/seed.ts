@@ -76,7 +76,7 @@ async function main() {
       userName: 'driver2',
       fullName: 'Hoang Van Em',
       phone: '0955555555',
-      licenseNumber: 'LA-654321',
+      licenseNumber: 'LA-654331',
       vehicle: {
         licensePlate: '59N1-987.65',
         brand: 'Honda',
