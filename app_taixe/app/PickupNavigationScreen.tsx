@@ -46,7 +46,8 @@ export default function PickupNavigationScreen() {
   const pickupAddress = params.pickupAddress ?? '';
 
   const [routeData, setRouteData] = useState<RouteData | null>(null);
-  const [driverCoord, setDriverCoord] = useState<[number, number] | null>(null);
+  // Index of the driver's current position along routeData.route (fake movement).
+  const [step, setStep] = useState(0);
 
   const originParam = coordinate
     ? `${coordinate.latitude},${coordinate.longitude}`
@@ -93,27 +94,37 @@ export default function PickupNavigationScreen() {
     });
   }, [coordinate, pickupLat, pickupLng, directionsData]);
 
-  // Fake the driver's approach: step a marker along the pickup route so the map
-  // shows movement in the emulator where real GPS never changes.
+  // Fake the driver's approach: advance the step index along the pickup route so
+  // the map shows movement in the emulator where real GPS never changes.
   // ponytail: pure client animation, no camera follow; swap for real GPS ticks when live.
   useEffect(() => {
     const path = routeData?.route;
     if (!path || path.length < 2) return;
 
-    let step = 0;
-    setDriverCoord(path[0]);
+    setStep(0);
     const iv = setInterval(() => {
-      step += 1;
-      if (step >= path.length - 1) {
-        setDriverCoord(path[path.length - 1]);
-        clearInterval(iv);
-        return;
-      }
-      setDriverCoord(path[step]);
+      setStep((s) => {
+        if (s >= path.length - 1) {
+          clearInterval(iv);
+          return s;
+        }
+        return s + 1;
+      });
     }, 1000);
 
     return () => clearInterval(iv);
   }, [routeData?.route]);
+
+  // Draw only the leg still ahead of the driver: from the current position to the
+  // pickup. As the fake marker advances, the trailing line disappears behind it.
+  const remainingRoute = useMemo(() => {
+    const path = routeData?.route;
+    if (!path || path.length < 2) return undefined;
+    const from = Math.min(step, path.length - 1);
+    return path.slice(from);
+  }, [routeData?.route, step]);
+
+  const driverCoord = remainingRoute?.[0] ?? null;
 
   const handleArrived = useCallback(async () => {
     if (!tripId) return;
@@ -141,8 +152,7 @@ export default function PickupNavigationScreen() {
       <AppMap
         ref={mapRef}
         camera={camera}
-        route={routeData?.route}
-        origin={routeData?.origin}
+        route={remainingRoute}
         destination={routeData?.destination}
         driver={driverCoord ?? undefined}
         bounds={routeData?.bounds}

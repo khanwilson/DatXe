@@ -133,6 +133,60 @@ export default function ActiveTripScreen() {
     initialDriverInfo,
   });
 
+  // While the driver heads to the pickup, draw a separate approach route
+  // (driver → pickup) rather than the pickup → dropoff trip route.
+  const isEnRoute = status === 'EN_ROUTE';
+  const approachOriginParam =
+    isEnRoute && driverInfo?.lat != null && driverInfo?.lng != null
+      ? `${driverInfo.lat},${driverInfo.lng}`
+      : null;
+  const approachDestParam =
+    isEnRoute && effectiveOrigin
+      ? `${effectiveOrigin.lat},${effectiveOrigin.lng}`
+      : null;
+  const { data: approachDirections } = useDirections(approachOriginParam, approachDestParam);
+
+  const [approachRoute, setApproachRoute] = useState<[number, number][]>([]);
+  useEffect(() => {
+    const encoded = approachDirections?.routes?.[0]?.overview_polyline?.points;
+    if (!encoded) return;
+    try {
+      const decoded = decodePolyline(encoded);
+      if (Array.isArray(decoded) && decoded.length > 0) setApproachRoute(decoded);
+    } catch {
+      // keep previous approach route on decode failure
+    }
+  }, [approachDirections]);
+
+  // Fake the driver's approach in dev where the emulator emits no real GPS:
+  // advance a step index along the approach route so the line shrinks behind it.
+  // ponytail: __DEV__-gated; real device uses live driver.location_updated.
+  const [enRouteStep, setEnRouteStep] = useState(0);
+  useEffect(() => {
+    if (!__DEV__ || !isEnRoute || approachRoute.length < 2) return;
+    setEnRouteStep(0);
+    const iv = setInterval(() => {
+      setEnRouteStep((s) => {
+        if (s >= approachRoute.length - 1) {
+          clearInterval(iv);
+          return s;
+        }
+        return s + 1;
+      });
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [isEnRoute, approachRoute]);
+
+  // Only the leg still ahead of the driver: from current position to the pickup.
+  const remainingApproach = useMemo(() => {
+    if (approachRoute.length < 2) return undefined;
+    const from = Math.min(enRouteStep, approachRoute.length - 1);
+    return approachRoute.slice(from);
+  }, [approachRoute, enRouteStep]);
+
+  // In dev the marker follows the sliced approach; on device it tracks live GPS.
+  const enRouteDriverCoord = __DEV__ ? remainingApproach?.[0] ?? null : driverCoord;
+
   // Dev-only mock: step a marker to the destination once IN_PROGRESS, since the
   // emulator emits no real GPS. Takes precedence over the static socket coord.
   // ponytail: __DEV__-gated; real device uses live driver.location_updated.
@@ -157,7 +211,13 @@ export default function ActiveTripScreen() {
     return () => clearInterval(iv);
   }, [status, routeData?.route]);
 
-  const effectiveDriverCoord = mockCoord ?? driverCoord;
+  const effectiveDriverCoord = isEnRoute ? enRouteDriverCoord : mockCoord ?? driverCoord;
+
+  // During approach, show the driver → pickup leg with the pickup as the target
+  // marker; otherwise show the pickup → dropoff trip route.
+  const mapRoute = isEnRoute ? remainingApproach : routeData?.route;
+  const mapOrigin = isEnRoute ? undefined : routeData?.origin;
+  const mapDestination = isEnRoute ? routeData?.origin : routeData?.destination;
 
   // Follow the driver marker during the active legs; entry fit is handled by
   // the bounds prop until the driver starts moving.
@@ -192,9 +252,9 @@ export default function ActiveTripScreen() {
       <AppMap
         ref={mapRef}
         camera={camera}
-        route={routeData?.route}
-        origin={routeData?.origin}
-        destination={routeData?.destination}
+        route={mapRoute}
+        origin={mapOrigin}
+        destination={mapDestination}
         driver={effectiveDriverCoord ?? undefined}
         bounds={showBounds ? routeData?.bounds : undefined}
       />

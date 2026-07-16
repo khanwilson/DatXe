@@ -43,6 +43,8 @@ const en: iLocalization = {
   // Route booking modal
   bookingDiscountCode: 'Discount code',
   bookingPaymentCash: 'Cash',
+  bookingPaymentVnpay: 'VNPay',
+  bookingSelectPayment: 'Select payment method',
   bookingBookButton: 'BOOK RIDE',
   bookingContinueSearch: 'Keep searching',
   bookingCancelTrip: 'Cancel trip',

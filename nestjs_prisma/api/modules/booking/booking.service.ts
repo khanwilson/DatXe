@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BookingStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
 export class BookingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(userId: string, dto: CreateBookingDto) {
     const customer = await this.prisma.customer.findUnique({
@@ -27,10 +31,16 @@ export class BookingService {
         dropoff_address: dto.dropoff_address,
         vehicle_type: dto.vehicle_type,
         estimated_price: dto.estimated_price,
+        payment_method: dto.payment_method,
         note: dto.note,
         status: BookingStatus.PENDING,
       },
     });
+
+    // Cash bookings skip VNPay — start driver dispatch immediately.
+    if (dto.payment_method === 'CASH') {
+      this.eventEmitter.emit('payment.success', { bookingId: booking.id });
+    }
 
     return booking;
   }

@@ -10,6 +10,7 @@ export interface CreateBookingDto {
   dropoff_address: string;
   vehicle_type: string;
   estimated_price: number;
+  payment_method: 'CASH' | 'VNPAY';
 }
 
 export interface BookingResponse {

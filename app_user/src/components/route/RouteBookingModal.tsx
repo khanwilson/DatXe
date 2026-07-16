@@ -4,11 +4,13 @@ import { AppBottomSheet } from 'components/modal/AppBottomSheet';
 import { VehicleType, VehicleTypeItem } from 'components/route/VehicleTypeItem';
 import { AppText } from 'components/text/AppText';
 import { getString } from 'localization/index';
-import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, Animated, Easing, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Easing, FlatList, Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 
 // 2. VARIABLES & TYPES
+export type PaymentMethod = 'VNPAY' | 'CASH';
+
 interface IProps {
   vehicles: VehicleType[];
   selectedVehicleId: string | null;
@@ -16,6 +18,8 @@ interface IProps {
   onBook: () => void;
   onDismiss?: () => void;
   loading?: boolean;
+  paymentMethod: PaymentMethod;
+  onChangePaymentMethod: (method: PaymentMethod) => void;
   // When true, no driver was found after a paid booking: replace the book
   // button with a continue-search / cancel row.
   awaitingDecision?: boolean;
@@ -28,9 +32,10 @@ interface IProps {
 
 // 3. COMPONENT FUNCTION
 export const RouteBookingModal = forwardRef<BottomSheetModal, IProps>((props: IProps, ref: ForwardedRef<BottomSheetModal>) => {
-  const { vehicles, selectedVehicleId, onSelectVehicle, onBook, onDismiss, loading = false, awaitingDecision = false, onContinue, onCancel, decisionTimeoutMs } = props;
+  const { vehicles, selectedVehicleId, onSelectVehicle, onBook, onDismiss, loading = false, paymentMethod, onChangePaymentMethod, awaitingDecision = false, onContinue, onCancel, decisionTimeoutMs } = props;
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
+  const [showPaymentPicker, setShowPaymentPicker] = useState(false);
 
   // Progress overlay on the continue button: a lighter shade anchored to the
   // right edge that grows right-to-left, filling the whole button exactly when
@@ -97,14 +102,37 @@ export const RouteBookingModal = forwardRef<BottomSheetModal, IProps>((props: IP
             </TouchableOpacity>
           </View>
           <View style={styles.paymentRow}>
-            <AppText style={styles.paymentIcon}>💵</AppText>
+            <AppText style={styles.paymentIcon}>{paymentMethod === 'VNPAY' ? '💳' : '💵'}</AppText>
             <AppText style={styles.paymentText}>
-              {getString('bookingPaymentCash')}
+              {getString(paymentMethod === 'VNPAY' ? 'bookingPaymentVnpay' : 'bookingPaymentCash')}
             </AppText>
-            <TouchableOpacity style={styles.paymentSettings} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.paymentSettings} activeOpacity={0.8} onPress={() => setShowPaymentPicker(true)}>
               <AppText style={styles.paymentSettingsText}>...</AppText>
             </TouchableOpacity>
           </View>
+          <Modal visible={showPaymentPicker} transparent animationType="fade" onRequestClose={() => setShowPaymentPicker(false)}>
+            <Pressable style={styles.pickerOverlay} onPress={() => setShowPaymentPicker(false)}>
+              <View style={styles.pickerSheet}>
+                <AppText style={styles.pickerTitle}>{getString('bookingSelectPayment')}</AppText>
+                <TouchableOpacity
+                  style={[styles.pickerOption, paymentMethod === 'VNPAY' && styles.pickerOptionActive]}
+                  onPress={() => { onChangePaymentMethod('VNPAY'); setShowPaymentPicker(false); }}
+                  activeOpacity={0.7}
+                >
+                  <AppText style={styles.pickerOptionIcon}>💳</AppText>
+                  <AppText style={styles.pickerOptionText}>{getString('bookingPaymentVnpay')}</AppText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.pickerOption, paymentMethod === 'CASH' && styles.pickerOptionActive]}
+                  onPress={() => { onChangePaymentMethod('CASH'); setShowPaymentPicker(false); }}
+                  activeOpacity={0.7}
+                >
+                  <AppText style={styles.pickerOptionIcon}>💵</AppText>
+                  <AppText style={styles.pickerOptionText}>{getString('bookingPaymentCash')}</AppText>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Modal>
           {awaitingDecision ? (
             <View style={styles.decisionRow}>
               <TouchableOpacity
@@ -270,6 +298,43 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: theme.color.state.error,
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  pickerSheet: {
+    backgroundColor: theme.color.background.surface,
+    borderTopLeftRadius: theme.dimensions.p16,
+    borderTopRightRadius: theme.dimensions.p16,
+    paddingHorizontal: theme.dimensions.p16,
+    paddingTop: theme.dimensions.p16,
+    paddingBottom: theme.dimensions.p32,
+  },
+  pickerTitle: {
+    fontSize: theme.fontSize.p16,
+    fontWeight: '700',
+    color: theme.color.text.primary,
+    marginBottom: theme.dimensions.p12,
+  },
+  pickerOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.dimensions.p12,
+    paddingHorizontal: theme.dimensions.p12,
+    borderRadius: theme.dimensions.p8,
+  },
+  pickerOptionActive: {
+    backgroundColor: theme.color.background.app,
+  },
+  pickerOptionIcon: {
+    fontSize: theme.fontSize.p16,
+    marginRight: theme.dimensions.p12,
+  },
+  pickerOptionText: {
+    fontSize: theme.fontSize.p14,
+    color: theme.color.text.primary,
   },
 });
 

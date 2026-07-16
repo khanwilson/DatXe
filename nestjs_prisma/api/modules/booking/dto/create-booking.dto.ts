@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsIn, Min } from 'class-validator';
 
 export class CreateBookingDto {
   @IsNumber()
@@ -28,6 +28,10 @@ export class CreateBookingDto {
   @IsNumber()
   @Min(0)
   estimated_price: number;
+
+  @IsString()
+  @IsIn(['CASH', 'VNPAY'])
+  payment_method: string;
 
   @IsString()
   @IsOptional()

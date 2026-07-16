@@ -3,7 +3,7 @@ import { AppMap, AppMapHandle, MapBounds } from 'components/map/AppMap';
 import { FOCUSED_ZOOM, MapCamera } from 'constants/mapbox';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import { RadarAnimation } from 'components/map/RadarAnimation';
-import { RouteBookingModal } from 'components/route/RouteBookingModal';
+import { RouteBookingModal, PaymentMethod } from 'components/route/RouteBookingModal';
 import { VehicleType } from 'components/route/VehicleTypeItem';
 import { BackButton } from 'components/navigation/BackButton';
 import ZustandSession from 'zustand/session';
@@ -74,6 +74,7 @@ export default function BookingRouteScreen() {
   // booking is actually cancelled server-side.
   const [decisionTimeoutMs, setDecisionTimeoutMs] = useState<number>(0);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>(MOCK_VEHICLES[0].id);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('VNPAY');
   const [routeData, setRouteData] = useState<{
     route: [number, number][];
     origin: [number, number];
@@ -306,10 +307,17 @@ export default function BookingRouteScreen() {
         dropoff_address: savedDestination.address ?? savedDestination.name,
         vehicle_type: selected.id,
         estimated_price: bookingAmount,
+        payment_method: paymentMethod === 'CASH' ? 'CASH' : 'VNPAY',
       };
 
       const booking = await bookingService.createBooking(bookingDto);
       ZustandSession.getState().save('activeBookingId', booking.data.id);
+
+      // Cash: skip VNPay, go directly to looking for a driver.
+      if (paymentMethod === 'CASH') {
+        setScreenState('LOOKING');
+        return;
+      }
 
       // Safe booking reference (no spaces, URL-safe) with price for auditing.
       // Ponytail: ASCII/URL limit; avoid unicode/diacritics.
@@ -363,28 +371,26 @@ export default function BookingRouteScreen() {
       console.error('[BookingRouteScreen] booking/payment failed:', rawError);
       Alert.alert('Đặt xe thất bại', 'Có lỗi xảy ra khi đặt xe. Vui lòng thử lại.');
     }
-  }, [effectiveOrigin, savedDestination, savedPickup, routeData, selectedVehicleId, directionsData]);
+  }, [effectiveOrigin, savedDestination, savedPickup, routeData, selectedVehicleId, directionsData, paymentMethod]);
 
   const isModalVisible = screenState === 'IDLE' || screenState === 'BOOKING' || screenState === 'PAYMENT' || screenState === 'AWAITING_DECISION';
   const isLooking = screenState === 'LOOKING';
   const mapPaddingBottom = isModalVisible ? 520 : 0;
 
-  // While the radar is showing, pan the map so the pickup sits at screen center
-  // (under the radar). The route bounds are dropped so nothing offsets it.
-  useEffect(() => {
-    if (!isLooking || originLat == null || originLng == null) return;
-    const target: MapCamera = {
-      centerCoordinate: [originLng, originLat],
-      zoomLevel: FOCUSED_ZOOM,
-    };
-    mapRef.current?.moveCamera(target);
-  }, [isLooking, originLat, originLng]);
+  // When looking, use pickup as camera so the declarative Camera component
+  // doesn't snap back to GPS on re-render.
+  const mapCamera = useMemo<MapCamera>(() => {
+    if (isLooking && originLat != null && originLng != null) {
+      return { centerCoordinate: [originLng, originLat], zoomLevel: FOCUSED_ZOOM };
+    }
+    return camera;
+  }, [isLooking, originLat, originLng, camera]);
 
   return (
     <View style={styles.container}>
       <AppMap
         ref={mapRef}
-        camera={camera}
+        camera={mapCamera}
         route={routeData?.route}
         origin={routeData?.origin}
         destination={routeData?.destination}
@@ -406,6 +412,8 @@ export default function BookingRouteScreen() {
           onSelectVehicle={setSelectedVehicleId}
           loading={screenState === 'BOOKING' || screenState === 'PAYMENT'}
           onBook={handleBook}
+          paymentMethod={paymentMethod}
+          onChangePaymentMethod={setPaymentMethod}
           awaitingDecision={screenState === 'AWAITING_DECISION'}
           onContinue={handleContinueSearch}
           onCancel={handleCancelTrip}

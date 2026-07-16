@@ -43,6 +43,8 @@ const vi: iLocalization = {
   // Route booking modal
   bookingDiscountCode: 'Mã giảm giá',
   bookingPaymentCash: 'Tiền mặt',
+  bookingPaymentVnpay: 'VNPay',
+  bookingSelectPayment: 'Chọn phương thức thanh toán',
   bookingBookButton: 'ĐẶT XE',
   bookingContinueSearch: 'Tiếp tục tìm',
   bookingCancelTrip: 'Hủy chuyến',

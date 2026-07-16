@@ -41,6 +41,8 @@ export interface iLocalization {
   // Route booking modal
   bookingDiscountCode: string;
   bookingPaymentCash: string;
+  bookingPaymentVnpay: string;
+  bookingSelectPayment: string;
   bookingBookButton: string;
   bookingContinueSearch: string;
   bookingCancelTrip: string;
