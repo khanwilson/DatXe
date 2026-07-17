@@ -50,17 +50,13 @@ const mockUpdateProfile = async (data: UpdateProfileRequest): Promise<User> => {
 
 // API Functions
 export const userService = {
+  // DEMO: always hits real API (removed __DEV__ mock gate).
   getProfile: (): Promise<User> => {
-    if (__DEV__) {
-      return mockGetProfile();
-    }
     return apiClient.get(ENDPOINTS.USER.PROFILE);
   },
 
+  // DEMO: always hits real API (removed __DEV__ mock gate).
   updateProfile: (data: UpdateProfileRequest): Promise<User> => {
-    if (__DEV__) {
-      return mockUpdateProfile(data);
-    }
     return apiClient.put(ENDPOINTS.USER.UPDATE_PROFILE, data);
   },
 };

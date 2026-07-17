@@ -1,5 +1,6 @@
 export const baseUrl = {
-  value: 'http://192.168.1.27:3000/api/v1',
+  // value: 'http://192.168.1.27:3000/api/v1',
+  value: 'http://187.124.226.230:3000/api/v1',
 };
 
 // API Endpoints

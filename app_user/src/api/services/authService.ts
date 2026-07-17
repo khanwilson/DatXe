@@ -50,10 +50,8 @@ const mockRequestOtp = async (): Promise<{ data: RequestOtpResponse }> => {
 // API Functions
 export const authService = {
   // Request an OTP code to be sent to the given phone number.
+  // DEMO: always hits real API (removed __DEV__ mock gate).
   requestOtp: (data: RequestOtpRequest): Promise<{ data: RequestOtpResponse }> => {
-    if (__DEV__) {
-      return mockRequestOtp();
-    }
     return apiClient.post(ENDPOINTS.AUTH.REQUEST_OTP, data);
   },
 

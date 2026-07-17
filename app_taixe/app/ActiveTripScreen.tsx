@@ -43,6 +43,7 @@ export default function ActiveTripScreen() {
 
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [driverCoord, setDriverCoord] = useState<[number, number] | null>(null);
+  const [tripStep, setTripStep] = useState(0);
   // Driver lands here right after tapping "Arrived": trip is DRIVER_ARRIVED and
   // waits at the pickup until the driver taps Start.
   const [status, setStatus] = useState<TripStatus>('ARRIVED');
@@ -119,20 +120,30 @@ export default function ActiveTripScreen() {
     const path = routeData?.route;
     if (!path || path.length < 2) return;
 
-    let step = 0;
+    setTripStep(0);
     setDriverCoord(path[0]);
     const iv = setInterval(() => {
-      step += 1;
-      if (step >= path.length - 1) {
-        setDriverCoord(path[path.length - 1]);
-        clearInterval(iv);
-        return;
-      }
-      setDriverCoord(path[step]);
+      setTripStep((s) => {
+        const next = s + 1;
+        if (next >= path.length - 1) {
+          setDriverCoord(path[path.length - 1]);
+          clearInterval(iv);
+          return path.length - 1;
+        }
+        setDriverCoord(path[next]);
+        return next;
+      });
     }, 1000);
 
     return () => clearInterval(iv);
   }, [status, routeData?.route]);
+
+  // ponytail: trim route line to show only the leg ahead of driver
+  const remainingRoute = useMemo(() => {
+    const path = routeData?.route;
+    if (!path || path.length < 2) return path;
+    return path.slice(Math.min(tripStep, path.length - 1));
+  }, [routeData?.route, tripStep]);
 
   const handleCompleteTrip = useCallback(async () => {
     if (!tripId || loading) return;
@@ -160,7 +171,7 @@ export default function ActiveTripScreen() {
       <AppMap
         ref={mapRef}
         camera={camera}
-        route={routeData?.route}
+        route={remainingRoute}
         origin={routeData?.origin}
         destination={routeData?.destination}
         driver={driverCoord ?? undefined}

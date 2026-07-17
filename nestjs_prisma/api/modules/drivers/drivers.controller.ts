@@ -30,8 +30,7 @@ export class DriversController {
     @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateDriverLocationDto,
   ) {
-    await this.driversService.updateDriverLocation(user.sub, dto);
-    return { success: true };
+    return this.driversService.updateDriverLocation(user.sub, dto);
   }
 
   @Post('online')
@@ -40,8 +39,7 @@ export class DriversController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'Driver is now online' })
   async goOnline(@CurrentUser() user: JwtPayload) {
-    const data = await this.driversService.goOnline(user.sub);
-    return { success: true, data };
+    return this.driversService.goOnline(user.sub);
   }
 
   @Post('offline')
@@ -50,8 +48,7 @@ export class DriversController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'Driver is now offline' })
   async goOffline(@CurrentUser() user: JwtPayload) {
-    const data = await this.driversService.goOffline(user.sub);
-    return { success: true, data };
+    return this.driversService.goOffline(user.sub);
   }
 
   @Get('stats')
@@ -59,8 +56,7 @@ export class DriversController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Driver stats for today' })
   async getStats(@CurrentUser() user: JwtPayload) {
-    const data = await this.driversService.getDriverStats(user.sub);
-    return { success: true, data };
+    return this.driversService.getDriverStats(user.sub);
   }
 
   @Get(':id/location')
@@ -68,10 +64,6 @@ export class DriversController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'Driver location' })
   async getDriverLocation(@Param('id') id: string) {
-    const location = await this.driversService.getDriverLocation(id);
-    return {
-      success: true,
-      data: location,
-    };
+    return this.driversService.getDriverLocation(id);
   }
 }

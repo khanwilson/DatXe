@@ -71,21 +71,20 @@ export const goongPlaceService = {
     query: string,
     language: string = 'vi'
   ): Promise<AutocompleteResponse> {
-    const response = await apiClient.get<ApiResponse<{ data: AutocompleteResponse }>>(
+    const response = await apiClient.get<ApiResponse<AutocompleteResponse>>(
       ENDPOINTS.ROUTES.AUTOCOMPLETE,
       {
         params: { query, language },
       }
     );
-    return response.data?.data;
+    return response.data;
   },
 
   async placeDetail(placeId: string): Promise<PlaceDetailResponse> {
-    const response = await apiClient.get<ApiResponse<{ data: PlaceDetailResponse }>>(
+    const response = await apiClient.get<ApiResponse<PlaceDetailResponse>>(
       `${ENDPOINTS.ROUTES.PLACE_DETAIL}/${placeId}`
     );
-    console.info('Place detail response:', response.data);
-    return response.data?.data;
+    return response.data;
   },
 
   async getDirections(
@@ -94,7 +93,7 @@ export const goongPlaceService = {
     mode: string = 'driving'
   ): Promise<DirectionsResponse> {
     try {
-      const response = await apiClient.post<ApiResponse<{ data: DirectionsResponse }>>(
+      const response = await apiClient.post<ApiResponse<DirectionsResponse>>(
         ENDPOINTS.ROUTES.DIRECTIONS,
         {
           origin: `${origin.lat},${origin.lng}`,
@@ -103,14 +102,12 @@ export const goongPlaceService = {
         }
       );
 
-      // Validate response
-      if (!response.data?.data) {
+      if (!response.data) {
         throw new Error('Invalid response from directions API');
       }
 
-      const directionsData = response.data.data;
+      const directionsData = response.data;
 
-      // Ensure routes array exists
       if (!Array.isArray(directionsData.routes)) {
         directionsData.routes = [];
       }
@@ -118,7 +115,6 @@ export const goongPlaceService = {
       return directionsData;
     } catch (error) {
       console.error('Error in getDirections:', error);
-      // Return a safe default structure to prevent crashes
       return {
         routes: [],
         summary: {

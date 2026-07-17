@@ -9,13 +9,9 @@ import { ITheme, useAppTheme } from 'theme/index';
 import { useTranslation } from 'react-i18next';
 import { useDriverLocation } from 'api/hooks/useDriverLocation';
 import { useDriverSocket, NewOfferPayload } from 'api/hooks/useDriverSocket';
+import { useDriverStats } from 'api/hooks/useDriverStats';
 import { apiClient } from 'api/axios/client';
 import { ENDPOINTS } from 'api/axios/config';
-
-// 2. VARIABLES & TYPES
-interface DashboardStats {
-  tripsToday: number;
-}
 
 // 3. COMPONENT FUNCTION
 export default function HomeScreen() {
@@ -26,9 +22,23 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const [isOnline, setIsOnline] = useState(false);
-  const [stats, setStats] = useState<DashboardStats>({ tripsToday: 0 });
 
   const { location, error: locationError, startBroadcasting, stopBroadcasting } = useDriverLocation();
+  const { data: stats, refetch: refetchStats } = useDriverStats();
+
+  // Sync online status from backend on every screen focus so it survives navigation.
+  useFocusEffect(
+    useCallback(() => {
+      refetchStats().then(({ data }) => {
+        if (data?.isOnline != null) {
+          setIsOnline(data.isOnline);
+          if (data.isOnline) {
+            startBroadcasting();
+          }
+        }
+      });
+    }, [refetchStats, startBroadcasting]),
+  );
 
   // A driver may only see one offer at a time. When a driver goes online mid-
   // search, several waiting bookings can each fire driver.new_offer at once —
@@ -77,30 +87,19 @@ export default function HomeScreen() {
   const handleToggleOnline = useCallback(async () => {
     try {
       if (isOnline) {
-        // Go offline
         await apiClient.post(ENDPOINTS.DRIVER.GO_OFFLINE);
         stopBroadcasting();
         setIsOnline(false);
-        console.debug('[Dashboard] Went offline');
       } else {
-        // Go online
         await apiClient.post(ENDPOINTS.DRIVER.GO_ONLINE);
-        await startBroadcasting();
+        startBroadcasting();
         setIsOnline(true);
-        console.debug('[Dashboard] Went online');
-
-        // Fetch stats (mock in dev)
-        if (__DEV__) {
-          setStats({ tripsToday: 0 });
-        } else {
-          const response = await apiClient.get<DashboardStats>(ENDPOINTS.DRIVER.GET_STATS);
-          setStats(response);
-        }
+        refetchStats();
       }
     } catch (err) {
       console.debug('[Dashboard] Toggle failed:', err);
     }
-  }, [isOnline, startBroadcasting, stopBroadcasting]);
+  }, [isOnline, startBroadcasting, stopBroadcasting, refetchStats]);
 
   // Camera position for map
   const camera = useMemo(() => {
@@ -131,7 +130,7 @@ export default function HomeScreen() {
             </AppText>
           </View>
           <AppText style={styles.statsText}>
-            {t('dashboardTripsToday')}: {stats.tripsToday}
+            {t('dashboardTripsToday')}: {stats?.tripsToday ?? 0}
           </AppText>
         </View>
 

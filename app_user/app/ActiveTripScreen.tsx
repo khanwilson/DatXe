@@ -158,12 +158,11 @@ export default function ActiveTripScreen() {
     }
   }, [approachDirections]);
 
-  // Fake the driver's approach in dev where the emulator emits no real GPS:
-  // advance a step index along the approach route so the line shrinks behind it.
-  // ponytail: __DEV__-gated; real device uses live driver.location_updated.
+  // DEMO: animation always runs (removed __DEV__ gate for demo builds).
+  // ponytail: revert to __DEV__-gated when live driver.location_updated works.
   const [enRouteStep, setEnRouteStep] = useState(0);
   useEffect(() => {
-    if (!__DEV__ || !isEnRoute || approachRoute.length < 2) return;
+    if (!isEnRoute || approachRoute.length < 2) return;
     setEnRouteStep(0);
     const iv = setInterval(() => {
       setEnRouteStep((s) => {
@@ -184,38 +183,48 @@ export default function ActiveTripScreen() {
     return approachRoute.slice(from);
   }, [approachRoute, enRouteStep]);
 
-  // In dev the marker follows the sliced approach; on device it tracks live GPS.
-  const enRouteDriverCoord = __DEV__ ? remainingApproach?.[0] ?? null : driverCoord;
+  // DEMO: always use mock animation coord; revert to driverCoord when socket works.
+  const enRouteDriverCoord = remainingApproach?.[0] ?? driverCoord;
 
-  // Dev-only mock: step a marker to the destination once IN_PROGRESS, since the
-  // emulator emits no real GPS. Takes precedence over the static socket coord.
-  // ponytail: __DEV__-gated; real device uses live driver.location_updated.
+  // DEMO: animation always runs (removed __DEV__ gate for demo builds).
+  // ponytail: revert to __DEV__-gated when live driver.location_updated works.
   const [mockCoord, setMockCoord] = useState<[number, number] | null>(null);
+  const [tripStep, setTripStep] = useState(0);
   useEffect(() => {
-    if (!__DEV__ || status !== 'IN_PROGRESS') return;
+    if (status !== 'IN_PROGRESS') return;
     const path = routeData?.route;
     if (!path || path.length < 2) return;
 
-    let step = 0;
+    setTripStep(0);
     setMockCoord(path[0]);
     const iv = setInterval(() => {
-      step += 1;
-      if (step >= path.length - 1) {
-        setMockCoord(path[path.length - 1]);
-        clearInterval(iv);
-        return;
-      }
-      setMockCoord(path[step]);
+      setTripStep((s) => {
+        const next = s + 1;
+        if (next >= path.length - 1) {
+          setMockCoord(path[path.length - 1]);
+          clearInterval(iv);
+          return path.length - 1;
+        }
+        setMockCoord(path[next]);
+        return next;
+      });
     }, 1000);
 
     return () => clearInterval(iv);
   }, [status, routeData?.route]);
 
+  // ponytail: trim route line to show only the leg ahead of driver
+  const remainingTripRoute = useMemo(() => {
+    const path = routeData?.route;
+    if (!path || path.length < 2) return path;
+    return path.slice(Math.min(tripStep, path.length - 1));
+  }, [routeData?.route, tripStep]);
+
   const effectiveDriverCoord = isEnRoute ? enRouteDriverCoord : mockCoord ?? driverCoord;
 
   // During approach, show the driver → pickup leg with the pickup as the target
   // marker; otherwise show the pickup → dropoff trip route.
-  const mapRoute = isEnRoute ? remainingApproach : routeData?.route;
+  const mapRoute = isEnRoute ? remainingApproach : remainingTripRoute;
   const mapOrigin = isEnRoute ? undefined : routeData?.origin;
   const mapDestination = isEnRoute ? routeData?.origin : routeData?.destination;
 

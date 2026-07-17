@@ -510,6 +510,7 @@ export class DriversService implements OnModuleInit, OnModuleDestroy {
     }, 0);
 
     return {
+      isOnline: driver.is_online,
       tripsToday,
       earningsToday,
     };
