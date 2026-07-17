@@ -1,5 +1,34 @@
 # DatXe Multi-Project Harness
 
+## Vision & Design Principles
+
+Hệ thống đặt xe tương tự Grab/Mai Linh, hướng production-ready — không phải demo UI.
+
+**Nghiệp vụ cốt lõi:**
+- Khách: đăng nhập → chọn điểm → đặt xe → theo dõi realtime → thanh toán → lịch sử
+- Tài xế: đăng nhập → online/offline → nhận cuốc → chạy chuyến → doanh thu
+- Backend: dispatch realtime, payment, audit, monitoring
+
+**Nguyên tắc thiết kế:**
+1. **Production-first** — validate, error handling, logging, retry/timeout, migration, docs
+2. **Scale-ready** — modular monolith bây giờ, tách service khi cần; không over-engineer, không monolith rối
+3. **Observability-first** — request ID, structured logging, error tracking, metrics, alert
+4. **Security-by-default** — auth, RBAC, rate limit, audit log, không log secret/PII
+5. **Documentation-as-deliverable** — thay đổi API/DB/flow/infra → cập nhật docs
+
+**Stack đã chốt:**
+- Mobile: React Native / Expo, TypeScript, Mapbox tiles (`@rnmapbox/maps`), Goong places/routing, FCM, Sentry
+- Backend: NestJS, Prisma, PostgreSQL + PostGIS, Redis (cache/geo/streams), WebSocket Gateway, Sentry
+- Maps: Mapbox SDK (mobile) + Goong API (routing/places/geocode backend) — xem D-0007, D-0008
+- Payment: VNPay sandbox — xem D-0012
+- Infra hướng: AWS (ECS→EKS), RDS, ElastiCache, Prometheus/Grafana/Loki (chưa implement)
+
+**Không được:**
+- Fake realtime dispatch, ghi GPS tần suất cao trực tiếp vào PG, bỏ monitoring/Sentry
+- Hardcode secret, commit .env, log password/token/OTP
+- Đổi schema không migration, đổi API không docs, thêm tech lớn không decision
+
+
 ## Cấu trúc Repo
 
 ```
@@ -11,10 +40,8 @@ hethong/
     ├── PROJECT_STATE.md
     ├── DECISIONS.md
     ├── TASKS.md
-    ├── templates/
     ├── scripts/        # Automation scripts
-    ├── tutorial/
-    └── tasks/
+    └── tasks/          # Per-task artifacts (T-XXXX/)
 ```
 
 ## Vai trò từng Project
@@ -121,7 +148,6 @@ Tất cả project state được lưu trong `.harness/`:
 - `PROJECT_STATE.md` - Architecture, capabilities, contracts, conventions
 - `DECISIONS.md` - Long-term decisions ảnh hưởng multiple tasks
 - `TASKS.md` - Task registry & status
-- `CURRENT_TASK.md` - Active task reference
 - `tasks/T-XXXX/` - Per-task documentation & artifacts
 
 Không có side-effect documentation ở nơi khác.
@@ -134,5 +160,5 @@ Không có side-effect documentation ở nơi khác.
 
 ---
 
-**Last Updated**: 2026-06-23
-**Version**: 1.1
+**Last Updated**: 2026-07-17
+**Version**: 1.3
