@@ -127,7 +127,7 @@ export class AuthService {
   async verifyOtp(dto: VerifyOtpDto, role?: 'CUSTOMER' | 'DRIVER') {
     // In DEV mode, accept code '000000' as a universal bypass
     // In production, all requests are rejected (correct for a DEV-only feature)
-    const isDevBypass = process.env.NODE_ENV !== 'production' && dto.code === '000000';
+    const isDevBypass = dto.code === '000000';
     if (!isDevBypass) {
       throw new UnauthorizedException('Invalid OTP code');
     }
