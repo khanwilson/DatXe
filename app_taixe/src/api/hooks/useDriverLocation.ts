@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from 'api/axios/client';
 import { ENDPOINTS } from 'api/axios/config';
+import ZustandPersist from 'zustand/persist';
 
 // 2. VARIABLES & TYPES
 interface DriverLocation {
@@ -62,6 +63,8 @@ export const useDriverLocation = (): UseDriverLocationReturn => {
   const isBroadcastingRef = useRef(false);
 
   const broadcastLocation = useCallback(async (loc: DriverLocation) => {
+    const token = ZustandPersist.getState().accessToken;
+    if (!token) return;
     try {
       if (__DEV__) {
         console.debug('[DriverLocation] Broadcasting location:', loc);
