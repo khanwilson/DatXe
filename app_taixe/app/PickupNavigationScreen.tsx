@@ -1,10 +1,12 @@
 // 1. IMPORTS
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AppMap, AppMapHandle, MapBounds } from 'components/map/AppMap';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import { BackButton } from 'components/navigation/BackButton';
+import { NavigationBanner } from 'components/navigation/NavigationBanner';
+import { NavigationBottomBar } from 'components/navigation/NavigationBottomBar';
 import { AppText } from 'components/text/AppText';
 import { AppButton } from 'components/button/AppButton';
 import { useDirections } from 'api/hooks/useGoongPlace';
@@ -46,6 +48,7 @@ export default function PickupNavigationScreen() {
   const pickupAddress = params.pickupAddress ?? '';
 
   const [routeData, setRouteData] = useState<RouteData | null>(null);
+  const [navigationMode, setNavigationMode] = useState(false);
   // Index of the driver's current position along routeData.route (fake movement).
   const [step, setStep] = useState(0);
 
@@ -126,6 +129,10 @@ export default function PickupNavigationScreen() {
 
   const driverCoord = remainingRoute?.[0] ?? null;
 
+  const toggleNavMode = useCallback(() => setNavigationMode((v) => !v), []);
+  const handleRecenter = useCallback(() => setNavigationMode(true), []);
+  const handleOverview = useCallback(() => setNavigationMode(false), []);
+
   const handleArrived = useCallback(async () => {
     if (!tripId) return;
     try {
@@ -147,6 +154,34 @@ export default function PickupNavigationScreen() {
     }
   }, [tripId, arrivedAtPickup, router, params.pickupLat, params.pickupLng, params.destinationLat, params.destinationLng, params.destinationAddress, params.fare]);
 
+  // Extract steps from Goong directions response (untyped — backend passes raw)
+  // ponytail: cast to any since RouteGeometry doesn't declare steps; runtime has them
+  const routeSteps = useMemo(() => {
+    const route = (directionsData?.routes?.[0] as any);
+    const legs = route?.legs;
+    if (Array.isArray(legs) && legs.length > 0 && Array.isArray(legs[0].steps)) {
+      return legs[0].steps as { instruction: string; distance: { text: string; value: number }; duration: { text: string; value: number } }[];
+    }
+    return null;
+  }, [directionsData]);
+
+  // Advance currentStepIndex proportionally to the driver's progress along the route
+  // ponytail: simple proportional mapping — step index tracks route coord index
+  const currentStepIndex = useMemo(() => {
+    if (!routeSteps || routeSteps.length === 0) return 0;
+    const path = routeData?.route;
+    if (!path || path.length < 2) return 0;
+    const progress = step / (path.length - 1); // 0..1
+    return Math.min(Math.floor(progress * routeSteps.length), routeSteps.length - 1);
+  }, [routeSteps, routeData?.route, step]);
+
+  const currentStep = routeSteps?.[currentStepIndex];
+  // Fallback to summary if steps unavailable
+  const bannerInstruction = currentStep?.instruction ?? '';
+  const bannerStepDistance = currentStep?.distance?.text ?? directionsData?.summary?.totalDistance?.text ?? '';
+  const durationText = directionsData?.summary?.totalDuration?.text ?? '';
+  const distanceText = directionsData?.summary?.totalDistance?.text ?? '';
+
   return (
     <View style={styles.container}>
       <AppMap
@@ -156,23 +191,56 @@ export default function PickupNavigationScreen() {
         destination={routeData?.destination}
         driver={driverCoord ?? undefined}
         bounds={routeData?.bounds}
+        navigationMode={navigationMode}
       />
-      <View style={styles.backButtonContainer}>
-        <BackButton />
-      </View>
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
-        <AppText style={styles.sheetTitle}>{getString('pickupNavigationTitle')}</AppText>
-        <AppText style={styles.addressLabel}>{getString('pickupAddress')}</AppText>
-        <AppText style={styles.addressText}>{pickupAddress}</AppText>
-        <AppButton
-          style={[styles.arrivedButton, loading && styles.arrivedButtonDisabled]}
-          textStyle={styles.arrivedText}
-          text={loading ? '...' : getString('driverArrivedButton')}
-          onPress={handleArrived}
-          disabled={loading}
-        />
-      </View>
+
+      {/* Navigation mode overlays */}
+      {navigationMode && (
+        <>
+          <NavigationBanner
+            instruction={bannerInstruction}
+            stepDistance={bannerStepDistance}
+            destinationName={pickupAddress}
+          />
+          <NavigationBottomBar
+            eta={durationText}
+            distance={distanceText}
+            onRecenter={handleRecenter}
+            onOverview={handleOverview}
+          />
+        </>
+      )}
+
+      {/* Toggle navigation mode FAB */}
+      <TouchableOpacity
+        style={[styles.navToggle, navigationMode && styles.navToggleActive]}
+        onPress={toggleNavMode}
+        accessibilityLabel="Toggle navigation mode"
+        accessibilityRole="button"
+      >
+        <AppText style={styles.navToggleIcon}>{navigationMode ? '✕' : '▲'}</AppText>
+      </TouchableOpacity>
+
+      {!navigationMode && (
+        <>
+          <View style={styles.backButtonContainer}>
+            <BackButton />
+          </View>
+          <View style={styles.sheet}>
+            <View style={styles.handle} />
+            <AppText style={styles.sheetTitle}>{getString('pickupNavigationTitle')}</AppText>
+            <AppText style={styles.addressLabel}>{getString('pickupAddress')}</AppText>
+            <AppText style={styles.addressText}>{pickupAddress}</AppText>
+            <AppButton
+              style={[styles.arrivedButton, loading && styles.arrivedButtonDisabled]}
+              textStyle={styles.arrivedText}
+              text={loading ? '...' : getString('driverArrivedButton')}
+              onPress={handleArrived}
+              disabled={loading}
+            />
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -254,5 +322,30 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     fontSize: theme.fontSize.p16,
     fontWeight: '700',
     color: theme.color.white,
+  },
+  navToggle: {
+    position: 'absolute',
+    top: theme.dimensions.getHeightHeader - 30,
+    right: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  navToggleActive: {
+    backgroundColor: theme.color.primary.actionGreen,
+  },
+  navToggleIcon: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.color.text.primary,
   },
 });

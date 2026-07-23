@@ -4,11 +4,14 @@ import { useTripActions } from 'api/hooks/useTripActions';
 import { AppMap, AppMapHandle, MapBounds } from 'components/map/AppMap';
 import { useCurrentLocation } from 'components/map/useCurrentLocation';
 import { BackButton } from 'components/navigation/BackButton';
+import { NavigationBanner } from 'components/navigation/NavigationBanner';
+import { NavigationBottomBar } from 'components/navigation/NavigationBottomBar';
 import { TripStatusSheet } from 'components/trip/TripStatusSheet';
+import { AppText } from 'components/text/AppText';
 import { MOCK_DRIVER, TripStatus } from 'constants/trip';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 import { decodePolyline, getBounds } from 'utils/functions/decodePolyline';
 import ZustandSession from 'zustand/session';
@@ -27,9 +30,9 @@ export default function ActiveTripScreen() {
   const styles = useMemo(() => stylesSheet(theme), [theme]);
   const router = useRouter();
   const mapRef = useRef<AppMapHandle>(null);
-  const { camera, coordinate } = useCurrentLocation();
+  const { camera } = useCurrentLocation();
 
-  const params = useLocalSearchParams<{ tripId?: string; vehicleName?: string; fare?: string; pickupLat?: string; pickupLng?: string; destLat?: string; destLng?: string }>();
+  const params = useLocalSearchParams<{ tripId?: string; vehicleName?: string; fare?: string; pickupLat?: string; pickupLng?: string; destLat?: string; destLng?: string; destinationAddress?: string }>();
   const tripId = params.tripId ?? '';
   const vehicleName = params.vehicleName ?? '';
   const fare = params.fare ? Number(params.fare) : 0;
@@ -49,6 +52,14 @@ export default function ActiveTripScreen() {
   const [status, setStatus] = useState<TripStatus>('ARRIVED');
 
   const { startTrip, completeTrip, loading } = useTripActions();
+
+  const [navigationMode, setNavigationMode] = useState(false);
+  const toggleNavMode = useCallback(() => setNavigationMode((v) => !v), []);
+  const handleRecenter = useCallback(() => setNavigationMode(true), []);
+  const handleOverview = useCallback(() => setNavigationMode(false), []);
+
+  // ponytail: only allow nav toggle during ARRIVED and IN_PROGRESS
+  const showNavToggle = status === 'ARRIVED' || status === 'IN_PROGRESS';
 
   const originParam =
     pickupLat != null && pickupLng != null ? `${pickupLat},${pickupLng}` : null;
@@ -166,6 +177,33 @@ export default function ActiveTripScreen() {
     router.replace('/(tabs)/HomeScreen');
   }, [router]);
 
+  // Extract steps from Goong directions response (untyped — backend passes raw)
+  // ponytail: cast to any since RouteGeometry doesn't declare steps; runtime has them
+  const routeSteps = useMemo(() => {
+    const route = (directionsData?.routes?.[0] as any);
+    const legs = route?.legs;
+    if (Array.isArray(legs) && legs.length > 0 && Array.isArray(legs[0].steps)) {
+      return legs[0].steps as { instruction: string; distance: { text: string; value: number }; duration: { text: string; value: number } }[];
+    }
+    return null;
+  }, [directionsData]);
+
+  // Advance currentStepIndex proportionally to the driver's progress along the route
+  const currentStepIndex = useMemo(() => {
+    if (!routeSteps || routeSteps.length === 0) return 0;
+    const path = routeData?.route;
+    if (!path || path.length < 2) return 0;
+    const progress = tripStep / (path.length - 1); // 0..1
+    return Math.min(Math.floor(progress * routeSteps.length), routeSteps.length - 1);
+  }, [routeSteps, routeData?.route, tripStep]);
+
+  const currentStep = routeSteps?.[currentStepIndex];
+  const bannerInstruction = currentStep?.instruction ?? '';
+  const bannerStepDistance = currentStep?.distance?.text ?? directionsData?.summary?.totalDistance?.text ?? '';
+  const distanceText = directionsData?.summary?.totalDistance?.text ?? '';
+  const durationText = directionsData?.summary?.totalDuration?.text ?? '';
+  const destinationAddress = params.destinationAddress ?? '';
+
   return (
     <View style={styles.container}>
       <AppMap
@@ -176,20 +214,55 @@ export default function ActiveTripScreen() {
         destination={routeData?.destination}
         driver={driverCoord ?? undefined}
         bounds={routeData?.bounds}
+        navigationMode={navigationMode}
       />
-      <View style={styles.backButtonContainer}>
-        <BackButton />
-      </View>
-      <TripStatusSheet
-        status={status}
-        driver={MOCK_DRIVER}
-        vehicleName={vehicleName}
-        fare={fare}
-        summary={summary}
-        onCancel={handleCancel}
-        onDone={handleCompleteTrip}
-        onStartTrip={handleStartTrip}
-      />
+
+      {/* Navigation mode overlays */}
+      {navigationMode && (
+        <>
+          <NavigationBanner
+            instruction={bannerInstruction}
+            stepDistance={bannerStepDistance}
+            destinationName={destinationAddress}
+          />
+          <NavigationBottomBar
+            eta={durationText}
+            distance={distanceText}
+            onRecenter={handleRecenter}
+            onOverview={handleOverview}
+          />
+        </>
+      )}
+
+      {/* Toggle navigation mode FAB — only during ARRIVED / IN_PROGRESS */}
+      {showNavToggle && (
+        <TouchableOpacity
+          style={[styles.navToggle, navigationMode && styles.navToggleActive]}
+          onPress={toggleNavMode}
+          accessibilityLabel="Toggle navigation mode"
+          accessibilityRole="button"
+        >
+          <AppText style={styles.navToggleIcon}>{navigationMode ? '✕' : '▲'}</AppText>
+        </TouchableOpacity>
+      )}
+
+      {!navigationMode && (
+        <>
+          <View style={styles.backButtonContainer}>
+            <BackButton />
+          </View>
+          <TripStatusSheet
+            status={status}
+            driver={MOCK_DRIVER}
+            vehicleName={vehicleName}
+            fare={fare}
+            summary={summary}
+            onCancel={handleCancel}
+            onDone={handleCompleteTrip}
+            onStartTrip={handleStartTrip}
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -216,5 +289,30 @@ const stylesSheet = (theme: ITheme) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  navToggle: {
+    position: 'absolute',
+    top: theme.dimensions.getHeightHeader - 30,
+    right: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  navToggleActive: {
+    backgroundColor: theme.color.primary.actionGreen,
+  },
+  navToggleIcon: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.color.text.primary,
   },
 });

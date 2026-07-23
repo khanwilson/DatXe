@@ -1,8 +1,8 @@
 # Task Registry
 
-**Last Updated**: 2026-07-09  
+**Last Updated**: 2026-07-23  
 **Total Tasks**: 66  
-**Completed**: 24  
+**Completed**: 25  
 **In Progress**: 0  
 **Blocked**: 0  
 **Cancelled**: 5
@@ -82,6 +82,7 @@
 | T-0072 | P0 | Done | Done | Integration & Realtime Wiring | T-0068, T-0070, T-0071 | [T-0072](tasks/T-0072/) | all |
 | T-0073 | P0 | Done | Done | BE: Driver Online/Offline & Stats API | T-0068 | [T-0073](tasks/T-0073/) | nestjs_prisma |
 | T-0074 | P0 | Done | Done | Hoàn thiện flow đăng nhập Phone + OTP (app_user + app_taixe) | T-0003 | [T-0074](tasks/T-0074/) | nestjs_prisma, app_user, app_taixe |
+| T-0076 | P1 | Done | Done | In-app navigation mode (driver: pickup + active trip) | T-0069, T-0070 | [T-0076](tasks/T-0076/) | app_taixe |
 
 ### Wave 2: Core Backend APIs
 

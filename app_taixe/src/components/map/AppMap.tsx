@@ -33,13 +33,15 @@ interface IAppMapProps {
   driver?: [number, number];
   // Bounds to fit the map to (typically for route display)
   bounds?: MapBounds;
+  // Navigation mode: camera follows user with 3D pitch and bearing
+  navigationMode?: boolean;
 }
 
 const DEFAULT_ANIMATION_MS = 500;
 
 // 3. COMPONENT FUNCTION
 export const AppMap = forwardRef<AppMapHandle, IAppMapProps>((props, ref) => {
-  const { camera = DEFAULT_CAMERA, route, origin, destination, driver, bounds } = props;
+  const { camera = DEFAULT_CAMERA, route, origin, destination, driver, bounds, navigationMode } = props;
   const theme = useAppTheme();
   const styles = useMemo(() => stylesSheet(theme), [theme]);
   const cameraRef = useRef<MapboxGL.Camera>(null);
@@ -83,24 +85,34 @@ export const AppMap = forwardRef<AppMapHandle, IAppMapProps>((props, ref) => {
             centerCoordinate: camera.centerCoordinate,
             zoomLevel: camera.zoomLevel,
           }}
-          {...(bounds
+          {...(navigationMode
             ? {
-                bounds: {
-                  ne: bounds.ne,
-                  sw: bounds.sw,
-                  paddingTop: bounds.paddingTop ?? 100,
-                  paddingBottom: bounds.paddingBottom ?? 200,
-                  paddingLeft: bounds.paddingLeft ?? 50,
-                  paddingRight: bounds.paddingRight ?? 50,
-                },
-                maxZoomLevel: 16,
+                followUserLocation: true,
+                followPitch: 45,
+                followZoomLevel: 17,
+                animationMode: 'easeTo' as const,
+                animationDuration: DEFAULT_ANIMATION_MS,
               }
-            : {
-                centerCoordinate: camera.centerCoordinate,
-                zoomLevel: camera.zoomLevel,
-              })}
-          animationMode="flyTo"
-          animationDuration={DEFAULT_ANIMATION_MS}
+            : bounds
+              ? {
+                  bounds: {
+                    ne: bounds.ne,
+                    sw: bounds.sw,
+                    paddingTop: bounds.paddingTop ?? 100,
+                    paddingBottom: bounds.paddingBottom ?? 200,
+                    paddingLeft: bounds.paddingLeft ?? 50,
+                    paddingRight: bounds.paddingRight ?? 50,
+                  },
+                  maxZoomLevel: 16,
+                  animationMode: 'flyTo' as const,
+                  animationDuration: DEFAULT_ANIMATION_MS,
+                }
+              : {
+                  centerCoordinate: camera.centerCoordinate,
+                  zoomLevel: camera.zoomLevel,
+                  animationMode: 'flyTo' as const,
+                  animationDuration: DEFAULT_ANIMATION_MS,
+                })}
         />
         <MapboxGL.LocationPuck puckBearingEnabled visible />
 
